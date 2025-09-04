@@ -8,7 +8,7 @@ export class StyleModule extends BaseModule {
 
     layoutEffect(context: Context, target: ModuleTarget) {
         for (const styleProperty of Object.keys(this.style)) {
-            target.style.setProperty(styleProperty, this.style[styleProperty]);
+            target.style[styleProperty] = this.style[styleProperty];
         }
     }
 }

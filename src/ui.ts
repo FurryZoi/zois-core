@@ -36,6 +36,7 @@ interface CreateTextArgs extends BaseElementArgs<"base"> {
     color?: string
     fontSize?: number | "auto"
     withBackground?: boolean
+    withBorder?: boolean
     width?: number
     height?: number
     padding?: number
@@ -125,7 +126,12 @@ interface CreateSelectArgs extends BaseElementArgs<"base"> {
     isDisabled?: () => boolean
 }
 
-interface DrawPolylineArrowArgs extends Omit<BaseElementArgs<"base">, "x" | "y"> {
+interface CreateContainerArgs extends BaseElementArgs<"base"> {
+    width?: number
+    height?: number
+}
+
+interface DrawPolylineArrowArgs {
     points: {
         x: number
         y: number
@@ -134,6 +140,12 @@ interface DrawPolylineArrowArgs extends Omit<BaseElementArgs<"base">, "x" | "y">
     lineWidth?: number
     circleRadius?: number
     circleColor?: string
+}
+
+export function dataUrlSvgWithColor(dataUrl: string, newColor: string): string {
+    return dataUrl
+        .replace(/fill="[^"]*"/g, `fill="${newColor}"`)
+        .replace(/stroke="[^"]*"/g, `stroke="${newColor}"`);
 }
 
 export function getRelativeHeight(height: number) {
@@ -433,13 +445,14 @@ export abstract class BaseSubscreen {
 
     createText({
         text, color, x, y, width, height, withBackground = false,
-        fontSize = "auto", anchor = "top-left", padding, place = true,
-        modules
+        withBorder = false, fontSize = "auto", anchor = "top-left", padding,
+        place = true, modules
     }: CreateTextArgs): HTMLParagraphElement {
         const p = document.createElement("p");
         p.innerHTML = text;
         p.style.color = color ?? "var(--tmd-text, black)";
         if (withBackground) p.style.background = "var(--tmd-element,rgb(239, 239, 239))";
+        if (withBorder) p.style.border = "2px solid var(--tmd-accent, rgb(236, 236, 236))";
         setFontFamily(p, MOD_DATA.fontFamily);
 
         this.addElement<keyof CreateTextArgs["modules"]>(p, {
@@ -894,7 +907,7 @@ export abstract class BaseSubscreen {
         });
 
         const p = document.createElement("p");
-        p.textContent = options.find((option) => option.name === currentOption).name;
+        p.textContent = options.find((option) => option.name === currentOption).text;
 
         const arrow = createElement(ChevronDown);
         const checkmark = createElement(Check);
@@ -910,6 +923,19 @@ export abstract class BaseSubscreen {
             }
         });
         return select;
+    }
+
+    createContainer({
+        x, y, anchor = "top-left", place = true, modules
+    }: CreateContainerArgs): HTMLDivElement {
+        const container = document.createElement("div");
+
+        this.addElement<keyof CreateContainerArgs["modules"]>(container, {
+            x, y, anchor, place, modules, modulesMap: {
+                base: container
+            }
+        });
+        return container;
     }
 }
 

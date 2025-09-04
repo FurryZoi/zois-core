@@ -147,6 +147,7 @@
     border: 2px solid var(--tmd-accent, rgb(195, 195, 195));
     border-radius: 0.4em;
     padding: 0.45em;
+    z-index: 10;
 }
 
 .zcSelect[opened="true"] {
@@ -172,7 +173,7 @@
     top: calc(100% + 0.45em);
     left: 0;
     width: 100%;
-    background: var(--tmd-element, #f6f6f6ed);
+    background: var(--tmd-element, #f6f6f6);
     border: 2px solid var(--tmd-element-hover, rgb(235 235 235));
     border-radius: 0.4em;
 }
