@@ -32,9 +32,6 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
-      zois-core:
-        specifier: link:C:/Users/VolkPC/AppData/Local/pnpm/global/5/node_modules/zois-core
-        version: link:C:/Users/VolkPC/AppData/Local/pnpm/global/5/node_modules/zois-core
       zustand:
         specifier: ^5.0.5
         version: 5.0.5(@types/react@19.1.8)(react@19.1.0)

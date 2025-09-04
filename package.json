@@ -63,7 +63,6 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "reflect-metadata": "^0.2.2",
-    "zois-core": "link:C:/Users/VolkPC/AppData/Local/pnpm/global/5/node_modules/zois-core",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
