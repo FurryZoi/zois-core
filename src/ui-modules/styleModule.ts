@@ -30,7 +30,7 @@ export class StyleModule extends BaseModule {
                 this.applyStyle(target, this.extended.hover);
             });
             target.addEventListener("mouseleave", () => {
-                console.log(originalStyle);
+                // console.log(originalStyle);
                 this.applyStyle(target, originalStyle);
             });
         }

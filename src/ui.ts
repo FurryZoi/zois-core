@@ -736,7 +736,7 @@ export abstract class BaseSubscreen {
         const svg = dataURLToSVGElement(dataurl);
         recolorSVG(svg, { fill, stroke });
         svg.setAttribute("stroke-width", strokeWidth);
-        console.log("svg", svg)
+        // console.log("svg", svg)
 
         this.addElement<keyof CreateSvgArgs["modules"]>(svg as HTMLElement, {
             x, y, width: size, height: size, anchor, place, modules, modulesMap: {
