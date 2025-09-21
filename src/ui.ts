@@ -86,6 +86,14 @@ interface CreateImageArgs extends BaseElementArgs<"base"> {
     width: number
 }
 
+interface CreateSvgArgs extends BaseElementArgs<"base"> {
+    dataurl: string
+    size: number
+    fill?: string
+    stroke?: string
+    strokeWidth?: string
+}
+
 interface CreateBackNextButtonArgs extends BaseElementArgs<"base" | "backButton" | "nextButton" | "text"> {
     width: number
     height: number
@@ -340,14 +348,21 @@ export abstract class BaseSubscreen {
             y: 75,
             width: 90,
             height: 90,
-            icon: "Icons/Exit.png"
+            icon: "Icons/Exit.png",
+            modules: {
+                base: [
+                    new StyleModule({
+                        zIndex: "10"
+                    })
+                ]
+            }
         }).addEventListener("click", () => this.exit());
         if (this.name) {
             this.createText({
                 text: this.name,
                 x: 100,
                 y: 60,
-                fontSize: 10
+                fontSize: 8
             }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
         }
         if (subscreenHooks[this.constructor.name]) {
@@ -672,6 +687,63 @@ export abstract class BaseSubscreen {
             }
         });
         return img;
+    }
+
+    createSvg({
+        x, y, size, dataurl, place = true, anchor = "top-left",
+        fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px", modules
+    }: CreateSvgArgs): HTMLElement {
+        // dataurl = dataurl.replaceAll("&quot;", `"`);
+        function dataURLToSVGElement(dataURL) {
+            // Извлекаем закодированную SVG строку
+            const svgEncoded = dataURL.replace('data:image/svg+xml,', '');
+
+            // Декодируем URI
+            const svgString = decodeURIComponent(svgEncoded);
+
+            // Создаем элемент
+            const div = document.createElement('div');
+            div.innerHTML = svgString;
+
+            return div.firstElementChild;
+        }
+        function recolorSVG(svgElement, { fill, stroke }) {
+            // Получаем все элементы внутри SVG
+            const elements = svgElement.querySelectorAll('*');
+
+            elements.forEach(element => {
+                // Меняем fill, кроме случаев когда fill="none"
+                if (element.getAttribute('fill') !== 'none') {
+                    element.setAttribute('fill', fill);
+                }
+
+                // Меняем stroke, кроме случаев когда stroke="none"
+                if (element.getAttribute('stroke') !== 'none') {
+                    element.setAttribute('stroke', stroke);
+                }
+            });
+
+            // Также меняем fill и stroke у самого корневого SVG
+            if (svgElement.getAttribute('fill') !== 'none') {
+                svgElement.setAttribute('fill', fill);
+            }
+            if (svgElement.getAttribute('stroke') !== 'none') {
+                svgElement.setAttribute('stroke', stroke);
+            }
+
+            return svgElement;
+        }
+        const svg = dataURLToSVGElement(dataurl);
+        recolorSVG(svg, { fill, stroke });
+        svg.setAttribute("stroke-width", strokeWidth);
+        console.log("svg", svg)
+
+        this.addElement<keyof CreateSvgArgs["modules"]>(svg as HTMLElement, {
+            x, y, width: size, height: size, anchor, place, modules, modulesMap: {
+                base: svg as HTMLElement
+            }
+        });
+        return svg as HTMLElement;
     }
 
     createBackNextButton({

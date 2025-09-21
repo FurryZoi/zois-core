@@ -260,7 +260,7 @@ class MessagesManager {
 						type: `${MOD_DATA.key}_requestResponse`,
 						requestId: data.requestId,
 						message: data.message,
-						data: data.data
+						data: _data
 					}, beep.MemberNumber);
 				}
 			}
