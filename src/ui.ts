@@ -22,7 +22,6 @@ interface CreateButtonArgs extends BaseElementArgs<"base" | "icon" | "text"> {
     style?: "default" | "green" | "inverted"
     icon?: string | SVGElement
     iconAbsolutePosition?: boolean
-    iconWidth?: string
     tooltip?: {
         text: string
         position: "left" | "right"
@@ -150,6 +149,14 @@ interface DrawPolylineArrowArgs {
     circleColor?: string
 }
 
+export interface DynamicClassStyles {
+    base?: Record<string, string>;
+    hover?: Record<string, string>;
+    active?: Record<string, string>;
+    focus?: Record<string, string>;
+    disabled?: Record<string, string>;
+}
+
 export function dataUrlSvgWithColor(dataUrl: string, newColor: string): string {
     return dataUrl
         .replace(/fill="[^"]*"/g, `fill="${newColor}"`)
@@ -236,6 +243,83 @@ export function autosetFontSize(element: HTMLElement) {
     Object.assign(element.style, {
         fontSize: Font + 'px'
     });
+}
+
+const createdDynamicClasses: {
+    key: string
+    className: string
+}[] = [];
+
+function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
+    const sortedStringify = (obj: DynamicClassStyles) => {
+        if (!obj) return "null";
+        return JSON.stringify(
+            Object.keys(obj).sort().reduce((acc, key) => {
+                acc[key] = obj[key];
+                return acc;
+            }, {})
+        );
+    };
+
+    return `base:${sortedStringify(styles.base)}|hover:${sortedStringify(styles.hover)}|active:${sortedStringify(styles.active)}`;
+}
+
+export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles: DynamicClassStyles): void {
+    const cacheKey = generateDynamicClassCacheKey(styles);
+    const _class = createdDynamicClasses.find((g) => g.key === cacheKey);
+    if (_class) return targetElement.classList.add(_class.className);
+    let className: string;
+    do {
+        className = "dynamic-" + Math.random().toString(36).substring(2, 10);
+    } while (createdDynamicClasses.find((g) => g.className === className));
+
+    createdDynamicClasses.push({
+        key: cacheKey,
+        className
+    });
+
+    const buildCssBlock = (selector: string, styleRules: Record<string, string>): string => {
+        let css = `${selector} {`;
+        for (const [property, value] of Object.entries(styleRules)) {
+            css += `${property.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase()}: ${value};`;
+        }
+        css += '}';
+        return css;
+    };
+
+    let cssRules = "";
+
+    if (styles.base) {
+        cssRules += buildCssBlock(`.${className}`, styles.base);
+    }
+
+    if (styles.hover) {
+        cssRules += buildCssBlock(`.${className}:hover`, styles.hover);
+    }
+
+    if (styles.active) {
+        cssRules += buildCssBlock(`.${className}:active`, styles.active);
+    }
+
+    if (styles.focus) {
+        cssRules += buildCssBlock(`.${className}:focus`, styles.focus);
+    }
+
+    if (styles.disabled) {
+        cssRules += buildCssBlock(`.${className}:disabled`, styles.disabled);
+    }
+
+    let styleElement = document.getElementById(`${MOD_DATA.key ?? ""}-dynamic-classes`);
+    if (styleElement) {
+        styleElement.textContent += cssRules;
+    } else {
+        styleElement = document.createElement('style');
+        styleElement.id = `${MOD_DATA.key ?? ""}-dynamic-classes`;
+        styleElement.textContent = cssRules;
+        document.head.appendChild(styleElement);
+    }
+
+    targetElement.classList.add(className);
 }
 
 export function setPreviousSubscreen(): void {
@@ -395,7 +479,7 @@ export abstract class BaseSubscreen {
         text, x, y, width, height, fontSize = "auto",
         anchor = "top-left", padding, style = "default",
         place = true, icon, iconAbsolutePosition = true,
-        iconWidth, tooltip, onClick, isDisabled, modules
+        tooltip, onClick, isDisabled, modules
     }: CreateButtonArgs): HTMLButtonElement {
         let iconElement: HTMLImageElement | SVGElement;
         let textElement: HTMLSpanElement;
@@ -415,8 +499,8 @@ export abstract class BaseSubscreen {
             } else {
                 iconElement = icon;
             }
-            if (iconWidth) iconElement.style.width = iconWidth;
-            else iconElement.style.height = "80%";
+            iconElement.style.height = "80%";
+            iconElement.style.width = "auto";
             if (text && iconAbsolutePosition) {
                 iconElement.style.position = "absolute";
                 iconElement.style.left = "1vw";
@@ -428,10 +512,9 @@ export abstract class BaseSubscreen {
         if (text) {
             textElement = document.createElement("span");
             textElement.textContent = text;
-            if (icon && !iconAbsolutePosition && iconWidth) {
-                textElement.style.width = "100%";
-                textElement.style.marginRight = iconWidth;
-            }
+            // if (icon && !iconAbsolutePosition) {
+            //     textElement.style.width = "100%";
+            // }
             btn.append(textElement);
         }
 
