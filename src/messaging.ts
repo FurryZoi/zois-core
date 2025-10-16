@@ -195,17 +195,17 @@ class MessagesManager {
 	onRequest(
 		message: string,
 		listener: (data: any, sender: Character | number, senderName?: string) => unknown
-	): void
+	): () => void
 	onRequest(
 		message: string,
 		dto: ClassConstructor<unknown>,
 		listener: (data: any, sender: Character | number, senderName?: string) => unknown
-	): void
+	): () => void
 	onRequest(
 		message: string,
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character | number, senderName?: string) => unknown),
 		listener?: (data: any, sender: Character | number, senderName?: string) => unknown
-	): void {
+	): () => void {
 		let _listener: (data: any, sender: Character | number, senderName?: string) => unknown;
 		let dto: ClassConstructor<unknown>;
 		if (
@@ -216,7 +216,7 @@ class MessagesManager {
 			_listener = listener;
 		} else _listener = dtoOrListener as (data: any, sender: Character | number, senderName?: string) => unknown;
 
-		hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
+		const rm1 = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			const _message = args[0];
 			const sender = getPlayer(_message.Sender);
 			if (!sender) return next(args);
@@ -225,7 +225,11 @@ class MessagesManager {
 				const data = _message.Dictionary?.data;
 				if (msg === "request" && data.message === message) {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
-					if (dto && !(await validateData(data.data, dto)).isValid) return next(args);
+					const validationResult = await validateData(data.data, dto);
+					if (dto && !validationResult.isValid) {
+						console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+						return next(args);
+					}
 					const _data = _listener(data.data, sender);
 					if (_data !== undefined) {
 						messagesManager.sendPacket<PacketRequestResponseData>("requestResponse", {
@@ -239,7 +243,7 @@ class MessagesManager {
 			return next(args);
 		});
 
-		hookFunction("ServerAccountBeep", HookPriority.ADD_BEHAVIOR, async (args, next) => {
+		const rm2 = hookFunction("ServerAccountBeep", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			const beep: ServerAccountBeepResponse = args[0];
 			if (beep.BeepType !== "Leash") return next(args);
 
@@ -253,7 +257,11 @@ class MessagesManager {
 
 			if (data.type === `${MOD_DATA.key}_request` && data.message === message) {
 				if (typeof data.requestId !== "string") return;
-				if (dto && !(await validateData(data.data, dto)).isValid) return next(args);
+				const validationResult = await validateData(data.data, dto);
+				if (dto && !validationResult.isValid) {
+					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+					return next(args);
+				}
 				const _data = _listener(data.data, beep.MemberNumber, beep.MemberName);
 				if (_data !== undefined) {
 					messagesManager.sendBeep<BeepRequestResponseData>({
@@ -266,23 +274,28 @@ class MessagesManager {
 			}
 			return next(args);
 		});
+
+		return () => {
+			rm1();
+			rm2();
+		};
 	}
 
 	onPacket(
 		message: string,
 		listener: (data: any, sender: Character) => void,
-	): void
+	): () => void
 	onPacket(
 		message: string,
 		dto: ClassConstructor<unknown>,
 		listener: (data: any, sender: Character) => void,
-	): void
+	): () => void
 	onPacket(
 		message: string,
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character) => void),
 		listener?: (data: any, sender: Character) => void,
-	): void {
-		hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
+	): () => void {
+		return hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			let _listener: (data: any, sender: Character) => void;
 			let dto: ClassConstructor<unknown>;
 			if (
@@ -301,7 +314,11 @@ class MessagesManager {
 				_message.Dictionary.msg === message &&
 				!sender.IsPlayer()
 			) {
-				if (dto && !(await validateData(_message.Dictionary?.data, dto)).isValid) return next(args);
+				const validationResult = await validateData(_message.Dictionary.data, dto);
+				if (dto && !validationResult.isValid) {
+					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+					return next(args);
+				}
 				_listener(_message.Dictionary.data, sender);
 			}
 			return next(args);

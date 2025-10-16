@@ -10,7 +10,7 @@ export enum HookPriority {
     TOP = 100
 }
 
-let modSdk: ModSDKModAPI;
+export let modSdk: ModSDKModAPI;
 
 export function registerMod(): void {
     modSdk = bcModSdk.registerMod({
@@ -21,7 +21,7 @@ export function registerMod(): void {
     });
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
-        if (CommonKey.IsPressed(args[0], "Escape") && getCurrentSubscreen()) getCurrentSubscreen().exit();
+        if (CommonKey.IsPressed(args[0], "Escape") && getCurrentSubscreen()) return getCurrentSubscreen().exit();
         return next(args);
     });
 }
