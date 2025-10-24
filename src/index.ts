@@ -151,5 +151,5 @@ export function injectStyles(stylesToInject: string) {
 }
 
 export function waitForStart(callback: () => void) {
-    waitFor(() => typeof Player.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
+    waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
 }
