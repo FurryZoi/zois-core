@@ -21,12 +21,20 @@ export function registerMod(): void {
     });
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
-        if (CommonKey.IsPressed(args[0], "Escape") && getCurrentSubscreen()) return getCurrentSubscreen().exit();
+        const currentSubscreen = getCurrentSubscreen();
+        if (CommonKey.IsPressed(args[0], "Escape") && !!currentSubscreen) {
+            currentSubscreen.exit();
+            return false;
+        }
         return next(args);
     });
 }
 
-export function hookFunction(functionName: string, priority: HookPriority, hook: PatchHook): () => void {
+export function hookFunction<TFunctionName extends string>(
+    functionName: TFunctionName,
+    priority: HookPriority,
+    hook: PatchHook<GetDotedPathType<typeof globalThis, TFunctionName>>
+): () => void {
     if (!modSdk) throw new Error("zois-core is not registered");
     return modSdk.hookFunction(functionName, priority, hook);
 }

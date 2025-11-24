@@ -7,7 +7,7 @@ export class DynamicClassModule extends BaseModule {
         super();
     }
 
-    layoutEffect(context: Context, target: ModuleTarget) {
+    public layoutEffect(context: Context, target: ModuleTarget) {
         addDynamicClass(target as HTMLElement, this.style);
     }
 }

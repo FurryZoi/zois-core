@@ -153,3 +153,18 @@ export function injectStyles(stylesToInject: string) {
 export function waitForStart(callback: () => void) {
     waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
 }
+
+export function normalizeObject(obj: unknown) {
+    if (typeof obj !== "object" || obj === null) return obj;
+
+    if (Array.isArray(obj)) {
+        return obj.map(normalizeObject).sort();
+    }
+
+    return Object.keys(obj)
+        .sort()
+        .reduce((acc, key) => {
+            acc[key] = normalizeObject(obj[key]);
+            return acc;
+        }, {});
+}

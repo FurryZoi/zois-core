@@ -13,7 +13,7 @@ export class StyleModule extends BaseModule {
         }
     }
 
-    layoutEffect(context: Context, target: ModuleTarget) {
+    public layoutEffect(context: Context, target: ModuleTarget) {
         this.applyStyle(target, this.style);
     }
 }

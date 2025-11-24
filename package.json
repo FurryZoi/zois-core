@@ -1,6 +1,6 @@
 {
   "name": "zois-core",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "The core for the my mods, which contains a shared code reused in all my mods",
   "scripts": {
     "build": "node scripts/build.mjs"

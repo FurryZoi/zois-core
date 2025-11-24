@@ -1,3 +1,67 @@
+import { normalizeObject } from "./index";
+
+class AppearanceComparer {
+    private seedsCache = new Map<string, number>();
+
+    public getSeed(arr: Item[]) {
+        const normalized = normalizeObject(ServerAppearanceBundle(arr));
+        const key = JSON.stringify(normalized);
+
+        if (!this.seedsCache.has(key)) {
+            this.seedsCache.set(key, this.generateSeed(key));
+        }
+
+        return this.seedsCache.get(key);
+    }
+
+    public generateSeed(str: string): number {
+        let seed = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            seed = ((seed << 5) - seed) + char;
+            seed = seed & seed;
+        }
+        return seed;
+    }
+
+    public compare(arr1: Item[], arr2: Item[]): boolean {
+        return this.getSeed(arr1) === this.getSeed(arr2);
+    }
+
+    public getDifference(arr1: Item[], arr2: Item[]) {
+        const diff: {
+            added: string[]
+            modified: string[]
+            removed: string[]
+        } = {
+            added: [],
+            modified: [],
+            removed: []
+        };
+        if (this.compare(arr1, arr2)) return diff;
+        const diffMap = ServerBuildAppearanceDiff("Female3DCG", arr1, ServerAppearanceBundle(arr2));
+        for (const [group, diffResult] of Object.entries(diffMap)) {
+            if (diffResult[0] === null && diffResult[1] !== null) {
+                diff.added.push(diffResult[1].Asset.Description);
+                continue;
+            }
+            if (diffResult[0] !== null && diffResult[1] === null) {
+                diff.removed.push(diffResult[0].Asset.Description);
+                continue;
+            }
+            if (diffResult[0].Asset.Name !== diffResult[1].Asset.Name) {
+                diff.removed.push(diffResult[0].Asset.Description);
+                diff.added.push(diffResult[1].Asset.Description);
+                continue;
+            }
+            if (!this.compare([diffResult[0]], [diffResult[1]])) diff.modified.push(diffResult[0].Asset.Description);
+        }
+        return diff;
+    }
+}
+
+export const appearanceComparer = new AppearanceComparer();
+
 export function smartGetAsset(item: Item | Asset): Asset {
     const asset = Asset.includes(item as Asset) ? item as Asset : (item as Item).Asset;
     if (!Asset.includes(asset)) {

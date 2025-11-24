@@ -15,9 +15,9 @@ export interface Context {
 export type ModuleTarget = HTMLElement | SVGElement;
 
 export abstract class BaseModule {
-    overrideProperties(context: Context, target: ModuleTarget): Context {
+    public overrideProperties(context: Context, target: ModuleTarget): Context {
         return context;
     }
-    layoutEffect(context: Context, target: ModuleTarget): void { }
-    effect(context: Context, target: ModuleTarget): void { }
+    public layoutEffect(context: Context, target: ModuleTarget): void { }
+    public effect(context: Context, target: ModuleTarget): void { }
 }

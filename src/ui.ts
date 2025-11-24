@@ -150,11 +150,13 @@ interface DrawPolylineArrowArgs {
 }
 
 export interface DynamicClassStyles {
-    base?: Record<string, string>;
-    hover?: Record<string, string>;
-    active?: Record<string, string>;
-    focus?: Record<string, string>;
-    disabled?: Record<string, string>;
+    base?: Partial<CSSStyleDeclaration>
+    hover?: Partial<CSSStyleDeclaration>
+    active?: Partial<CSSStyleDeclaration>
+    focus?: Partial<CSSStyleDeclaration>
+    disabled?: Partial<CSSStyleDeclaration>
+    before?: Partial<CSSStyleDeclaration>
+    after?: Partial<CSSStyleDeclaration>
 }
 
 export function dataUrlSvgWithColor(dataUrl: string, newColor: string): string {
@@ -251,7 +253,7 @@ const createdDynamicClasses: {
 }[] = [];
 
 function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
-    const sortedStringify = (obj: DynamicClassStyles) => {
+    const sortedStringify = (obj: Partial<CSSStyleDeclaration>) => {
         if (!obj) return "null";
         return JSON.stringify(
             Object.keys(obj).sort().reduce((acc, key) => {
@@ -261,7 +263,7 @@ function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
         );
     };
 
-    return `base:${sortedStringify(styles.base)}|hover:${sortedStringify(styles.hover)}|active:${sortedStringify(styles.active)}`;
+    return `base:${sortedStringify(styles.base)}|hover:${sortedStringify(styles.hover)}|active:${sortedStringify(styles.active)}|before:${sortedStringify(styles.before)}|after:${sortedStringify(styles.after)}`;
 }
 
 export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles: DynamicClassStyles): void {
@@ -278,7 +280,7 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
         className
     });
 
-    const buildCssBlock = (selector: string, styleRules: Record<string, string>): string => {
+    const buildCssBlock = (selector: string, styleRules: Partial<CSSStyleDeclaration>): string => {
         let css = `${selector} {`;
         for (const [property, value] of Object.entries(styleRules)) {
             css += `${property.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, '$1-$2').toLowerCase()}: ${value};`;
@@ -307,6 +309,14 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
 
     if (styles.disabled) {
         cssRules += buildCssBlock(`.${className}:disabled`, styles.disabled);
+    }
+
+    if (styles.before) {
+        cssRules += buildCssBlock(`.${className}:before`, styles.before);
+    }
+
+    if (styles.after) {
+        cssRules += buildCssBlock(`.${className}:after`, styles.after);
     }
 
     let styleElement = document.getElementById(`${MOD_DATA.key ?? ""}-dynamic-classes`);

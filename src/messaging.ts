@@ -118,7 +118,9 @@ class MessagesManager {
 					const sender = getPlayer(_message.Sender);
 					if (!sender) return next(args);
 					if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
+						//@ts-expect-error
 						const msg = _message.Dictionary.msg;
+						//@ts-expect-error
 						const data = _message.Dictionary.data;
 						if (msg === "requestResponse" && data.requestId === requestId) {
 							deleteHook();
@@ -221,7 +223,9 @@ class MessagesManager {
 			const sender = getPlayer(_message.Sender);
 			if (!sender) return next(args);
 			if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
+				//@ts-expect-error
 				const msg = _message.Dictionary?.msg;
+				//@ts-expect-error
 				const data = _message.Dictionary?.data;
 				if (msg === "request" && data.message === message) {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
@@ -311,14 +315,17 @@ class MessagesManager {
 			if (!sender) return next(args);
 			if (
 				_message.Content === MOD_DATA.key &&
+				//@ts-expect-error
 				_message.Dictionary.msg === message &&
 				!sender.IsPlayer()
 			) {
+				//@ts-expect-error
 				const validationResult = await validateData(_message.Dictionary.data, dto);
 				if (dto && !validationResult.isValid) {
 					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 					return next(args);
 				}
+				//@ts-expect-error
 				_listener(_message.Dictionary.data, sender);
 			}
 			return next(args);
