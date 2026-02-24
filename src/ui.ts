@@ -1091,12 +1091,12 @@ export abstract class BaseSubscreen {
     }
 
     createContainer({
-        x, y, anchor = "top-left", place = true, modules
+        x, y, width, height, anchor = "top-left", place = true, modules
     }: CreateContainerArgs): HTMLDivElement {
         const container = document.createElement("div");
 
         this.addElement<keyof CreateContainerArgs["modules"]>(container, {
-            x, y, anchor, place, modules, modulesMap: {
+            x, y, width, height, anchor, place, modules, modulesMap: {
                 base: container
             }
         });

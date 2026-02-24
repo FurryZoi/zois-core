@@ -1,6 +1,6 @@
 import { getRelativeWidth, getRelativeX, getRelativeY } from "./ui";
 import { MOD_DATA, ModData } from "./index";
-import React, { JSX, ReactNode, useState, useEffect, CSSProperties, FC } from "react";
+import React, { JSX, ReactNode, useState, useEffect, CSSProperties, FC, useRef, PropsWithChildren } from "react";
 import ReactDOM from "react-dom/client";
 import { create } from "zustand";
 import WarningIcon from "./assets/warningIcon.svg";
@@ -20,24 +20,15 @@ interface ToastProps {
 }
 
 interface DialogProps {
-    width: number
-    type: "choice_one" | "choice_multiple"
-    title?: string
-    body: string
-    buttons: {
-        direction: "row" | "column"
-        list: {
-            text: string
-            value?: unknown
-        }[],
-    }
+    type: "prompt" | "confirm"
+    message: string
     promise: {
         resolve: (data) => void
         reject: (data) => void
     }
 }
 
-function ToastsContainer({ children }: { children: ReactNode }): JSX.Element {
+const ToastsContainer: FC<PropsWithChildren> = ({ children }) => {
     const [toastsContainerStyle, setToastsContainerStyle] = useState<React.CSSProperties>({});
     const clearToasts = window.ZOISCORE.useToastsStore((state) => state.clearToasts);
 
@@ -143,11 +134,15 @@ const ToastIcon: FC<{ type: ToastProps["type"], theme: ToastProps["theme"] }> = 
 }
 
 
-function Toast({
-    title, message, type, duration, id, theme
-}: ToastProps): JSX.Element {
+const Toast: FC<ToastProps> = ({
+    title, message, type, duration, theme
+}) => {
     const [toastStyle, setToastStyle] = useState<React.CSSProperties>({});
     const [isExiting, setIsExiting] = useState(false);
+
+    const backgroundColor = theme ? theme.backgroundColor : type === "success" ? "#3ece7e" : type === "warning" ? "#debf72" : type === "error" ? "rgb(212, 46, 107)" : "rgb(80, 80, 223)";
+    const titleColor = theme ? theme.titleColor : (type === "info" || type === "spinner") ? "rgb(47, 46, 104)" : type === "success" ? "#244428" : type === "error" ? "rgb(113, 2, 2)" : "#5e4328";
+    const messageColor = theme ? theme.messageColor : (type === "info" || type === "spinner") ? "#b8b8ff" : type === "success" ? "#c7f9c7" : type === "error" ? "rgb(255, 152, 152)" : "#ffeec5";
 
     useEffect(() => {
         const update = () => {
@@ -158,10 +153,9 @@ function Toast({
             setToastStyle({
                 position: "relative",
                 width: "100%",
-                borderRadius: "0.1em",
                 fontSize: (3 * scaleFactor) + "px",
                 padding: (1.5 * scaleFactor) + "px",
-                background: theme ? theme.backgroundColor : type === "success" ? "#3ece7e" : type === "warning" ? "#debf72" : type === "error" ? "rgb(212, 46, 107)" : "rgb(80, 80, 223)"
+                background: backgroundColor
             });
         };
 
@@ -183,11 +177,19 @@ function Toast({
                     {
                         title && message &&
                         <>
-                            <p style={{ color: theme ? theme.titleColor : "white" }}>{title}</p>
                             <p
                                 style={{
-                                    color: theme ? theme.messageColor : (type === "info" || type === "spinner") ? "#b8b8ff" : type === "success" ? "#c7f9c7" : type === "error" ? "#f8bcbc" : "#ffeec5",
+                                    color: titleColor,
+                                    fontWeight: "bold"
+                                }}
+                            >
+                                {title}
+                            </p>
+                            <p
+                                style={{
+                                    color: messageColor,
                                     fontSize: "70%",
+                                    fontWeight: "bold",
                                     overflowWrap: "anywhere",
                                     marginTop: "0.25em"
                                 }}
@@ -201,7 +203,10 @@ function Toast({
                         <p
                             style={{
                                 position: "relative",
-                                zIndex: 5
+                                zIndex: 5,
+                                color: messageColor,
+                                fontWeight: "bold",
+                                overflowWrap: "anywhere"
                             }}
                         >
                             {title ? title : message}
@@ -219,6 +224,7 @@ function Toast({
                         top: 0,
                         left: 0,
                         height: "100%",
+                        borderRadius: "4px",
                         background: theme ? theme.progressBarColor : type === "info" ? "rgb(103, 103, 234)" : type === "success" ? "#34bc71" : type === "warning" ? "#d0af5e" : "rgb(183, 40, 92)"
                     }}
                 />
@@ -229,116 +235,84 @@ function Toast({
 
 function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
     const clearDialog = window.ZOISCORE.useDialogStore((state) => state.clearDialog);
-    const [dialogStyle, setDialogStyle] = useState<CSSProperties>({});
-    const [pickedBtns, setPickedBtns] = useState([]);
+    const [inputValue, setInputValue] = useState("");
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const onEnter = (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+            clearDialog();
+            dialog.promise.resolve(dialog.type === "prompt" ? inputValue : true);
+        }
+    };
 
     useEffect(() => {
-        const update = () => {
-            const canvasWidth = MainCanvas.canvas.clientWidth;
-            const canvasHeight = MainCanvas.canvas.clientHeight;
-            const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
-
-            setDialogStyle({
-                width: getRelativeWidth(dialog.width),
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                background: "rgba(36, 36, 36, 0.96)",
-                zIndex: 20,
-                fontFamily: CommonGetFontName(),
-                border: "none",
-                padding: 2 * scaleFactor
-            });
-        };
-
-        window.addEventListener("resize", update);
-        update();
-
+        document.body.style.pointerEvents = "none";
+        if (dialog.type === "prompt" && inputRef.current instanceof HTMLInputElement) {
+            inputRef.current.focus();
+        }
+        document.addEventListener("keypress", onEnter);
         return () => {
-            window.removeEventListener("resize", update);
+            document.body.style.pointerEvents = "";
+            document.removeEventListener("keypress", onEnter);
         };
     }, []);
 
     return (
-        <dialog
-            open={Object.keys(dialogStyle).length > 0}
-            data-zc-dialog-type={dialog.type}
-            style={dialogStyle}
-        >
-            {
-                dialog.title &&
-                <p
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        fontWeight: "bold",
-                        color: "white",
-                        fontSize: "clamp(6px, 2vw, 24px)",
-                        padding: "0.25em",
-                        background: "#2d2d2d",
-                        width: "100%"
-                    }}
-                >
-                    {dialog.title}
-                </p>
-            }
-            <p style={{ padding: "1em", marginTop: "2vw", fontSize: "clamp(6px, 2vw, 24px)", color: "white" }}>{dialog.body}</p>
-            {
-                <div style={{ display: "flex", flexDirection: dialog.buttons.direction, justifyContent: "center", gap: "0.5vw" }}>
-                    {
-                        dialog.buttons?.list?.map((b, i) => {
-                            return (
-                                <button
-                                    className="zcDialogBtn"
-                                    data-zc-picked={pickedBtns.includes(i)}
-                                    style={{ width: "100%", position: "relative" }}
-                                    onClick={() => {
-                                        if (dialog.type === "choice_one") {
-                                            clearDialog();
-                                            dialog.promise.resolve(b.value);
-                                        } else {
-                                            if (pickedBtns.includes(i)) setPickedBtns(pickedBtns.filter((a) => a !== i));
-                                            else setPickedBtns([...pickedBtns, i]);
-                                        }
-                                    }}
-                                >
-                                    {b.text}
-                                </button>
-                            );
-                        })
-                    }
+        <>
+            <dialog
+                className="zcDialog"
+                data-zc-dialog-type={dialog.type}
+                style={{
+                    fontFamily: CommonGetFontName()
+                }}
+            >
+                <p>{dialog.message}</p>
+                {
+                    dialog.type === "prompt" &&
+                    <input ref={inputRef} type="text" style={{ color: "white", marginTop: "1px", width: "90%", background: "rgb(82, 89, 104)", border: "none", borderRadius: "4px", padding: "0.45em" }} onChange={(e) => setInputValue(e.currentTarget.value)} />
+                }
+                <div style={{
+                    display: "flex",
+                    justifyContent: "end",
+                    columnGap: "0.75em",
+                    width: "100%",
+                    padding: "1em"
+                }}>
+                    <button
+                        onClick={() => {
+                            clearDialog();
+                            dialog.promise.resolve(false);
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={() => {
+                            clearDialog();
+                            dialog.promise.resolve(dialog.type === "prompt" ? inputValue : true);
+                        }}
+                    >
+                        Ok
+                    </button>
                 </div>
-            }
-            {
-                dialog.type === "choice_multiple" &&
-                <button
-                    style={{
-                        cursor: "pointer",
-                        color: "white",
-                        background: "#4d4d4d",
-                        border: "none",
-                        marginTop: "1vw",
-                        fontSize: "clamp(8px,2.5vw,28px)",
-                        padding: "0.2em",
-                        borderRadius: "4px"
-                    }}
-                    onClick={() => {
-                        clearDialog();
-                        dialog.promise.resolve(dialog.buttons.list.filter((b, i) => pickedBtns.includes(i)).map((b) => b.value));
-                    }}
-                >
-                    Confirm
-                </button>
-            }
-        </dialog>
+            </dialog>
+            <div style={{
+                position: "fixed",
+                top: "0",
+                left: "0",
+                width: "100%",
+                height: "100%",
+                zIndex: "20",
+                opacity: "0.5",
+                background: "black"
+            }} />
+        </>
     );
 }
 
 class ToastsManager {
     private generateToastId(): string {
-        return crypto.randomUUID();;
+        return crypto.randomUUID();
     }
 
     private process({ title, message, duration, type, id, theme }: ToastProps): void {
@@ -392,11 +366,24 @@ class ToastsManager {
 }
 
 class DialogsManager {
-    showDialog({ type, title, body, buttons, width }: Omit<DialogProps, "promise">): Promise<unknown> {
+    prompt({ message }: Omit<DialogProps, "type" | "promise">): Promise<string | false> {
         const { setDialog } = window.ZOISCORE.useDialogStore.getState();
         return new Promise((resolve, reject) => {
             setDialog({
-                width, type, title, body, buttons, promise: { resolve, reject }
+                type: "prompt",
+                message,
+                promise: { resolve, reject }
+            });
+        });
+    }
+
+    confirm({ message }: Omit<DialogProps, "type" | "promise">): Promise<boolean> {
+        const { setDialog } = window.ZOISCORE.useDialogStore.getState();
+        return new Promise((resolve, reject) => {
+            setDialog({
+                type: "confirm",
+                message,
+                promise: { resolve, reject }
             });
         });
     }

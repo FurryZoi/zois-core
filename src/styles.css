@@ -27,7 +27,6 @@
     background: #FFFF88;
     border: 2px solid #e7e787;
     width: max-content;
-    min-height: 100%;
     visibility: hidden;
     z-index: 10;
 }
@@ -251,6 +250,7 @@
 .zcToast {
     max-width: 25vw;
     animation: zcSlideInFromLeft 0.3s ease-out forwards;
+    border-radius: 4px;
 }
 
 .zcToast.exiting {
@@ -261,34 +261,61 @@
     color: white;
 }
 
-dialog[data-zc-dialog-type="choice_multiple"] .zcDialogBtn::before {
-    content: "";
+.zcDialog {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgb(57, 64, 77);
+    margin: auto;
     position: absolute;
-    left: 1vw;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 2px solid white;
-    width: 0.5em;
-    aspect-ratio: 1/1;
-    border-radius: 50%;
-}
-
-dialog[data-zc-dialog-type="choice_multiple"] .zcDialogBtn[data-zc-picked=true]::before {
-    background: white;
-}
-
-.zcDialogBtn {
-    cursor: pointer;
-    background: #ffffff17;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
     border: none;
-    font-size: clamp(6px, 2vw, 24px);
-    color: white;
-    padding: 0.2em;
-    border-radius: 0.5em;
+    border-radius: 4px;
+    min-width: 200px;
+    max-width: 450px;
+    width: 90%;
+    z-index: 25;
+    pointer-events: all !important;
+    box-shadow: 0px 0px 6px 1px #0000006e;
 }
 
-.zcDialogBtn:hover {
-    background: #ffffff24;
+.zcDialog>p {
+    padding: 0.75em 0px;
+    user-select: none;
+    width: 90%;
+    color: white;
+}
+
+.zcDialog>input:focus {
+    outline: 2px solid rgb(0, 238, 255);
+}
+
+.zcDialog>div>button {
+    cursor: pointer;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.zcDialog>div>button:first-child {
+    background: rgba(73, 82, 99, 1);
+    color: white;
+}
+
+.zcDialog>div>button:first-child:hover {
+    background: rgb(86, 94, 108);
+}
+
+.zcDialog>div>button:last-child {
+    background: #00eeffff;
+}
+
+.zcDialog>div>button:last-child:hover {
+    background: rgb(4, 203, 217);
 }
 
 @keyframes zcSpin {
