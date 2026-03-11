@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  zois-core: link:../../../.local/share/pnpm/global/5/node_modules/zois-core
-
 importers:
 
   .:
@@ -35,9 +32,6 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
-      zois-core:
-        specifier: link:../../../.local/share/pnpm/global/5/node_modules/zois-core
-        version: link:../../../.local/share/pnpm/global/5/node_modules/zois-core
       zustand:
         specifier: ^5.0.5
         version: 5.0.5(@types/react@19.1.8)(react@19.1.0)
