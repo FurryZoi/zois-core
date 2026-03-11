@@ -159,10 +159,35 @@ export interface DynamicClassStyles {
     after?: Partial<CSSStyleDeclaration>
 }
 
+export function hexToRgb(hex: string) {
+    hex = hex.replace('#', '');
+
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
 export function dataUrlSvgWithColor(dataUrl: string, newColor: string): string {
     return dataUrl
         .replace(/fill="[^"]*"/g, `fill="${newColor}"`)
         .replace(/stroke="[^"]*"/g, `stroke="${newColor}"`);
+}
+
+export function dataUrlSvgReplaceVars(dataUrl: string, vars: Record<string, string>): string {
+    for (let [name, value] of Object.entries(vars)) {
+        if (value.startsWith("#")) {
+            value = hexToRgb(value);
+        }
+        dataUrl = dataUrl.replaceAll(`$${name}`, value);
+    }
+    return dataUrl;
+}
+
+export function cssVar(name: string, fallback: string) {
+    const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
 }
 
 export function getRelativeHeight(height: number) {

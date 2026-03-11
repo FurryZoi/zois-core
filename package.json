@@ -1,6 +1,6 @@
 {
   "name": "zois-core",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "The core for the my mods, which contains a shared code reused in all my mods",
   "scripts": {
     "build": "node scripts/build.mjs"
@@ -63,6 +63,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "reflect-metadata": "^0.2.2",
+    "zois-core": "link:../../../.local/share/pnpm/global/5/node_modules/zois-core",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

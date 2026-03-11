@@ -1,6 +1,8 @@
 import styles from "./styles.css";
 import { findModByName, registerMod } from "./modsApi";
 import { initVirtualDOM, useToastsStore, useDialogStore } from "./popups";
+import { version } from "../package.json";
+import { BaseSubscreen } from "./ui";
 
 
 export interface ModData {
@@ -20,6 +22,7 @@ export interface ModData {
         iconFillColor: string
         iconStrokeColor: string
     }
+    deepLinkSubscreens?: BaseSubscreen[]
 }
 
 interface ThemedColorsModule {
@@ -57,8 +60,35 @@ export function registerCore(modData: ModData): void {
         window.ZOISCORE = Object.freeze({
             loaded: true,
             useToastsStore,
-            useDialogStore
+            useDialogStore,
+            version
         });
+        document.addEventListener('click', (event) => {
+            // Ищем ближайший элемент <a> от места клика
+            const link = (event.target as HTMLElement).closest('a');
+
+            if (link && link.href) {
+                try {
+                    const url = new URL(link.href);
+
+                    if (url.protocol === 'zc:') {
+                        event.preventDefault();
+
+                        if (link.href.startsWith("zc://open")) {
+                            const detail: {
+                                subscreen: string
+                                mod?: string
+                            } = {
+                                subscreen: url.searchParams.get("subscreen")
+                            };
+                            if (url.searchParams.get("mod")) detail.mod = url.searchParams.get("mod");
+                            window.dispatchEvent(new CustomEvent("zoiscore:open", { detail }));
+                        }
+                    }
+                } catch (e) {
+                }
+            }
+        }, true);
         initVirtualDOM();
     }
     MOD_DATA = { ...modData };

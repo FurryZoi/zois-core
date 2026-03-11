@@ -1,6 +1,6 @@
 import { getRelativeWidth, getRelativeX, getRelativeY } from "./ui";
 import { MOD_DATA, ModData } from "./index";
-import React, { JSX, ReactNode, useState, useEffect, CSSProperties, FC, useRef, PropsWithChildren } from "react";
+import React, { JSX, ReactNode, useState, useEffect, CSSProperties, FC, useRef, PropsWithChildren, useCallback } from "react";
 import ReactDOM from "react-dom/client";
 import { create } from "zustand";
 import WarningIcon from "./assets/warningIcon.svg";
@@ -19,16 +19,34 @@ interface ToastProps {
     theme?: ModData["singleToastsTheme"]
 }
 
-interface DialogProps {
-    type: "prompt" | "confirm"
+interface BaseDialogProps<T> {
+    type: "prompt" | "confirm" | "pick"
     message: string
     promise: {
-        resolve: (data) => void
-        reject: (data) => void
+        resolve: (data: T) => void
+        reject: (data: T) => void
     }
 }
 
-const ToastsContainer: FC<PropsWithChildren> = ({ children }) => {
+interface ConfirmDialogProps extends BaseDialogProps<boolean> {
+    type: "confirm"
+}
+
+interface PromptDialogProps extends BaseDialogProps<string | false> {
+    type: "prompt"
+}
+
+interface PickDialogProps<T> extends BaseDialogProps<T | false> {
+    type: "pick"
+    options: {
+        name: string
+        value: T
+    }[]
+}
+
+type DialogProps = ConfirmDialogProps | PromptDialogProps | PickDialogProps<unknown>;
+
+function ToastsContainer({ children }: PropsWithChildren) {
     const [toastsContainerStyle, setToastsContainerStyle] = useState<React.CSSProperties>({});
     const clearToasts = window.ZOISCORE.useToastsStore((state) => state.clearToasts);
 
@@ -236,30 +254,59 @@ const Toast: FC<ToastProps> = ({
 function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
     const clearDialog = window.ZOISCORE.useDialogStore((state) => state.clearDialog);
     const [inputValue, setInputValue] = useState("");
+    const [selectValue, setSelectValue] = useState(dialog.type === "pick" ? dialog.options?.[0]?.value : null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const onEnter = (e: KeyboardEvent) => {
-        if (e.key === "Enter") {
-            clearDialog();
-            dialog.promise.resolve(dialog.type === "prompt" ? inputValue : true);
+    const submit = () => {
+        clearDialog();
+        if (dialog.type === "prompt") {
+            dialog.promise.resolve(inputValue);
         }
+        if (dialog.type === "confirm") {
+            dialog.promise.resolve(true);
+        }
+        if (dialog.type === "pick") {
+            dialog.promise.resolve(selectValue);
+        }
+    };
+
+    const cancel = () => {
+        clearDialog();
+        dialog.promise.resolve(false);
     };
 
     useEffect(() => {
         document.body.style.pointerEvents = "none";
         if (dialog.type === "prompt" && inputRef.current instanceof HTMLInputElement) {
+            console.log("Focus call")
             inputRef.current.focus();
         }
-        document.addEventListener("keypress", onEnter);
         return () => {
             document.body.style.pointerEvents = "";
-            document.removeEventListener("keypress", onEnter);
         };
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter" || e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (e.key === "Enter") submit();
+            if (e.key === "Escape") cancel();
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [submit, cancel]);
+
     return (
         <>
-            <dialog
+            <div
                 className="zcDialog"
                 data-zc-dialog-type={dialog.type}
                 style={{
@@ -269,7 +316,26 @@ function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
                 <p>{dialog.message}</p>
                 {
                     dialog.type === "prompt" &&
-                    <input ref={inputRef} type="text" style={{ color: "white", marginTop: "1px", width: "90%", background: "rgb(82, 89, 104)", border: "none", borderRadius: "4px", padding: "0.45em" }} onChange={(e) => setInputValue(e.currentTarget.value)} />
+                    <input ref={inputRef} type="text" value={inputValue} style={{ color: "white", marginTop: "1px", width: "90%", background: "rgb(82, 89, 104)", border: "none", borderRadius: "4px", padding: "0.45em" }} onChange={(e) => { console.log(e.currentTarget.value); setInputValue(e.currentTarget.value); }} />
+                }
+                {
+                    dialog.type === "pick" &&
+                    <select style={{ cursor: "pointer", width: "90%", background: "rgb(82, 89, 104)", border: "none", padding: "0.4em", color: "white", borderRadius: "4px" }}>
+                        {
+                            dialog.options.map((o) => {
+                                return (
+                                    <option
+                                        key={o.name}
+                                        onClick={() => {
+                                            setSelectValue(o.value);
+                                        }}
+                                    >
+                                        {o.name}
+                                    </option>
+                                );
+                            })
+                        }
+                    </select>
                 }
                 <div style={{
                     display: "flex",
@@ -278,24 +344,14 @@ function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
                     width: "100%",
                     padding: "1em"
                 }}>
-                    <button
-                        onClick={() => {
-                            clearDialog();
-                            dialog.promise.resolve(false);
-                        }}
-                    >
+                    <button onClick={cancel}>
                         Cancel
                     </button>
-                    <button
-                        onClick={() => {
-                            clearDialog();
-                            dialog.promise.resolve(dialog.type === "prompt" ? inputValue : true);
-                        }}
-                    >
+                    <button onClick={submit}>
                         Ok
                     </button>
                 </div>
-            </dialog>
+            </div>
             <div style={{
                 position: "fixed",
                 top: "0",
@@ -366,7 +422,7 @@ class ToastsManager {
 }
 
 class DialogsManager {
-    prompt({ message }: Omit<DialogProps, "type" | "promise">): Promise<string | false> {
+    prompt({ message }: Omit<PromptDialogProps, "type" | "promise">): Promise<string | false> {
         const { setDialog } = window.ZOISCORE.useDialogStore.getState();
         return new Promise((resolve, reject) => {
             setDialog({
@@ -377,12 +433,24 @@ class DialogsManager {
         });
     }
 
-    confirm({ message }: Omit<DialogProps, "type" | "promise">): Promise<boolean> {
+    confirm({ message }: Omit<ConfirmDialogProps, "type" | "promise">): Promise<boolean> {
         const { setDialog } = window.ZOISCORE.useDialogStore.getState();
         return new Promise((resolve, reject) => {
             setDialog({
                 type: "confirm",
                 message,
+                promise: { resolve, reject }
+            });
+        });
+    }
+
+    pick<T>({ message, options }: Omit<PickDialogProps<T>, "type" | "promise">): Promise<T | false> {
+        const { setDialog } = window.ZOISCORE.useDialogStore.getState();
+        return new Promise((resolve, reject) => {
+            setDialog({
+                type: "pick",
+                message,
+                options,
                 promise: { resolve, reject }
             });
         });

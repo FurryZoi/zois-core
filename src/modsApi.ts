@@ -1,6 +1,7 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
 import { getPlayer, MOD_DATA } from "./index";
-import { getCurrentSubscreen } from "./ui";
+import { getCurrentSubscreen, setSubscreen } from "./ui";
+import { dialogsManager } from "./popups";
 
 export enum HookPriority {
     OBSERVE = 0,
@@ -13,6 +14,15 @@ export enum HookPriority {
 export let modSdk: ModSDKModAPI;
 
 export function registerMod(): void {
+    window.ZOISCORE_MODS ??= [];
+    window.ZOISCORE_MODS.push({
+        name: MOD_DATA.name,
+        fullName: MOD_DATA.fullName,
+        key: MOD_DATA.key,
+        version: MOD_DATA.version,
+        deepLinkSubscreens: MOD_DATA.deepLinkSubscreens ?? []
+    });
+
     modSdk = bcModSdk.registerMod({
         name: MOD_DATA.name,
         fullName: MOD_DATA.fullName,
@@ -26,8 +36,31 @@ export function registerMod(): void {
             currentSubscreen.exit();
             return false;
         }
+        const zcDialog = document.querySelector(".zcDialog");
+        if (zcDialog instanceof HTMLDivElement) {
+            zcDialog.focus();
+            return false;
+        }
         return next(args);
     });
+
+    window.addEventListener(
+        "zoiscore:open",
+        async (
+            event: CustomEvent<{
+                mod?: string
+                subscreen: string
+            }>
+        ) => {
+            const subscreen = event.detail.subscreen;
+            const mod = event.detail.mod;
+            if (!!mod && mod !== MOD_DATA.key) return;
+            const currentSubscreen = getCurrentSubscreen();
+            if (currentSubscreen?.constructor.name === subscreen) return;
+            const s = MOD_DATA.deepLinkSubscreens?.find((s) => s.constructor.name === subscreen);
+            if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to another subscreen. Confirm the redirecting." })) setSubscreen(s);
+        }
+    );
 }
 
 export function hookFunction<TFunctionName extends string>(
