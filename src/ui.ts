@@ -392,8 +392,8 @@ export abstract class BaseSubscreen {
         fontSize?: number | "auto"
         anchor?: Anchor
         place?: boolean
-        modules?: Record<string, BaseModule[]>
-        modulesMap: Record<T, HTMLElement | SVGElement>
+        modules?: { [K in T]?: BaseModule[] }
+        modulesMap: { [K in T]: HTMLElement | SVGElement }
     }) {
         setFontFamily(element, MOD_DATA.fontFamily);
 
@@ -402,9 +402,9 @@ export abstract class BaseSubscreen {
             padding, fontSize, place, element
         };
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                const props = m.overrideProperties(context, modulesMap[k]);
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                const props = module.overrideProperties(context, modulesMap[key]);
                 anchor = props.anchor;
                 x = props.x;
                 y = props.y;
@@ -414,8 +414,8 @@ export abstract class BaseSubscreen {
                 fontSize = props.fontSize ?? "auto";
                 place = props.place;
                 element = props.element;
-            });
-        });
+            }
+        }
 
         const setProperties = () => {
             if (typeof x === "number" && typeof y === "number") setPosition(element, x, y, anchor);
@@ -429,21 +429,21 @@ export abstract class BaseSubscreen {
         setProperties();
         window.addEventListener("resize", setProperties);
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                m.layoutEffect(context, modulesMap[k]);
-            });
-        });
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                module.layoutEffect(context, modulesMap[key]);
+            }
+        }
 
         if (place) document.body.append(element);
         this.resizeEventListeners.push(setProperties);
         this.htmlElements.push(element);
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                m.effect(context, modulesMap[k]);
-            });
-        });
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                module.effect(context, modulesMap[key]);
+            }
+        }
     }
 
     get currentSubscreen(): BaseSubscreen | null {
