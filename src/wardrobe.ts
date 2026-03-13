@@ -186,7 +186,7 @@ export function validationCanAccessCheck(C: Character, group: AssetGroupName, as
 export function serverAppearanceBundleToAppearance(assetFamily: IAssetFamily, serverAppearanceBundle: AppearanceBundle): Item[] {
     return serverAppearanceBundle.map((t) => {
         return ServerBundledItemToAppearanceItem(assetFamily, t);
-    });
+    }).filter(i => !!i);
 }
 
 export function addRequiredAppearanceItems(appearanceBundle: Item[]): void {
