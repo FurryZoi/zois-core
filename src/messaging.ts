@@ -39,6 +39,18 @@ interface BeepRequestData {
 type PacketRequestResponseData = PacketRequestData;
 type BeepRequestResponseData = BeepRequestData;
 
+// @ts-expect-error This is gonna blow up in the face of anyone expecting Dictionary to be an array
+interface ZoiChatRoomMessage extends ServerChatRoomMessage {
+	Content: string;
+	Dictionary: { [key: string]: any };
+	Type: "Hidden";
+}
+
+// @ts-expect-error Lying so hard there
+function isZoiChatRoomMessage(m: ServerChatRoomMessage): m is ZoiChatRoomMessage {
+	return m.Content === MOD_DATA.key;
+}
+
 class MessagesManager {
 	sendBeep<T>(data: T, targetId: number): void {
 		const beep = {
@@ -53,15 +65,13 @@ class MessagesManager {
 	}
 
 	sendPacket<T>(msg: string, _data?: T, targetNumber?: number): void {
-		const data: ServerChatRoomMessage = {
+		const data: ZoiChatRoomMessage = {
 			Content: MOD_DATA.key,
 			Dictionary: {
-				// @ts-ignore
 				msg
 			},
 			Type: "Hidden",
 		};
-		// @ts-ignore
 		if (_data) data.Dictionary.data = _data;
 		if (targetNumber) data.Target = targetNumber;
 		ServerSend("ChatRoomChat", data);
@@ -119,10 +129,8 @@ class MessagesManager {
 					const _message = args[0];
 					const sender = getPlayer(_message.Sender);
 					if (!sender) return next(args);
-					if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
-						//@ts-expect-error
+					if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 						const msg = _message.Dictionary.msg;
-						//@ts-expect-error
 						const data = _message.Dictionary.data;
 						if (msg === "requestResponse" && data.requestId === requestId) {
 							deleteHook();
@@ -224,10 +232,8 @@ class MessagesManager {
 			const _message = args[0];
 			const sender = getPlayer(_message.Sender);
 			if (!sender) return next(args);
-			if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
-				//@ts-expect-error
+			if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 				const msg = _message.Dictionary?.msg;
-				//@ts-expect-error
 				const data = _message.Dictionary?.data;
 				if (msg === "request" && data.message === message) {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
@@ -316,8 +322,7 @@ class MessagesManager {
 			const sender = getPlayer(_message.Sender);
 			if (!sender) return next(args);
 			if (
-				_message.Content === MOD_DATA.key &&
-				//@ts-expect-error
+				isZoiChatRoomMessage(_message) &&
 				_message.Dictionary.msg === message &&
 				!sender.IsPlayer()
 			) {
