@@ -997,6 +997,7 @@ export abstract class BaseSubscreen {
         if (points.length < 2) return;
 
         const ctx = MainCanvas.canvas.getContext("2d");
+        if (!ctx) return;
         ctx.save();
 
         ctx.strokeStyle = strokeColor;
