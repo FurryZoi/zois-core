@@ -51,6 +51,10 @@ function isZoiChatRoomMessage(m: ServerChatRoomMessage): m is ZoiChatRoomMessage
 	return m.Content === MOD_DATA.key;
 }
 
+function isClassConstructor(c: unknown): c is ClassConstructor<unknown> {
+	return typeof c === "function" && c.prototype?.constructor == c
+}
+
 class MessagesManager {
 	sendBeep<T>(data: T, targetId: number): void {
 		const beep = {
@@ -218,15 +222,14 @@ class MessagesManager {
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character | number, senderName?: string) => unknown),
 		listener?: (data: any, sender: Character | number, senderName?: string) => unknown
 	): () => void {
-		let _listener: (data: any, sender: Character | number, senderName?: string) => unknown;
+		let _listener: ((data: any, sender: Character | number, senderName?: string) => unknown) | undefined;
 		let dto: ClassConstructor<unknown>;
-		if (
-			typeof dtoOrListener === "function" &&
-			dtoOrListener.prototype?.constructor == dtoOrListener
-		) {
-			dto = dtoOrListener as ClassConstructor<unknown>;
+		if (isClassConstructor(dtoOrListener)) {
+			dto = dtoOrListener;
 			_listener = listener;
-		} else _listener = dtoOrListener as (data: any, sender: Character | number, senderName?: string) => unknown;
+		} else {
+			_listener = dtoOrListener;
+		}
 
 		const rm1 = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			const _message = args[0];
@@ -242,7 +245,7 @@ class MessagesManager {
 						console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 						return next(args);
 					}
-					const _data = _listener(data.data, sender);
+					const _data = _listener?.(data.data, sender);
 					if (_data !== undefined) {
 						messagesManager.sendPacket<PacketRequestResponseData>("requestResponse", {
 							requestId: data.requestId,
@@ -274,7 +277,7 @@ class MessagesManager {
 					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 					return next(args);
 				}
-				const _data = _listener(data.data, beep.MemberNumber, beep.MemberName);
+				const _data = _listener?.(data.data, beep.MemberNumber, beep.MemberName);
 				if (_data !== undefined) {
 					messagesManager.sendBeep<BeepRequestResponseData>({
 						type: `${MOD_DATA.key}_requestResponse`,
@@ -308,15 +311,14 @@ class MessagesManager {
 		listener?: (data: any, sender: Character) => void,
 	): () => void {
 		return hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
-			let _listener: (data: any, sender: Character) => void;
-			let dto: ClassConstructor<unknown>;
-			if (
-				typeof dtoOrListener === "function" &&
-				dtoOrListener.prototype?.constructor == dtoOrListener
-			) {
+			let _listener: ((data: any, sender: Character) => void) | undefined;
+			let dto: ClassConstructor<unknown> | undefined;
+			if (isClassConstructor(dtoOrListener)) {
 				dto = dtoOrListener as ClassConstructor<unknown>;
 				_listener = listener;
-			} else _listener = dtoOrListener as (data: any, sender: Character) => void;
+			} else {
+				_listener = dtoOrListener;
+			}
 
 			const _message = args[0];
 			const sender = getPlayer(_message.Sender!);
@@ -326,14 +328,12 @@ class MessagesManager {
 				_message.Dictionary.msg === message &&
 				!sender.IsPlayer()
 			) {
-				//@ts-expect-error
 				const validationResult = await validateData(_message.Dictionary.data, dto);
 				if (dto && !validationResult.isValid) {
 					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 					return next(args);
 				}
-				//@ts-expect-error
-				_listener(_message.Dictionary.data, sender);
+				_listener?.(_message.Dictionary.data, sender);
 			}
 			return next(args);
 		});
