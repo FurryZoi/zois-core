@@ -812,7 +812,7 @@ export abstract class BaseSubscreen {
         fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px", modules
     }: CreateSvgArgs): HTMLElement {
         // dataurl = dataurl.replaceAll("&quot;", `"`);
-        function dataURLToSVGElement(dataURL) {
+        function dataURLToSVGElement(dataURL: string) {
             // Извлекаем закодированную SVG строку
             const svgEncoded = dataURL.replace('data:image/svg+xml,', '');
 
@@ -823,9 +823,9 @@ export abstract class BaseSubscreen {
             const div = document.createElement('div');
             div.innerHTML = svgString;
 
-            return div.firstElementChild;
+            return div.firstElementChild as HTMLElement;
         }
-        function recolorSVG(svgElement, { fill, stroke }) {
+        function recolorSVG(svgElement: Element, { fill, stroke }: { fill: string, stroke: string }) {
             // Получаем все элементы внутри SVG
             const elements = svgElement.querySelectorAll('*');
 
@@ -852,16 +852,17 @@ export abstract class BaseSubscreen {
             return svgElement;
         }
         const svg = dataURLToSVGElement(dataurl);
-        recolorSVG(svg, { fill, stroke });
-        svg.setAttribute("stroke-width", strokeWidth);
-        // console.log("svg", svg)
+        if (svg) {
+            recolorSVG(svg, { fill, stroke });
+            svg.setAttribute("stroke-width", strokeWidth);
+        }
 
         this.addElement<keyof CreateSvgArgs["modules"]>(svg as HTMLElement, {
             x, y, width: size, height: size, anchor, place, modules, modulesMap: {
-                base: svg as HTMLElement
+                base: svg
             }
         });
-        return svg as HTMLElement;
+        return svg;
     }
 
     createBackNextButton({
