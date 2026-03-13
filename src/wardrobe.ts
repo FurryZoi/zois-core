@@ -164,8 +164,8 @@ export function importAppearance(
             if (!validationCanAccessCheck(characterValidate, item.Asset.Group.Name, item.Asset)) continue;
             if (blockedGroups.includes(item.Asset.Group.Name)) continue;
         }
-        CharacterAppearanceSetItem(C, item.Asset.Group.Name, item.Asset, item.Color);
-        const _item = InventoryGet(C, item.Asset.Group.Name);
+        const _item = CharacterAppearanceSetItem(C, item.Asset.Group.Name, item.Asset, item.Color);
+        if (!_item) continue;
         if (item.Craft && CraftingValidate(item.Craft, item.Asset) !== CraftingStatusType.CRITICAL_ERROR) _item.Craft = item.Craft;
         if (item.Property) {
             ValidationSanitizeProperties(C, item);
