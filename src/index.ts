@@ -191,8 +191,10 @@ export function waitForStart(callback: () => void) {
     waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
 }
 
+export function normalizeObject<T>(obj: T[]): T[];
+export function normalizeObject<T extends object>(obj: T): T;
 export function normalizeObject(obj: unknown) {
-    if (typeof obj !== "object" || obj === null) return obj;
+    if (!CommonIsObject(obj)) return obj;
 
     if (Array.isArray(obj)) {
         return obj.map(normalizeObject).sort();
@@ -201,7 +203,7 @@ export function normalizeObject(obj: unknown) {
     return Object.keys(obj)
         .sort()
         .reduce((acc, key) => {
-            acc[key] = normalizeObject(obj[key]);
+            acc[key] = normalizeObject((obj as { [key: string]: any })[key]);
             return acc;
-        }, {});
+        }, {} as { [key: string]: any });
 }
