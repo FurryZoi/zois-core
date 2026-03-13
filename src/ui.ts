@@ -458,10 +458,10 @@ export abstract class BaseSubscreen {
         return "";
     }
 
-    run?() {
+    run() {
         this.tabHandlers.run?.();
     }
-    load?() {
+    load() {
         this.createButton({
             x: 1815,
             y: 75,
@@ -488,7 +488,7 @@ export abstract class BaseSubscreen {
             subscreenHooks[this.name].forEach((hook) => hook(this));
         }
     }
-    unload?() {
+    unload() {
         this.tabHandlers.unload?.();
         this.htmlElements.forEach((e) => {
             e.remove();
@@ -497,12 +497,12 @@ export abstract class BaseSubscreen {
             removeEventListener("resize", e);
         });
     }
-    click?() { }
-    exit?() {
+    click() { }
+    exit() {
         this.tabHandlers.exit?.();
         this.setSubscreen(this.previousSubscreen);
     }
-    update?() { }
+    update() { }
     setPreviousSubscreen() {
         setPreviousSubscreen();
     }
