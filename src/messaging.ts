@@ -16,9 +16,11 @@ interface PendingRequest<T> {
 	reject: (data: T) => any
 }
 
-interface RequestResponse<T> {
-	data?: T
-	isError: boolean
+type RequestResponse<T> = {
+	data?: T;
+	isError: false;
+} | {
+	isError: true;
 }
 
 interface PacketRequestData {
