@@ -68,15 +68,15 @@ interface CreateScrollViewArgs extends BaseElementArgs<"base"> {
     height?: number
 }
 
-interface CreateInputListArgs extends BaseElementArgs<"base" | "input"> {
-    value?: string[] | number[]
+interface CreateInputListArgs<V extends number | string> extends BaseElementArgs<"base" | "input"> {
+    value?: V[];
     title?: string
     width: number
     height?: number
     fontSize?: number | "auto"
     padding?: number
     numbersOnly?: boolean
-    onChange?: (value: string[] | number[]) => void
+    onChange?: (value: V[]) => void
     isDisabled?: () => boolean
 }
 
@@ -683,7 +683,7 @@ export abstract class BaseSubscreen {
         x, y, width, height, title, value, modules,
         anchor = "top-left", place = true, numbersOnly = false,
         isDisabled, onChange
-    }: CreateInputListArgs): HTMLDivElement {
+    }: CreateInputListArgs<any>): HTMLDivElement {
         const items: string[] = [];
         const div = document.createElement("div");
         div.style.cssText = `
@@ -782,7 +782,7 @@ export abstract class BaseSubscreen {
         div.addEventListener("click", (e) => { if (e.currentTarget == div) input.focus() });
         itemsElement.append(input);
         div.append(buttonsElement, titleElement, itemsElement);
-        this.addElement<keyof CreateInputListArgs["modules"]>(div, {
+        this.addElement<keyof CreateInputListArgs<any>["modules"]>(div, {
             x, y, width, height, anchor, place, modules, modulesMap: {
                 base: div,
                 input
