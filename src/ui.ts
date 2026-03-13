@@ -368,7 +368,7 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
     if (previousSubscreen) previousSubscreen.unload();
 }
 
-export function getCurrentSubscreen(): BaseSubscreen {
+export function getCurrentSubscreen(): BaseSubscreen | null {
     return currentSubscreen;
 }
 
