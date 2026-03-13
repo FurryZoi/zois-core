@@ -32,7 +32,7 @@ export async function validateData(data: any, dtoClass: any): Promise<{
     } catch (error) {
         return {
             isValid: false,
-            errors: ['Validation error: ' + error.message]
+            errors: ['Validation error: ' + (error as Error).message]
         };
     }
 }
