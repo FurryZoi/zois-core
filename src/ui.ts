@@ -278,13 +278,13 @@ const createdDynamicClasses: {
 }[] = [];
 
 function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
-    const sortedStringify = (obj: Partial<CSSStyleDeclaration>) => {
+    const sortedStringify = (obj: Partial<CSSStyleDeclaration> | undefined) => {
         if (!obj) return "null";
         return JSON.stringify(
             Object.keys(obj).sort().reduce((acc, key) => {
-                acc[key] = obj[key];
+                acc[key] = (obj as Record<string, any>)[key];
                 return acc;
-            }, {})
+            }, {} as Record<string, any>)
         );
     };
 
