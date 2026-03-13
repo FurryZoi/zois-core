@@ -127,7 +127,7 @@ class MessagesManager {
 				}, target);
 				deleteHook = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, (args, next) => {
 					const _message = args[0];
-					const sender = getPlayer(_message.Sender);
+					const sender = getPlayer(_message.Sender!);
 					if (!sender) return next(args);
 					if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 						const msg = _message.Dictionary.msg;
@@ -230,7 +230,7 @@ class MessagesManager {
 
 		const rm1 = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			const _message = args[0];
-			const sender = getPlayer(_message.Sender);
+			const sender = getPlayer(_message.Sender!);
 			if (!sender) return next(args);
 			if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 				const msg = _message.Dictionary?.msg;
@@ -319,7 +319,7 @@ class MessagesManager {
 			} else _listener = dtoOrListener as (data: any, sender: Character) => void;
 
 			const _message = args[0];
-			const sender = getPlayer(_message.Sender);
+			const sender = getPlayer(_message.Sender!);
 			if (!sender) return next(args);
 			if (
 				isZoiChatRoomMessage(_message) &&
