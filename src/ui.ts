@@ -966,13 +966,13 @@ export abstract class BaseSubscreen {
                 };
                 this.tabHandlers.unload?.();
                 this.tabHandlers.exit?.();
-                tab.load();
                 this.tabHandlers = {
                     run: tab.run,
                     load: tab.load,
                     unload: tab.unload,
                     exit: tab.exit
                 };
+                this.tabHandlers.load?.();
                 document.body.append = originalAppend;
             };
             const tabEl = document.createElement("button");
