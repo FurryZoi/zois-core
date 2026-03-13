@@ -516,8 +516,8 @@ export abstract class BaseSubscreen {
         place = true, icon, iconAbsolutePosition = true,
         tooltip, onClick, isDisabled, modules
     }: CreateButtonArgs): HTMLButtonElement {
-        let iconElement: HTMLImageElement | SVGElement;
-        let textElement: HTMLSpanElement;
+        let iconElement: HTMLImageElement | SVGElement | undefined;
+        let textElement: HTMLSpanElement | undefined;
         const btn = document.createElement("button");
         btn.classList.add("zcButton");
         btn.setAttribute("data-zc-style", style);
