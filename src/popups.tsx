@@ -451,7 +451,10 @@ class DialogsManager {
                 type: "pick",
                 message,
                 options,
-                promise: { resolve, reject }
+                promise: {
+                    resolve: resolve as (value: unknown) => void,
+                    reject
+                },
             });
         });
     }
