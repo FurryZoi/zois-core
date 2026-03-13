@@ -129,7 +129,7 @@ export function importAppearance(
         return i;
     });
 
-    const blockedGroups = [];
+    const blockedGroups: AssetGroupName[] = [];
     if (ignoreAccessValidation) {
         C.Appearance = C.Appearance.filter((a) => isBody(a));
     } else {
