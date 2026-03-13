@@ -200,7 +200,7 @@ class MessagesManager {
 		if (typeof message === "string") div.innerHTML = message;
 		else div.appendChild(message);
 
-		document.querySelector("#TextAreaChatLog").appendChild(div);
+		document.querySelector("#TextAreaChatLog")?.appendChild(div);
 		ElementScrollToEnd("TextAreaChatLog");
 	}
 
