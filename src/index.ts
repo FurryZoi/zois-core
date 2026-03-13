@@ -52,6 +52,12 @@ interface ThemedColorsModule {
 export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
+export class ZoiOpenEvent extends CustomEvent<{ subscreen: string; mod?: string }> {
+    constructor(detail: { subscreen: string; mod?: string }) {
+        super('zoiscore:open', { detail });
+    }
+}
+
 export function registerCore(modData: ModData): void {
     if (!window.ZOISCORE) {
         const style = document.createElement("style");
@@ -75,14 +81,11 @@ export function registerCore(modData: ModData): void {
                         event.preventDefault();
 
                         if (link.href.startsWith("zc://open")) {
-                            const detail: {
-                                subscreen: string
-                                mod?: string
-                            } = {
-                                subscreen: url.searchParams.get("subscreen")
-                            };
-                            if (url.searchParams.get("mod")) detail.mod = url.searchParams.get("mod");
-                            window.dispatchEvent(new CustomEvent("zoiscore:open", { detail }));
+                            const subscreen = url.searchParams.get("subscreen");
+                            if (!subscreen) return;
+                            const mod = url.searchParams.get("mod") ?? undefined;
+
+                            window.dispatchEvent(new ZoiOpenEvent({ subscreen, mod }));
                         }
                     }
                 } catch (e) {
