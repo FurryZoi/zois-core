@@ -411,7 +411,7 @@ export abstract class BaseSubscreen {
                 width = props.width;
                 height = props.height;
                 padding = props.padding;
-                fontSize = props.fontSize;
+                fontSize = props.fontSize ?? "auto";
                 place = props.place;
                 element = props.element;
             });
@@ -582,7 +582,7 @@ export abstract class BaseSubscreen {
         place = true, modules
     }: CreateTextArgs): HTMLParagraphElement {
         const p = document.createElement("p");
-        p.innerHTML = text;
+        p.innerHTML = text ?? "";
         p.style.color = color ?? "var(--tmd-text, black)";
         if (withBackground) p.style.background = "var(--tmd-element,rgb(239, 239, 239))";
         if (withBorder) p.style.border = "2px solid var(--tmd-accent, rgb(236, 236, 236))";
@@ -748,13 +748,13 @@ export abstract class BaseSubscreen {
             itemsElement.innerHTML = "";
             items.splice(0, items.length);
             itemsElement.append(input);
-            value.forEach((v) => addItem(String(v)));
+            value?.forEach((v) => addItem(String(v)));
             if (typeof onChange === "function") onChange(numbersOnly ? items.map((i) => parseInt(i)) : items);
         });
         addButton(createElement(Trash2), () => {
             if (typeof isDisabled === "function" && isDisabled()) return div.classList.add("zcDisabled");
             for (const c of [...itemsElement.children]) {
-                if (c.getAttribute("style").includes("border: 2px solid red;")) {
+                if (c.getAttribute("style")?.includes("border: 2px solid red;")) {
                     items.splice(items.indexOf(c.textContent), 1);
                     c.remove();
                 }
@@ -788,7 +788,7 @@ export abstract class BaseSubscreen {
                 input
             }
         });
-        value.forEach((v) => addItem(String(v)));
+        value?.forEach((v) => addItem(String(v)));
         return div;
     }
 
