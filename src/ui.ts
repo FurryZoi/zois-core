@@ -684,7 +684,7 @@ export abstract class BaseSubscreen {
         anchor = "top-left", place = true, numbersOnly = false,
         isDisabled, onChange
     }: CreateInputListArgs): HTMLDivElement {
-        const items = [];
+        const items: string[] = [];
         const div = document.createElement("div");
         div.style.cssText = `
         display: flex; flex-direction: column; gap: 1vw; border: 2px solid var(--tmd-accent, black);
