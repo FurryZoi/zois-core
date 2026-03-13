@@ -152,15 +152,15 @@ export function getSizeInKbytes(b: any): number {
     }
 }
 
-export function getPlayer(value: string | number): Character {
-    if (!value) return;
+export function getPlayer(value: string | number): Character | null {
+    if (!value) return null;
     return ChatRoomCharacter.find((Character) => {
         return (
             Character.MemberNumber == value ||
             Character.Name.toLowerCase() === value ||
             Character.Nickname?.toLowerCase() === value
         );
-    });
+    }) ?? null;
 }
 
 export function getNickname(target: Character): string {
