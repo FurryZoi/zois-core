@@ -1,5 +1,5 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
-import { getPlayer, MOD_DATA, ZoiOpenEvent } from "./index";
+import { MOD_DATA, ZoiOpenEvent } from "./index";
 import { getCurrentSubscreen, setSubscreen } from "./ui";
 import { dialogsManager } from "./popups";
 
