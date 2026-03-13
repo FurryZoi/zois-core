@@ -1099,7 +1099,7 @@ export abstract class BaseSubscreen {
         });
 
         const p = document.createElement("p");
-        p.textContent = options.find((option) => option.name === currentOption).text;
+        p.textContent = options.find((option) => option.name === currentOption)?.text ?? "";
 
         const arrow = createElement(ChevronDown);
         const checkmark = createElement(Check);
