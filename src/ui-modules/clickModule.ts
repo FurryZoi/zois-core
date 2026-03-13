@@ -1,4 +1,4 @@
-import { BaseModule, Context, ModuleTarget } from "zois-core/modules";
+import { BaseModule, Context, ModuleTarget } from "../modules";
 
 export class ClickModule extends BaseModule {
     constructor(private callback: (target: ModuleTarget) => void) {
