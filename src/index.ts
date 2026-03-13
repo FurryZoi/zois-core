@@ -169,7 +169,11 @@ export function getNickname(target: Character): string {
 
 export function getThemedColorsModule(): ThemedColorsModule | null {
     if (!findModByName("Themed")) return null;
-    const themedData = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.Themed ?? ""));
+    const data = LZString.decompressFromBase64(Player.ExtensionSettings.Themed ?? "") ?? "{}";
+    let themedData;
+    try {
+        themedData = JSON.parse(data);
+    } catch {};
     if (
         !themedData?.GlobalModule?.themedEnabled ||
         !themedData?.GlobalModule?.doVanillaGuiOverhaul
