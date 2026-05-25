@@ -16,9 +16,11 @@ interface PendingRequest<T> {
 	reject: (data: T) => any
 }
 
-interface RequestResponse<T> {
-	data?: T
-	isError: boolean
+type RequestResponse<T> = {
+	data?: T;
+	isError: false;
+} | {
+	isError: true;
 }
 
 interface PacketRequestData {
@@ -37,6 +39,22 @@ interface BeepRequestData {
 type PacketRequestResponseData = PacketRequestData;
 type BeepRequestResponseData = BeepRequestData;
 
+// @ts-expect-error This is gonna blow up in the face of anyone expecting Dictionary to be an array
+interface ZoiChatRoomMessage extends ServerChatRoomMessage {
+	Content: string;
+	Dictionary: { [key: string]: any };
+	Type: "Hidden";
+}
+
+// @ts-expect-error Lying so hard there
+function isZoiChatRoomMessage(m: ServerChatRoomMessage): m is ZoiChatRoomMessage {
+	return m.Content === MOD_DATA.key;
+}
+
+function isClassConstructor(c: unknown): c is ClassConstructor<unknown> {
+	return typeof c === "function" && c.prototype?.constructor == c
+}
+
 class MessagesManager {
 	sendBeep<T>(data: T, targetId: number): void {
 		const beep = {
@@ -51,15 +69,13 @@ class MessagesManager {
 	}
 
 	sendPacket<T>(msg: string, _data?: T, targetNumber?: number): void {
-		const data: ServerChatRoomMessage = {
+		const data: ZoiChatRoomMessage = {
 			Content: MOD_DATA.key,
 			Dictionary: {
-				// @ts-ignore
 				msg
 			},
 			Type: "Hidden",
 		};
-		// @ts-ignore
 		if (_data) data.Dictionary.data = _data;
 		if (targetNumber) data.Target = targetNumber;
 		ServerSend("ChatRoomChat", data);
@@ -115,12 +131,10 @@ class MessagesManager {
 				}, target);
 				deleteHook = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, (args, next) => {
 					const _message = args[0];
-					const sender = getPlayer(_message.Sender);
+					const sender = getPlayer(_message.Sender!);
 					if (!sender) return next(args);
-					if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
-						//@ts-expect-error
+					if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 						const msg = _message.Dictionary.msg;
-						//@ts-expect-error
 						const data = _message.Dictionary.data;
 						if (msg === "requestResponse" && data.requestId === requestId) {
 							deleteHook();
@@ -186,7 +200,7 @@ class MessagesManager {
 		if (typeof message === "string") div.innerHTML = message;
 		else div.appendChild(message);
 
-		document.querySelector("#TextAreaChatLog").appendChild(div);
+		document.querySelector("#TextAreaChatLog")?.appendChild(div);
 		ElementScrollToEnd("TextAreaChatLog");
 	}
 
@@ -208,24 +222,21 @@ class MessagesManager {
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character | number, senderName?: string) => unknown),
 		listener?: (data: any, sender: Character | number, senderName?: string) => unknown
 	): () => void {
-		let _listener: (data: any, sender: Character | number, senderName?: string) => unknown;
+		let _listener: ((data: any, sender: Character | number, senderName?: string) => unknown) | undefined;
 		let dto: ClassConstructor<unknown>;
-		if (
-			typeof dtoOrListener === "function" &&
-			dtoOrListener.prototype?.constructor == dtoOrListener
-		) {
-			dto = dtoOrListener as ClassConstructor<unknown>;
+		if (isClassConstructor(dtoOrListener)) {
+			dto = dtoOrListener;
 			_listener = listener;
-		} else _listener = dtoOrListener as (data: any, sender: Character | number, senderName?: string) => unknown;
+		} else {
+			_listener = dtoOrListener;
+		}
 
 		const rm1 = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 			const _message = args[0];
-			const sender = getPlayer(_message.Sender);
+			const sender = getPlayer(_message.Sender!);
 			if (!sender) return next(args);
-			if (_message.Content === MOD_DATA.key && !sender.IsPlayer()) {
-				//@ts-expect-error
+			if (isZoiChatRoomMessage(_message) && !sender.IsPlayer()) {
 				const msg = _message.Dictionary?.msg;
-				//@ts-expect-error
 				const data = _message.Dictionary?.data;
 				if (msg === "request" && data.message === message) {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
@@ -234,7 +245,7 @@ class MessagesManager {
 						console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 						return next(args);
 					}
-					const _data = _listener(data.data, sender);
+					const _data = _listener?.(data.data, sender);
 					if (_data !== undefined) {
 						messagesManager.sendPacket<PacketRequestResponseData>("requestResponse", {
 							requestId: data.requestId,
@@ -266,7 +277,7 @@ class MessagesManager {
 					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 					return next(args);
 				}
-				const _data = _listener(data.data, beep.MemberNumber, beep.MemberName);
+				const _data = _listener?.(data.data, beep.MemberNumber, beep.MemberName);
 				if (_data !== undefined) {
 					messagesManager.sendBeep<BeepRequestResponseData>({
 						type: `${MOD_DATA.key}_requestResponse`,
@@ -300,33 +311,29 @@ class MessagesManager {
 		listener?: (data: any, sender: Character) => void,
 	): () => void {
 		return hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
-			let _listener: (data: any, sender: Character) => void;
-			let dto: ClassConstructor<unknown>;
-			if (
-				typeof dtoOrListener === "function" &&
-				dtoOrListener.prototype?.constructor == dtoOrListener
-			) {
+			let _listener: ((data: any, sender: Character) => void) | undefined;
+			let dto: ClassConstructor<unknown> | undefined;
+			if (isClassConstructor(dtoOrListener)) {
 				dto = dtoOrListener as ClassConstructor<unknown>;
 				_listener = listener;
-			} else _listener = dtoOrListener as (data: any, sender: Character) => void;
+			} else {
+				_listener = dtoOrListener;
+			}
 
 			const _message = args[0];
-			const sender = getPlayer(_message.Sender);
+			const sender = getPlayer(_message.Sender!);
 			if (!sender) return next(args);
 			if (
-				_message.Content === MOD_DATA.key &&
-				//@ts-expect-error
+				isZoiChatRoomMessage(_message) &&
 				_message.Dictionary.msg === message &&
 				!sender.IsPlayer()
 			) {
-				//@ts-expect-error
 				const validationResult = await validateData(_message.Dictionary.data, dto);
 				if (dto && !validationResult.isValid) {
 					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
 					return next(args);
 				}
-				//@ts-expect-error
-				_listener(_message.Dictionary.data, sender);
+				_listener?.(_message.Dictionary.data, sender);
 			}
 			return next(args);
 		});

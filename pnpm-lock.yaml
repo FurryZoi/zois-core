@@ -43,8 +43,8 @@ importers:
         specifier: ^19.1.6
         version: 19.1.6(@types/react@19.1.8)
       bc-stubs:
-        specifier: 117.0.0-Beta.1
-        version: 117.0.0-Beta.1
+        specifier: 126.0.0-Beta.1
+        version: 126.0.0-Beta.1
       esbuild:
         specifier: ^0.25.5
         version: 0.25.5
@@ -228,8 +228,8 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
-  bc-stubs@117.0.0-Beta.1:
-    resolution: {integrity: sha512-sX0fHJY0h6H1a89QAD2oY8uAa2apTkbXaC4xU0LGmUpKcVdlSMjz3V+SO8iH+N9HbM2ev3mhiO5YC2GjTV/cbw==}
+  bc-stubs@126.0.0-Beta.1:
+    resolution: {integrity: sha512-UQRDRhGsoyeCcnnD9O7Bjfz0c1bRhr3rvdUPQZ/41bJjRTOuN1dmTT4WAGbOm8VCxFQAKXzcxEpmmeZioHpqNw==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -550,7 +550,7 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  bc-stubs@117.0.0-Beta.1:
+  bc-stubs@126.0.0-Beta.1:
     dependencies:
       socket.io-client: 4.6.1
     transitivePeerDependencies:

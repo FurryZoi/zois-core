@@ -6,9 +6,10 @@ export class StyleModule extends BaseModule {
         super();
     }
 
-    private applyStyle(target: ModuleTarget, style: Partial<CSSStyleDeclaration>): void {
-        for (const styleProperty of Object.keys(style)) {
-            if (!isNaN(styleProperty as unknown as number) || typeof style[styleProperty] === "function") continue;
+    private applyStyle(target: ModuleTarget, style: Partial<Omit<CSSStyleDeclaration, "length" | "parentRule" | typeof Symbol.iterator>>): void {
+        for (const styleProperty of Object.keys(style) as (keyof typeof style)[]) {
+            if (!isNaN(styleProperty as unknown as number) || typeof style[styleProperty] === "function" || typeof style[styleProperty] === "undefined") continue;
+            // @ts-expect-error
             target.style[styleProperty] = style[styleProperty];
         }
     }

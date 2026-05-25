@@ -129,7 +129,7 @@ export function importAppearance(
         return i;
     });
 
-    const blockedGroups = [];
+    const blockedGroups: AssetGroupName[] = [];
     if (ignoreAccessValidation) {
         C.Appearance = C.Appearance.filter((a) => isBody(a));
     } else {
@@ -164,8 +164,8 @@ export function importAppearance(
             if (!validationCanAccessCheck(characterValidate, item.Asset.Group.Name, item.Asset)) continue;
             if (blockedGroups.includes(item.Asset.Group.Name)) continue;
         }
-        CharacterAppearanceSetItem(C, item.Asset.Group.Name, item.Asset, item.Color);
-        const _item = InventoryGet(C, item.Asset.Group.Name);
+        const _item = CharacterAppearanceSetItem(C, item.Asset.Group.Name, item.Asset, item.Color);
+        if (!_item) continue;
         if (item.Craft && CraftingValidate(item.Craft, item.Asset) !== CraftingStatusType.CRITICAL_ERROR) _item.Craft = item.Craft;
         if (item.Property) {
             ValidationSanitizeProperties(C, item);
@@ -186,7 +186,7 @@ export function validationCanAccessCheck(C: Character, group: AssetGroupName, as
 export function serverAppearanceBundleToAppearance(assetFamily: IAssetFamily, serverAppearanceBundle: AppearanceBundle): Item[] {
     return serverAppearanceBundle.map((t) => {
         return ServerBundledItemToAppearanceItem(assetFamily, t);
-    });
+    }).filter(i => !!i);
 }
 
 export function addRequiredAppearanceItems(appearanceBundle: Item[]): void {

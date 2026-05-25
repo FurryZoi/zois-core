@@ -94,6 +94,12 @@ export function formatString(text: string): (
     return { isBeatifulString: false };
 }
 
+export class ZoiOpenEvent extends CustomEvent<{ subscreen: string; mod?: string }> {
+    constructor(detail: { subscreen: string; mod?: string }) {
+        super('zoiscore:open', { detail });
+    }
+}
+
 export function registerCore(modData: ModData): void {
     createMod(modData);
     if (!window.ZOISCORE) {
@@ -152,14 +158,11 @@ export function registerCore(modData: ModData): void {
                         event.preventDefault();
 
                         if (link.href.startsWith("zc://open")) {
-                            const detail: {
-                                subscreen: string
-                                mod?: string
-                            } = {
-                                subscreen: url.searchParams.get("subscreen")
-                            };
-                            if (url.searchParams.get("mod")) detail.mod = url.searchParams.get("mod");
-                            window.dispatchEvent(new CustomEvent("zoiscore:open", { detail }));
+                            const subscreen = url.searchParams.get("subscreen");
+                            if (!subscreen) return;
+                            const mod = url.searchParams.get("mod") ?? undefined;
+
+                            window.dispatchEvent(new ZoiOpenEvent({ subscreen, mod }));
                         }
                     }
                 } catch (e) {
@@ -225,15 +228,15 @@ export function getSizeInKbytes(b: any): number {
     }
 }
 
-export function getPlayer(value: string | number): Character {
-    if (!value) return;
+export function getPlayer(value: string | number): Character | null {
+    if (!value) return null;
     return ChatRoomCharacter.find((Character) => {
         return (
             Character.MemberNumber == value ||
             Character.Name.toLowerCase() === value ||
             Character.Nickname?.toLowerCase() === value
         );
-    });
+    }) ?? null;
 }
 
 export function getNickname(target: Character): string {
@@ -242,7 +245,11 @@ export function getNickname(target: Character): string {
 
 export function getThemedColorsModule(): ThemedColorsModule | null {
     if (!findModByName("Themed")) return null;
-    const themedData = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.Themed ?? ""));
+    const data = LZString.decompressFromBase64(Player.ExtensionSettings.Themed ?? "") ?? "{}";
+    let themedData;
+    try {
+        themedData = JSON.parse(data);
+    } catch {};
     if (
         !themedData?.GlobalModule?.themedEnabled ||
         !themedData?.GlobalModule?.doVanillaGuiOverhaul
@@ -260,8 +267,10 @@ export function waitForStart(callback: () => void) {
     waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
 }
 
+export function normalizeObject<T>(obj: T[]): T[];
+export function normalizeObject<T extends object>(obj: T): T;
 export function normalizeObject(obj: unknown) {
-    if (typeof obj !== "object" || obj === null) return obj;
+    if (!CommonIsObject(obj)) return obj;
 
     if (Array.isArray(obj)) {
         return obj.map(normalizeObject).sort();
@@ -270,7 +279,7 @@ export function normalizeObject(obj: unknown) {
     return Object.keys(obj)
         .sort()
         .reduce((acc, key) => {
-            acc[key] = normalizeObject(obj[key]);
+            acc[key] = normalizeObject((obj as { [key: string]: any })[key]);
             return acc;
-        }, {});
+        }, {} as { [key: string]: any });
 }

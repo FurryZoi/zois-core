@@ -1,5 +1,5 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
-import { getPlayer, ModData } from "./index";
+import { getPlayer, ModData, ZoiOpenEvent } from "./index";
 import { getCurrentSubscreen, setSubscreen } from "./ui";
 import { dialogsManager } from "./popups";
 
@@ -50,12 +50,8 @@ export function registerMod(): void {
 
     window.addEventListener(
         "zoiscore:open",
-        async (
-            event: CustomEvent<{
-                mod?: string
-                subscreen: string
-            }>
-        ) => {
+        async (event) => {
+            if (!(event instanceof ZoiOpenEvent)) return;
             const subscreen = event.detail.subscreen;
             const mod = event.detail.mod;
             if (!!mod && mod !== MOD_DATA.key) return;

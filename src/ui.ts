@@ -69,15 +69,15 @@ interface CreateScrollViewArgs extends BaseElementArgs<"base"> {
     height?: number
 }
 
-interface CreateInputListArgs extends BaseElementArgs<"base" | "input"> {
-    value?: string[] | number[]
+interface CreateInputListArgs<V extends number | string> extends BaseElementArgs<"base" | "input"> {
+    value?: V[];
     title?: string
     width: number
     height?: number
     fontSize?: number | "auto"
     padding?: number
     numbersOnly?: boolean
-    onChange?: (value: string[] | number[]) => void
+    onChange?: (value: V[]) => void
     isDisabled?: () => boolean
 }
 
@@ -279,13 +279,13 @@ const createdDynamicClasses: {
 }[] = [];
 
 function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
-    const sortedStringify = (obj: Partial<CSSStyleDeclaration>) => {
+    const sortedStringify = (obj: Partial<CSSStyleDeclaration> | undefined) => {
         if (!obj) return "null";
         return JSON.stringify(
             Object.keys(obj).sort().reduce((acc, key) => {
-                acc[key] = obj[key];
+                acc[key] = (obj as Record<string, any>)[key];
                 return acc;
-            }, {})
+            }, {} as Record<string, any>)
         );
     };
 
@@ -369,7 +369,7 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
     if (previousSubscreen) previousSubscreen.unload();
 }
 
-export function getCurrentSubscreen(): BaseSubscreen {
+export function getCurrentSubscreen(): BaseSubscreen | null {
     return currentSubscreen;
 }
 
@@ -393,8 +393,8 @@ export abstract class BaseSubscreen {
         fontSize?: number | "auto"
         anchor?: Anchor
         place?: boolean
-        modules?: Record<string, BaseModule[]>
-        modulesMap: Record<T, HTMLElement | SVGElement>
+        modules?: { [K in T]?: BaseModule[] }
+        modulesMap: { [K in T]: HTMLElement | SVGElement }
     }) {
         setFontFamily(element, MOD_DATA.fontFamily);
 
@@ -403,20 +403,20 @@ export abstract class BaseSubscreen {
             padding, fontSize, place, element
         };
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                const props = m.overrideProperties(context, modulesMap[k]);
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                const props = module.overrideProperties(context, modulesMap[key]);
                 anchor = props.anchor;
                 x = props.x;
                 y = props.y;
                 width = props.width;
                 height = props.height;
                 padding = props.padding;
-                fontSize = props.fontSize;
+                fontSize = props.fontSize ?? "auto";
                 place = props.place;
                 element = props.element;
-            });
-        });
+            }
+        }
 
         const setProperties = () => {
             if (typeof x === "number" && typeof y === "number") setPosition(element, x, y, anchor);
@@ -430,21 +430,21 @@ export abstract class BaseSubscreen {
         setProperties();
         window.addEventListener("resize", setProperties);
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                m.layoutEffect(context, modulesMap[k]);
-            });
-        });
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                module.layoutEffect(context, modulesMap[key]);
+            }
+        }
 
         if (place) document.body.append(element);
         this.resizeEventListeners.push(setProperties);
         this.htmlElements.push(element);
 
-        Object.keys(modules)?.forEach((k) => {
-            modules[k].forEach((m: BaseModule) => {
-                m.effect(context, modulesMap[k]);
-            });
-        });
+        for (const key of Object.keys(modules) as T[]) {
+            for (const module of modules[key] ?? []) {
+                module.effect(context, modulesMap[key]);
+            }
+        }
     }
 
     get currentSubscreen(): BaseSubscreen | null {
@@ -459,10 +459,10 @@ export abstract class BaseSubscreen {
         return "";
     }
 
-    run?() {
+    run() {
         this.tabHandlers.run?.();
     }
-    load?() {
+    load() {
         this.createButton({
             x: 1815,
             y: 75,
@@ -489,7 +489,7 @@ export abstract class BaseSubscreen {
             subscreenHooks[this.name].forEach((hook) => hook(this));
         }
     }
-    unload?() {
+    unload() {
         this.tabHandlers.unload?.();
         this.htmlElements.forEach((e) => {
             e.remove();
@@ -498,12 +498,12 @@ export abstract class BaseSubscreen {
             removeEventListener("resize", e);
         });
     }
-    click?() { }
-    exit?() {
+    click() { }
+    exit() {
         this.tabHandlers.exit?.();
         this.setSubscreen(this.previousSubscreen);
     }
-    update?() { }
+    update() { }
     setPreviousSubscreen() {
         setPreviousSubscreen();
     }
@@ -517,8 +517,8 @@ export abstract class BaseSubscreen {
         place = true, icon, iconAbsolutePosition = true,
         tooltip, onClick, isDisabled, modules
     }: CreateButtonArgs): HTMLButtonElement {
-        let iconElement: HTMLImageElement | SVGElement;
-        let textElement: HTMLSpanElement;
+        let iconElement: HTMLImageElement | SVGElement | undefined;
+        let textElement: HTMLSpanElement | undefined;
         const btn = document.createElement("button");
         btn.classList.add("zcButton");
         btn.setAttribute("data-zc-style", style);
@@ -583,7 +583,7 @@ export abstract class BaseSubscreen {
         place = true, modules
     }: CreateTextArgs): HTMLParagraphElement {
         const p = document.createElement("p");
-        p.innerHTML = text;
+        p.innerHTML = text ?? "";
         p.style.color = color ?? "var(--tmd-text, black)";
         if (withBackground) p.style.background = "var(--tmd-element,rgb(239, 239, 239))";
         if (withBorder) p.style.border = "2px solid var(--tmd-accent, rgb(236, 236, 236))";
@@ -684,8 +684,8 @@ export abstract class BaseSubscreen {
         x, y, width, height, title, value, modules,
         anchor = "top-left", place = true, numbersOnly = false,
         isDisabled, onChange
-    }: CreateInputListArgs): HTMLDivElement {
-        const items = [];
+    }: CreateInputListArgs<any>): HTMLDivElement {
+        const items: string[] = [];
         const div = document.createElement("div");
         div.style.cssText = `
         display: flex; flex-direction: column; gap: 1vw; border: 2px solid var(--tmd-accent, black);
@@ -749,13 +749,13 @@ export abstract class BaseSubscreen {
             itemsElement.innerHTML = "";
             items.splice(0, items.length);
             itemsElement.append(input);
-            value.forEach((v) => addItem(String(v)));
+            value?.forEach((v) => addItem(String(v)));
             if (typeof onChange === "function") onChange(numbersOnly ? items.map((i) => parseInt(i)) : items);
         });
         addButton(createElement(Trash2), () => {
             if (typeof isDisabled === "function" && isDisabled()) return div.classList.add("zcDisabled");
             for (const c of [...itemsElement.children]) {
-                if (c.getAttribute("style").includes("border: 2px solid red;")) {
+                if (c.getAttribute("style")?.includes("border: 2px solid red;")) {
                     items.splice(items.indexOf(c.textContent), 1);
                     c.remove();
                 }
@@ -783,13 +783,13 @@ export abstract class BaseSubscreen {
         div.addEventListener("click", (e) => { if (e.currentTarget == div) input.focus() });
         itemsElement.append(input);
         div.append(buttonsElement, titleElement, itemsElement);
-        this.addElement<keyof CreateInputListArgs["modules"]>(div, {
+        this.addElement<keyof CreateInputListArgs<any>["modules"]>(div, {
             x, y, width, height, anchor, place, modules, modulesMap: {
                 base: div,
                 input
             }
         });
-        value.forEach((v) => addItem(String(v)));
+        value?.forEach((v) => addItem(String(v)));
         return div;
     }
 
@@ -813,7 +813,7 @@ export abstract class BaseSubscreen {
         fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px", modules
     }: CreateSvgArgs): HTMLElement {
         // dataurl = dataurl.replaceAll("&quot;", `"`);
-        function dataURLToSVGElement(dataURL) {
+        function dataURLToSVGElement(dataURL: string) {
             // Извлекаем закодированную SVG строку
             const svgEncoded = dataURL.replace('data:image/svg+xml,', '');
 
@@ -824,9 +824,9 @@ export abstract class BaseSubscreen {
             const div = document.createElement('div');
             div.innerHTML = svgString;
 
-            return div.firstElementChild;
+            return div.firstElementChild as HTMLElement;
         }
-        function recolorSVG(svgElement, { fill, stroke }) {
+        function recolorSVG(svgElement: Element, { fill, stroke }: { fill: string, stroke: string }) {
             // Получаем все элементы внутри SVG
             const elements = svgElement.querySelectorAll('*');
 
@@ -853,16 +853,17 @@ export abstract class BaseSubscreen {
             return svgElement;
         }
         const svg = dataURLToSVGElement(dataurl);
-        recolorSVG(svg, { fill, stroke });
-        svg.setAttribute("stroke-width", strokeWidth);
-        // console.log("svg", svg)
+        if (svg) {
+            recolorSVG(svg, { fill, stroke });
+            svg.setAttribute("stroke-width", strokeWidth);
+        }
 
         this.addElement<keyof CreateSvgArgs["modules"]>(svg as HTMLElement, {
             x, y, width: size, height: size, anchor, place, modules, modulesMap: {
-                base: svg as HTMLElement
+                base: svg
             }
         });
-        return svg as HTMLElement;
+        return svg;
     }
 
     createBackNextButton({
@@ -966,13 +967,13 @@ export abstract class BaseSubscreen {
                 };
                 this.tabHandlers.unload?.();
                 this.tabHandlers.exit?.();
-                tab.load();
                 this.tabHandlers = {
                     run: tab.run,
                     load: tab.load,
                     unload: tab.unload,
                     exit: tab.exit
                 };
+                this.tabHandlers.load?.();
                 document.body.append = originalAppend;
             };
             const tabEl = document.createElement("button");
@@ -997,6 +998,7 @@ export abstract class BaseSubscreen {
         if (points.length < 2) return;
 
         const ctx = MainCanvas.canvas.getContext("2d");
+        if (!ctx) return;
         ctx.save();
 
         ctx.strokeStyle = strokeColor;
@@ -1098,7 +1100,7 @@ export abstract class BaseSubscreen {
         });
 
         const p = document.createElement("p");
-        p.textContent = options.find((option) => option.name === currentOption).text;
+        p.textContent = options.find((option) => option.name === currentOption)?.text ?? "";
 
         const arrow = createElement(ChevronDown);
         const checkmark = createElement(Check);

@@ -68,7 +68,7 @@
   "devDependencies": {
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "bc-stubs": "117.0.0-Beta.1",
+    "bc-stubs": "126.0.0-Beta.1",
     "esbuild": "^0.25.5",
     "nodemon": "^3.1.10",
     "typescript": "^5.8.3"

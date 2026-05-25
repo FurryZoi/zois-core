@@ -12,7 +12,7 @@ function countUp(
 
     let startValue = 0;
     let startTime: number;
-    let animationFrameId: number;
+    let animationFrameId: number | undefined;
 
     const animate = (timestamp: number) => {
         if (!startTime) startTime = timestamp;
