@@ -1,5 +1,5 @@
 import styles from "./styles.css";
-import { findModByName, registerMod } from "./modsApi";
+import { createMod, findModByName, hookFunction, HookPriority, registerMod } from "./modsApi";
 import { initVirtualDOM, useToastsStore, useDialogStore } from "./popups";
 import { version } from "../package.json";
 import { BaseSubscreen } from "./ui";
@@ -50,9 +50,52 @@ interface ThemedColorsModule {
 }
 
 export { version } from "../package.json";
-export let MOD_DATA: ModData;
+
+export function formatString(text: string): (
+    { html: string, isBeatifulString: true } |
+    { isBeatifulString: false }
+) {
+    if (!text || typeof text !== 'string') {
+        return { isBeatifulString: false };
+    }
+
+    let result = text;
+    let hasChanges = false;
+
+    const markdownRegex = /\[([^\]]+?)\]\(([^)]+?)\)/g;
+    const newResult = result.replace(markdownRegex, (match, linkText, url) => {
+        hasChanges = true;
+        // Экранируем текст ссылки на случай спецсимволов
+        const escapedText = linkText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapedText}</a>`;
+    });
+
+    if (newResult !== result) {
+        result = newResult;
+    }
+
+    const zcRegex = /(?<!\S)zc:\/\/open[^\s<>"']*(?!\S)/gi;
+    result = result.replace(zcRegex, (match) => {
+        hasChanges = true;
+        return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
+    });
+
+    if (hasChanges) {
+        return {
+            html: result,
+            isBeatifulString: true
+        };
+    }
+
+    return { isBeatifulString: false };
+}
 
 export function registerCore(modData: ModData): void {
+    createMod(modData);
     if (!window.ZOISCORE) {
         const style = document.createElement("style");
         style.innerHTML = styles;
@@ -62,6 +105,40 @@ export function registerCore(modData: ModData): void {
             useToastsStore,
             useDialogStore,
             version
+        });
+        hookFunction("ChatRoomMessageCreateReplyMessageElement", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
+            const [msgId, displayMessage, data] = args;
+            // console.log("Formatting message", { msgId, displayMessage, data });
+            const r = formatString(displayMessage);
+            // console.log("Format result", r);
+            if (!r.isBeatifulString) return next(args);
+            if (!msgId) {
+                return [displayMessage];
+            }
+            const metadata = ChatRoomGetMetadataElem(data.time, data.sender);
+            metadata.setAttribute("aria-hidden", "true");
+            return [
+                ElementCreate({
+                    tag: "span",
+                    classList: ["chat-room-message-content"],
+                    attributes: { "msgid": msgId },
+                    innerHTML: r.html,
+                }),
+                ElementMenu.Create(
+                    ElementGenerateID(),
+                    [
+                        metadata,
+                        ElementButton.Create(
+                            null,
+                            () => ChatRoomMessageSetReply(msgId),
+                            { noStyling: true, tooltip: "Reply" },
+                            { button: { attributes: { name: "reply" } } },
+                        ),
+                    ],
+                    { direction: "rtl", role: "menu" },
+                    { menu: { classList: ["chat-room-message-popup"], attributes: { "aria-direction": "horizontal" } } },
+                ),
+            ];
         });
         document.addEventListener('click', (event) => {
             // Ищем ближайший элемент <a> от места клика
@@ -91,7 +168,6 @@ export function registerCore(modData: ModData): void {
         }, true);
         initVirtualDOM();
     }
-    MOD_DATA = { ...modData };
     registerMod();
 }
 

@@ -1,6 +1,6 @@
 import { ClassConstructor } from "class-transformer";
-import { getPlayer, getRandomNumber, MOD_DATA } from "./index";
-import { hookFunction, HookPriority } from "./modsApi";
+import { getPlayer, getRandomNumber } from "./index";
+import { hookFunction, HookPriority, MOD_DATA } from "./modsApi";
 import { setFontFamily } from "./ui";
 import { validateData } from "./validation";
 

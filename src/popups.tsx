@@ -1,5 +1,5 @@
 import { getRelativeWidth, getRelativeX, getRelativeY } from "./ui";
-import { MOD_DATA, ModData } from "./index";
+import { ModData } from "./index";
 import React, { JSX, ReactNode, useState, useEffect, CSSProperties, FC, useRef, PropsWithChildren, useCallback } from "react";
 import ReactDOM from "react-dom/client";
 import { create } from "zustand";
@@ -8,6 +8,7 @@ import ErrorIcon from "./assets/errorIcon.svg";
 import InfoIcon from "./assets/infoIcon.svg";
 import SuccessIcon from "./assets/successIcon.svg";
 import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
+import { MOD_DATA } from "./modsApi";
 
 
 interface ToastProps {

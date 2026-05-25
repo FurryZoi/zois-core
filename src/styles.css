@@ -8,8 +8,8 @@
     cursor: pointer;
     background: var(--tmd-element, white);
     color: var(--tmd-text, black);
-    border: 2px solid var(--tmd-accent, black);
-    border-radius: 4px;
+    border: 2px solid var(--tmd-accent, rgb(34, 34, 34));
+    border-radius: 6px;
 }
 
 .zcButton:hover {

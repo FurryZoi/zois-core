@@ -1,5 +1,5 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
-import { getPlayer, MOD_DATA } from "./index";
+import { getPlayer, ModData } from "./index";
 import { getCurrentSubscreen, setSubscreen } from "./ui";
 import { dialogsManager } from "./popups";
 
@@ -12,8 +12,10 @@ export enum HookPriority {
 }
 
 export let modSdk: ModSDKModAPI;
+export let MOD_DATA: ModData;
 
-export function registerMod(): void {
+export function createMod(modData: ModData): void {
+    MOD_DATA = modData;
     window.ZOISCORE_MODS ??= [];
     window.ZOISCORE_MODS.push({
         name: MOD_DATA.name,
@@ -29,7 +31,9 @@ export function registerMod(): void {
         version: MOD_DATA.version,
         repository: MOD_DATA.repository
     });
+}
 
+export function registerMod(): void {
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
         const currentSubscreen = getCurrentSubscreen();
         if (CommonKey.IsPressed(args[0], "Escape") && !!currentSubscreen) {

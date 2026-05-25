@@ -1,7 +1,8 @@
 import { Check, ChevronDown, CircleX, createElement, Trash2 } from "lucide";
-import { getThemedColorsModule, MOD_DATA } from "./index";
+import { getThemedColorsModule } from "./index";
 import { BaseModule, Context } from "./modules";
 import { StyleModule } from "./ui-modules";
+import { MOD_DATA } from "./modsApi";
 
 export type Anchor = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
