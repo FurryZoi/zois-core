@@ -279,7 +279,6 @@ function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
     useEffect(() => {
         document.body.style.pointerEvents = "none";
         if (dialog.type === "prompt" && inputRef.current instanceof HTMLInputElement) {
-            console.log("Focus call")
             inputRef.current.focus();
         }
         return () => {
@@ -317,7 +316,7 @@ function Dialog({ dialog }: { dialog: DialogProps }): JSX.Element {
                 <p>{dialog.message}</p>
                 {
                     dialog.type === "prompt" &&
-                    <input ref={inputRef} type="text" value={inputValue} style={{ color: "white", marginTop: "1px", width: "90%", background: "rgb(82, 89, 104)", border: "none", borderRadius: "4px", padding: "0.45em" }} onChange={(e) => { console.log(e.currentTarget.value); setInputValue(e.currentTarget.value); }} />
+                    <input ref={inputRef} type="text" value={inputValue} style={{ color: "white", marginTop: "1px", width: "90%", background: "rgb(82, 89, 104)", border: "none", borderRadius: "4px", padding: "0.45em" }} onChange={(e) => { setInputValue(e.currentTarget.value); }} />
                 }
                 {
                     dialog.type === "pick" &&

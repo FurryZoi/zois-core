@@ -1,7 +1,8 @@
-import { BaseModule, Context, ModuleTarget } from "../modules";
+import { ShardContext } from "../shards";
+import { ShardModule, ShardModuleTarget } from "./shardModule";
 
 function type(
-    element: ModuleTarget,
+    element: ShardModuleTarget,
     duration: number,
 ): void {
     if (!element) {
@@ -37,12 +38,12 @@ interface TypeModuleProps {
     duration: number
 }
 
-export class TypeModule extends BaseModule {
+export class TypeModule extends ShardModule {
     constructor(private props: TypeModuleProps) {
         super();
     }
 
-    effect(context: Context, target: ModuleTarget) {
+    override effect(context: ShardContext, target: ShardModuleTarget) {
         type(target, this.props.duration);
     }
 }

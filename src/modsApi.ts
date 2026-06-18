@@ -16,20 +16,11 @@ export let MOD_DATA: ModData;
 
 export function createMod(modData: ModData): void {
     MOD_DATA = modData;
-    window.ZOISCORE_MODS ??= [];
-    window.ZOISCORE_MODS.push({
-        name: MOD_DATA.name,
-        fullName: MOD_DATA.fullName,
-        key: MOD_DATA.key,
-        version: MOD_DATA.version,
-        deepLinkSubscreens: MOD_DATA.deepLinkSubscreens ?? []
-    });
-
     modSdk = bcModSdk.registerMod({
-        name: MOD_DATA.name,
-        fullName: MOD_DATA.fullName,
-        version: MOD_DATA.version,
-        repository: MOD_DATA.repository
+        name: modData.name,
+        fullName: modData.fullName,
+        version: modData.version,
+        repository: modData.repository
     });
 }
 
@@ -49,16 +40,45 @@ export function registerMod(): void {
     });
 
     window.addEventListener(
-        "zoiscore:open",
+        "zois-core:open",
         async (event) => {
             if (!(event instanceof ZoiOpenEvent)) return;
-            const subscreen = event.detail.subscreen;
-            const mod = event.detail.mod;
-            if (!!mod && mod !== MOD_DATA.key) return;
-            const currentSubscreen = getCurrentSubscreen();
-            if (currentSubscreen?.constructor.name === subscreen) return;
-            const s = MOD_DATA.deepLinkSubscreens?.find((s) => s.constructor.name === subscreen);
-            if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to another subscreen. Confirm the redirecting." })) setSubscreen(s);
+            const target = event.detail.target;
+            if (target === undefined) return;
+            if (target.startsWith(MOD_DATA.key + ":")) {
+                const currentSubscreen = getCurrentSubscreen();
+                const mod = target.substring(0, MOD_DATA.key.length);
+                const subscreen = target.substring(MOD_DATA.key.length + 1);
+                if (currentSubscreen?.constructor?.name === subscreen) return;
+                const s = MOD_DATA.subscreens?.find((s) => s.name === subscreen);
+                if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to modded subscreen. Confirm the redirecting." })) {
+                    await PreferenceOpenSubscreen("Extensions");
+                    await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
+                    //@ts-expect-error
+                    setSubscreen(new s());
+                }
+            } else {
+                switch (target) {
+                    case "Admin": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Admin subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenAdminScreen();
+                        }
+                        break;
+                    }
+                    case "Wardrobe": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Wardrobe subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenWardrobeScreen();
+                        }
+                        break;
+                    }
+                    case "Information": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Information subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenInformationScreen();
+                        }
+                        break;
+                    }
+                }
+            }
         }
     );
 }

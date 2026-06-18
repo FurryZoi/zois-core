@@ -1,7 +1,8 @@
-import { BaseModule, Context, ModuleTarget } from "../modules";
+import { ShardContext } from "../shards";
+import { ShardModule, ShardModuleTarget } from "./shardModule";
 
 function countUp(
-    element: ModuleTarget,
+    element: ShardModuleTarget,
     endValue: number,
     duration: number,
     formattingFunction?: (value: number) => string
@@ -41,12 +42,12 @@ interface CounterUpModuleProps {
     formattingFunction?: (value: number) => string
 }
 
-export class CounterUpModule extends BaseModule {
+export class CounterUpModule extends ShardModule {
     constructor(private props: CounterUpModuleProps) {
         super();
     }
 
-    effect(context: Context, target: ModuleTarget) {
+    override effect(context: ShardContext, target: ShardModuleTarget) {
         countUp(target, this.props.endValue, this.props.duration, this.props.formattingFunction);
     }
 }

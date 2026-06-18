@@ -1,3 +1,4 @@
+export * from "./shardModule";
 export * from "./centerModule";
 export * from "./counterUpModule";
 export * from "./typeModule";

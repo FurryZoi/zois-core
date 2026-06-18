@@ -18,12 +18,9 @@ interface Window {
         loaded: boolean
         useToastsStore: import("zustand").UseBoundStore<import("zustand").StoreApi<import("@/popups").ToastsStore>>
         useDialogStore: import("zustand").UseBoundStore<import("zustand").StoreApi<import("@/popups").DialogStore>>
+        setSubscreen: (subscreen: string | null, constructorParams?: unknown[], callback?: (subscreen: import("@/ui").BaseSubscreen) => void) => void
+        setSubscreenPrevious: () => void
+        getCurrentSubscreen: () => import("@/ui").BaseSubscreen | null
+        getPreviousSubscreen: () => import("@/ui").BaseSubscreen | null
     }
-    ZOISCORE_MODS: {
-        name: string
-        fullName: string
-        key: string
-        version: string
-        deepLinkSubscreens: import("@/ui").BaseSubscreen[]
-    }[]
 }

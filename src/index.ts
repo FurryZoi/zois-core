@@ -1,8 +1,7 @@
-import styles from "./styles.css";
-import { createMod, findModByName, hookFunction, HookPriority, registerMod } from "./modsApi";
+import { createMod, findModByName, hookFunction, HookPriority, MOD_DATA, registerMod } from "./modsApi";
 import { initVirtualDOM, useToastsStore, useDialogStore } from "./popups";
 import { version } from "../package.json";
-import { BaseSubscreen } from "./ui";
+import { BaseSubscreen, SubscreenConstructor } from "./ui";
 
 
 export interface ModData {
@@ -22,7 +21,7 @@ export interface ModData {
         iconFillColor: string
         iconStrokeColor: string
     }
-    deepLinkSubscreens?: BaseSubscreen[]
+    subscreens?: SubscreenConstructor[]
 }
 
 interface ThemedColorsModule {
@@ -94,84 +93,22 @@ export function formatString(text: string): (
     return { isBeatifulString: false };
 }
 
-export class ZoiOpenEvent extends CustomEvent<{ subscreen: string; mod?: string }> {
-    constructor(detail: { subscreen: string; mod?: string }) {
-        super('zoiscore:open', { detail });
+export class ZoiOpenEvent extends CustomEvent<{ target: string }> {
+    constructor(detail: { target: string }) {
+        super(`zois-core:open`, { detail });
     }
 }
 
-export function registerCore(modData: ModData): void {
-    createMod(modData);
-    if (!window.ZOISCORE) {
-        const style = document.createElement("style");
-        style.innerHTML = styles;
-        document.head.append(style);
-        window.ZOISCORE = Object.freeze({
-            loaded: true,
-            useToastsStore,
-            useDialogStore,
-            version
-        });
-        hookFunction("ChatRoomMessageCreateReplyMessageElement", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
-            const [msgId, displayMessage, data] = args;
-            // console.log("Formatting message", { msgId, displayMessage, data });
-            const r = formatString(displayMessage);
-            // console.log("Format result", r);
-            if (!r.isBeatifulString) return next(args);
-            if (!msgId) {
-                return [displayMessage];
-            }
-            const metadata = ChatRoomGetMetadataElem(data.time, data.sender);
-            metadata.setAttribute("aria-hidden", "true");
-            return [
-                ElementCreate({
-                    tag: "span",
-                    classList: ["chat-room-message-content"],
-                    attributes: { "msgid": msgId },
-                    innerHTML: r.html,
-                }),
-                ElementMenu.Create(
-                    ElementGenerateID(),
-                    [
-                        metadata,
-                        ElementButton.Create(
-                            null,
-                            () => ChatRoomMessageSetReply(msgId),
-                            { noStyling: true, tooltip: "Reply" },
-                            { button: { attributes: { name: "reply" } } },
-                        ),
-                    ],
-                    { direction: "rtl", role: "menu" },
-                    { menu: { classList: ["chat-room-message-popup"], attributes: { "aria-direction": "horizontal" } } },
-                ),
-            ];
-        });
-        document.addEventListener('click', (event) => {
-            // Ищем ближайший элемент <a> от места клика
-            const link = (event.target as HTMLElement).closest('a');
-
-            if (link && link.href) {
-                try {
-                    const url = new URL(link.href);
-
-                    if (url.protocol === 'zc:') {
-                        event.preventDefault();
-
-                        if (link.href.startsWith("zc://open")) {
-                            const subscreen = url.searchParams.get("subscreen");
-                            if (!subscreen) return;
-                            const mod = url.searchParams.get("mod") ?? undefined;
-
-                            window.dispatchEvent(new ZoiOpenEvent({ subscreen, mod }));
-                        }
-                    }
-                } catch (e) {
-                }
-            }
-        }, true);
-        initVirtualDOM();
+export class SubscreenLoadedEvent extends CustomEvent<never> {
+    constructor() {
+        super(`${MOD_DATA.key}:subscreenloaded`);
     }
-    registerMod();
+}
+
+export class SubscreenUnloadedEvent extends CustomEvent<never> {
+    constructor() {
+        super(`${MOD_DATA.key}:subscreenunloaded`);
+    }
 }
 
 export function sleep(ms: number): Promise<() => {}> {
@@ -249,7 +186,7 @@ export function getThemedColorsModule(): ThemedColorsModule | null {
     let themedData;
     try {
         themedData = JSON.parse(data);
-    } catch {};
+    } catch { };
     if (
         !themedData?.GlobalModule?.themedEnabled ||
         !themedData?.GlobalModule?.doVanillaGuiOverhaul
