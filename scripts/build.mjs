@@ -9,54 +9,45 @@ else fs.mkdirSync("dist");
 const srcDir = path.resolve(import.meta.dirname, "..", "src");
 const distDir = path.resolve(import.meta.dirname, "..", "dist");
 
-esbuild.build({
-    entryPoints: ["./src/**/*.*"],
-    outdir: distDir,
-    bundle: false,
-    minify: true,
-    format: "esm",
-    treeShaking: true,
-    splitting: false,
-    legalComments: "none",
-    platform: "browser",
-    tsconfig: path.resolve(import.meta.dirname, "..", "tsconfig.json"),
-    loader: {
-        ".ts": "ts",
-        ".svg": "copy",
-        ".png": "copy"
-    },
-    plugins: [
-        {
-            name: 'alias',
-            setup(build) {
-                const aliases = {
-                    "@": srcDir,
-                };
-                build.onResolve({ filter: /.*/ }, (args) => {
-                    console.log(`Resolving path: ${args.path}`);
-                    for (const [alias, aliasPath] of Object.entries(aliases)) {
-                        if (args.path === alias || args.path.startsWith(alias + '/')) {
-                            const resolvedPath = args.path.replace(
-                                alias,
-                                aliasPath
-                            );
-
-                            console.log(`Resolving alias: ${args.path} -> ${resolvedPath}`);
-
-                            return {
-                                path: path.resolve(aliasPath, resolvedPath),
-                                external: false,
-                            };
-                        }
-                    }
-                });
-            },
+console.log("\x1b[36m%s\x1b[0m", "[ESM]:", "Building...");
+try {
+    await esbuild.build({
+        entryPoints: ["./src/**/*.*"],
+        outdir: distDir,
+        bundle: false,
+        minify: true,
+        format: "esm",
+        treeShaking: true,
+        splitting: false,
+        legalComments: "none",
+        platform: "browser",
+        tsconfig: path.resolve(import.meta.dirname, "..", "tsconfig.json"),
+        loader: {
+            ".ts": "ts",
+            ".svg": "copy",
+            ".png": "copy"
         }
-    ],
-}).catch(() => process.exit(1));
+    });
+    console.log("\x1b[32m%s\x1b[0m", "[ESM]:", "Done");
+} catch (err) {
+    console.error("\x1b[31m✗\x1b[0m \x1b[31m%s\x1b[0m", "[ESM]:", "Failed");
+    console.error("\x1b[31m%s\x1b[0m", err.message);
+    process.exit(1);
+}
 
-console.log("\x1b[32m%s\x1b[0m", "[ESM]:", "Done");
-execSync("tsc -p tsconfig.dts.json");
-console.log("\x1b[32m%s\x1b[0m", "[DTS]:", "Done");
+console.log("\x1b[36m%s\x1b[0m", "[DTS]:", "Generating types...");
+try {
+    execSync("tsc -p tsconfig.dts.json", { 
+        stdio: 'pipe',
+        encoding: 'utf-8'
+    });
+    console.log("\x1b[32m%s\x1b[0m", "[DTS]:", "Done");
+} catch (error) {
+    console.error("\x1b[31m✗\x1b[0m \x1b[31m%s\x1b[0m", "[DTS]:", "Failed");
+    console.error("\x1b[33m%s\x1b[0m", "─".repeat(50));
+    console.error("\x1b[31m%s\x1b[0m", error.stderr || error.stdout || error.message);
+    console.error("\x1b[33m%s\x1b[0m", "─".repeat(50));
+    process.exit(1);
+}
 
-
+console.log("\x1b[32m%s\x1b[0m", "Build completed successfully!");

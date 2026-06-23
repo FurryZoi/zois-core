@@ -1,6 +1,4 @@
 import { createMod, findModByName, hookFunction, HookPriority, MOD_DATA, registerMod } from "./modsApi";
-import { initVirtualDOM, useToastsStore, useDialogStore } from "./popups";
-import { version } from "../package.json";
 import { BaseSubscreen, SubscreenConstructor } from "./ui";
 
 
@@ -99,15 +97,33 @@ export class ZoiOpenEvent extends CustomEvent<{ target: string }> {
     }
 }
 
-export class SubscreenLoadedEvent extends CustomEvent<never> {
-    constructor() {
-        super(`${MOD_DATA.key}:subscreenloaded`);
+export class SetSubscreenEvent extends CustomEvent<{
+    modName: string
+    subscreen: {
+        name: string
+        args?: []
+    }
+}> {
+    constructor(detail: {
+        modName: string,
+        subscreen: {
+            name: string
+            args?: []
+        }
+    }) {
+        super(`zois-core:setsubscreen`, { detail });
     }
 }
 
-export class SubscreenUnloadedEvent extends CustomEvent<never> {
-    constructor() {
-        super(`${MOD_DATA.key}:subscreenunloaded`);
+export class SubscreenLoadedEvent extends CustomEvent<{ subscreen: BaseSubscreen }> {
+    constructor(detail: { subscreen: BaseSubscreen }) {
+        super(`zois-core:subscreenloaded`, { detail });
+    }
+}
+
+export class SubscreenUnloadedEvent extends CustomEvent<{ subscreen: BaseSubscreen }> {
+    constructor(detail: { subscreen: BaseSubscreen }) {
+        super(`zois-core:subscreenunloaded`, { detail });
     }
 }
 

@@ -1,9 +1,9 @@
-import { version } from "react";
 import styles from "./styles.css";
-import { ModData, formatString, ZoiOpenEvent } from ".";
+import { ModData, formatString, ZoiOpenEvent, version } from "./index";
 import { createMod, hookFunction, HookPriority, MOD_DATA, registerMod } from "./modsApi";
-import { useToastsStore, useDialogStore, initVirtualDOM } from "./popups";
 import { BaseSubscreen, SubscreenConstructor } from "./ui";
+import { ToastsManager } from "./toasts";
+import { DialogsManager } from "./dialogs";
 
 interface Mod {
     name: string
@@ -33,8 +33,6 @@ export function registerCore(modData: ModData): void {
         document.head.append(style);
         window.ZOISCORE = Object.freeze({
             loaded: true,
-            useToastsStore,
-            useDialogStore,
             version,
             setSubscreen: (subscreen: string | null, constructorParams: unknown[] = [], callback?: (subscreen: BaseSubscreen) => void) => {
                 if (subscreen === null) {
@@ -67,7 +65,9 @@ export function registerCore(modData: ModData): void {
             getPreviousSubscreen: () => previousSubscreen,
             setSubscreenPrevious: () => {
                 setSubscreen(previousSubscreen);
-            }
+            },
+            toastsManager: new ToastsManager(),
+            dialogsManager: new DialogsManager()
         });
         hookFunction("ChatRoomMessageCreateReplyMessageElement", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
             const [msgId, displayMessage, data] = args;
@@ -102,7 +102,6 @@ export function registerCore(modData: ModData): void {
             ];
         });
         document.addEventListener('click', (event) => {
-            // Ищем ближайший элемент <a> от места клика
             const link = (event.target as HTMLElement).closest('a');
 
             if (link && link.href) {
@@ -122,7 +121,6 @@ export function registerCore(modData: ModData): void {
                 }
             }
         }, true);
-        initVirtualDOM();
     }
     registerMod();
 }

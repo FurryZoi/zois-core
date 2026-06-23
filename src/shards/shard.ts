@@ -1,7 +1,7 @@
 import { SubscreenUnloadedEvent } from "..";
 import { MOD_DATA } from "../modsApi";
 import { ShardModule, ShardModuleTarget, StyleModule } from "../shard-modules";
-import { setFontFamily, setPosition, autosetFontSize, setFontSize, setPadding, getRelativeWidth, getRelativeHeight, Anchor } from "../ui";
+import { setFontFamily, setPosition, autosetFontSize, setFontSize, setPadding, getRelativeWidth, getRelativeHeight, Anchor, BaseSubscreen } from "../ui";
 
 export interface ShardContext<T extends string = never> {
     x?: number
@@ -25,15 +25,14 @@ export abstract class Shard<Context extends ShardContext> {
 
     public mount(parentElement: HTMLElement = this.context.parent ?? document.body) {
         parentElement.append(this.body!.base);
-        console.log("zoi-core:Mounted")
         this.update();
         window.addEventListener("resize", () => this.update());
         const onUnload = (event: Event) => {
             if (!(event instanceof SubscreenUnloadedEvent)) return;
             this.body!.base.remove();
-            window.removeEventListener(new SubscreenUnloadedEvent().type, onUnload);
+            window.removeEventListener("zois-core:subscreenunloaded", onUnload);
         };
-        window.addEventListener(new SubscreenUnloadedEvent().type, onUnload);
+        window.addEventListener("zois-core:subscreenunloaded", onUnload);
         return this.body!.base;
     }
 

@@ -1,4 +1,3 @@
-import { Attributes } from "react";
 import { ShardContext } from "../shards";
 import { ShardModule, ShardModuleTarget } from "./shardModule";
 

@@ -44,9 +44,13 @@
       "import": "./dist/wardrobe.js",
       "types": "./dist/types/wardrobe.d.ts"
     },
-    "./popups": {
-      "import": "./dist/popups.js",
-      "types": "./dist/types/popups.d.ts"
+    "./dialogs": {
+      "import": "./dist/dialogs.js",
+      "types": "./dist/types/dialogs.d.ts"
+    },
+    "./toasts": {
+      "import": "./dist/toasts.js",
+      "types": "./dist/types/toasts.d.ts"
     },
     "./validation": {
       "import": "./dist/validation.js",
@@ -61,20 +65,14 @@
   "dependencies": {
     "bondage-club-mod-sdk": "^1.2.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
+    "class-validator": "^0.14.4",
     "lucide": "^0.541.0",
-    "lucide-react": "^0.542.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "reflect-metadata": "^0.2.2",
-    "zustand": "^5.0.5"
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
     "bc-stubs": "126.0.0-Beta.1",
-    "esbuild": "^0.25.5",
-    "nodemon": "^3.1.10",
-    "typescript": "^5.8.3"
+    "esbuild": "^0.25.12",
+    "nodemon": "^3.1.14",
+    "typescript": "^5.9.3"
   }
 }

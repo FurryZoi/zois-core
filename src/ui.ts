@@ -1,5 +1,5 @@
 import { Check, ChevronDown, CircleX, createElement, Trash2 } from "lucide";
-import { getThemedColorsModule, SubscreenUnloadedEvent } from "./index";
+import { getThemedColorsModule, SubscreenLoadedEvent, SubscreenUnloadedEvent } from "./index";
 import { StyleModule } from "./shard-modules";
 import { MOD_DATA } from "./modsApi";
 import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard } from "./shards";
@@ -233,26 +233,31 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
 }
 
 export function setPreviousSubscreen(): void {
-    window.ZOISCORE.setSubscreenPrevious();
+    setSubscreen(previousSubscreen);
 }
 
+let previousSubscreen: BaseSubscreen | null = null;
+let currentSubscreen: BaseSubscreen | null = null;
 
-export function setSubscreen<T extends SubscreenConstructor>(
-    subscreenConstructor: T | null,
-    args: T extends new (...args: infer A) => any ? A : unknown[] = [] as any,
-    callback?: (subscreen: BaseSubscreen) => void
-): void {
-    if (subscreenConstructor === null) return window.ZOISCORE.setSubscreen(null);
-    if (typeof callback === "function") window.ZOISCORE.setSubscreen(`${MOD_DATA.key}:${subscreenConstructor.name}`, args ?? [], callback);
-    else window.ZOISCORE.setSubscreen(`${MOD_DATA.key}:${subscreenConstructor.name}`, args ?? []);
+export function setSubscreen(subscreen: BaseSubscreen | null): void {
+    previousSubscreen = currentSubscreen;
+    currentSubscreen = subscreen;
+    if (previousSubscreen) {
+        previousSubscreen.unload();
+        window.dispatchEvent(new SubscreenUnloadedEvent({ subscreen: previousSubscreen }));
+    }
+    if (subscreen) {
+        subscreen.load();
+        window.dispatchEvent(new SubscreenLoadedEvent({ subscreen }));
+    }
 }
 
 export function getCurrentSubscreen(): BaseSubscreen | null {
-    return window.ZOISCORE.getCurrentSubscreen();
+    return currentSubscreen;
 }
 
 export function getPreviousSubscreen(): BaseSubscreen | null {
-    return window.ZOISCORE.getPreviousSubscreen();
+    return previousSubscreen;
 }
 
 export abstract class BaseSubscreen {
@@ -301,7 +306,6 @@ export abstract class BaseSubscreen {
     }
     unload() {
         this.tabHandlers.unload?.();
-        window.dispatchEvent(new SubscreenUnloadedEvent());
         // this.htmlElements.forEach((e) => {
         //     e.remove();
         // });
@@ -311,8 +315,7 @@ export abstract class BaseSubscreen {
     }
     click() { }
     exit() {
-        this.tabHandlers.exit?.();
-        window.ZOISCORE.setSubscreenPrevious();
+        setPreviousSubscreen();
     }
     update() { }
     setPreviousSubscreen() {

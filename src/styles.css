@@ -207,7 +207,7 @@
 .zcToastsContainer {
     display: flex;
     flex-direction: column;
-    gap: 0.25vw;
+    gap: 0.15vw;
     cursor: pointer;
     position: fixed;
     z-index: 30;
@@ -248,9 +248,13 @@
 }
 
 .zcToast {
+    display: flex;
+    column-gap: 0.6em;
+    align-items: center;
     max-width: 25vw;
     animation: zcSlideInFromLeft 0.3s ease-out forwards;
-    border-radius: 4px;
+    border-radius: 0.15em;
+    position: relative;
 }
 
 .zcToast.exiting {

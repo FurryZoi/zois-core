@@ -1,7 +1,8 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
 import { getPlayer, ModData, ZoiOpenEvent } from "./index";
 import { getCurrentSubscreen, setSubscreen } from "./ui";
-import { dialogsManager } from "./popups";
+import { dialogsManager } from "./dialogs";
+
 
 export enum HookPriority {
     OBSERVE = 0,
@@ -54,7 +55,6 @@ export function registerMod(): void {
                 if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to modded subscreen. Confirm the redirecting." })) {
                     await PreferenceOpenSubscreen("Extensions");
                     await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
-                    //@ts-expect-error
                     setSubscreen(new s());
                 }
             } else {
