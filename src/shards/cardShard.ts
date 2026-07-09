@@ -1,5 +1,5 @@
 import { MOD_DATA } from "../index";
-import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../ui";
+import { autosetFontSize, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
 export interface CardShardContext extends ShardContext<"base" | "name" | "value" | "icon"> {

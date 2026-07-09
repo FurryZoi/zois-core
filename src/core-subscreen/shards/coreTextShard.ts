@@ -1,6 +1,4 @@
-import { MOD_DATA } from "../../index";
-import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../../ui";
-import { Shard, ShardContext, TextShard } from "../../shards";
+import { TextShard } from "../../shards";
 
 export class CoreTextShard extends TextShard {
     override get defaultColor() {

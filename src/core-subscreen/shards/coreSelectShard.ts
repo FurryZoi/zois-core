@@ -1,7 +1,5 @@
-import { Check, ChevronDown, createElement } from "lucide";
-import { MOD_DATA } from "../../index";
-import { ShardContext, Shard, SelectShard } from "../../shards";
-import { addDynamicClass, setFontFamily, autosetFontSize, DynamicClassStyles } from "../../ui";
+import { SelectShard } from "../../shards";
+import { DynamicClassStyles } from "../../ui";
 
 
 export class CoreSelectShard extends SelectShard {

@@ -1,5 +1,5 @@
 import { MOD_DATA } from "../index";
-import { addDynamicClass, Anchor, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
+import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 import { Check, ChevronDown, createElement } from "lucide";
 

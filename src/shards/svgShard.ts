@@ -1,5 +1,4 @@
-import { MOD_DATA } from "../index";
-import { Anchor, autosetFontSize, setFontFamily, setFontSize, setSize } from "../ui";
+import { setSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
 export interface SvgShardContext extends ShardContext {

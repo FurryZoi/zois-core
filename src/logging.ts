@@ -1,4 +1,4 @@
-import { MOD_DATA } from ".";
+import { MOD_DATA } from "./index";
 
 type LogLevel = "debug" | "log" | "warn" | "error";
 

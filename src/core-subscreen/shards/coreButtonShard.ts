@@ -1,6 +1,5 @@
-import { MOD_DATA } from "../../index";
-import { addDynamicClass, Anchor, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../../ui";
-import { ButtonShard, ButtonShardContext, Shard, ShardContext } from "../../shards";
+import { DynamicClassStyles } from "../../ui";
+import { ButtonShard } from "../../shards";
 
 export class CoreButtonShard extends ButtonShard {
     protected get dynamicClassButton(): DynamicClassStyles {

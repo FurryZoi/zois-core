@@ -1,9 +1,5 @@
-import { createElement, CircleX, Trash2 } from "lucide";
-import { MOD_DATA } from "../../index";
-import { StyleModule } from "../../shard-modules";
-import { ShardContext, Shard, InputListShard } from "../../shards";
-import { DynamicClassStyles, setFontFamily } from "../../ui";
-import { ButtonShard } from "../../shards";
+import { InputListShard } from "../../shards";
+import { DynamicClassStyles } from "../../ui";
 
 
 

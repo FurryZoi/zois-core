@@ -1,10 +1,7 @@
 import { MOD_DATA } from "../index";
-import { addDynamicClass, Anchor, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
+import { addDynamicClass, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
-import { StyleModule } from "../shard-modules";
-import { CircleX, createElement, RotateCcw, Trash2 } from "lucide";
-import { ButtonShard } from "./buttonShard";
-import { logger } from "../logging";
+import { createElement, RotateCcw, Trash2 } from "lucide";
 
 export interface InputListShardContext<V extends number | string = number | string> extends ShardContext<"input"> {
     value?: V[];

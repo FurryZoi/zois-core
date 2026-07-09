@@ -1,8 +1,7 @@
 import { SubscreenUnloadedEvent } from "..";
-import { MOD_DATA } from "../index";
 import { logger } from "../logging";
-import { ShardModule, ShardModuleTarget, StyleModule } from "../shard-modules";
-import { setFontFamily, setPosition, autosetFontSize, setFontSize, setPadding, getRelativeWidth, getRelativeHeight, Anchor, BaseSubscreen } from "../ui";
+import { ShardModule } from "../shard-modules";
+import { setPosition, setPadding, getRelativeWidth, getRelativeHeight, Anchor } from "../ui";
 
 export interface ShardContext<T extends string = never> {
     x?: number

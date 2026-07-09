@@ -1,6 +1,5 @@
-import { MOD_DATA } from "../../index";
-import { Shard, CheckboxShardContext, CheckboxShard } from "../../shards";
-import { DynamicClassStyles, setFontFamily, autosetFontSize } from "../../ui";
+import { CheckboxShard } from "../../shards";
+import { DynamicClassStyles } from "../../ui";
 
 export class CoreCheckboxShard extends CheckboxShard {
     protected get dynamicClassInput(): DynamicClassStyles {
