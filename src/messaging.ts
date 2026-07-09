@@ -1,8 +1,9 @@
 import { ClassConstructor } from "class-transformer";
-import { getPlayer, getRandomNumber } from "./index";
-import { hookFunction, HookPriority, MOD_DATA } from "./modsApi";
+import { getPlayer, MOD_DATA } from "./index";
+import { hookFunction, HookPriority } from "./modSdk";
 import { setFontFamily } from "./ui";
 import { validateData } from "./validation";
+import { logger } from "./logging";
 
 const pendingRequests: Map<string, PendingRequest<any>> = new Map();
 const requestListeners: Map<string, (data: any, sender: Character | number, senderName?: string) => any> = new Map();
@@ -242,7 +243,7 @@ class MessagesManager {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
 					const validationResult = await validateData(data.data, dto);
 					if (dto && !validationResult.isValid) {
-						console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+						logger.warn(`DTO Failure:`, validationResult);
 						return next(args);
 					}
 					const _data = _listener?.(data.data, sender);
@@ -274,7 +275,7 @@ class MessagesManager {
 				if (typeof data.requestId !== "string") return;
 				const validationResult = await validateData(data.data, dto);
 				if (dto && !validationResult.isValid) {
-					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+					logger.warn(`DTO Failure:`, validationResult);
 					return next(args);
 				}
 				const _data = _listener?.(data.data, beep.MemberNumber, beep.MemberName);
@@ -330,7 +331,7 @@ class MessagesManager {
 			) {
 				const validationResult = await validateData(_message.Dictionary.data, dto);
 				if (dto && !validationResult.isValid) {
-					console.warn(`${MOD_DATA.name} DTO Failure:`, validationResult);
+					logger.warn(`DTO Failure:`, validationResult);
 					return next(args);
 				}
 				_listener?.(_message.Dictionary.data, sender);

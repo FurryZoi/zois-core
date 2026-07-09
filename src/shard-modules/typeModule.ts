@@ -39,7 +39,7 @@ interface TypeModuleProps {
 }
 
 export class TypeModule extends ShardModule {
-    constructor(private props: TypeModuleProps) {
+    constructor(private readonly props: TypeModuleProps) {
         super();
     }
 

@@ -4,66 +4,6 @@
     box-sizing: border-box;
 }
 
-.zcButton {
-    cursor: pointer;
-    background: var(--tmd-element, white);
-    color: var(--tmd-text, black);
-    border: 2px solid var(--tmd-accent, rgb(34, 34, 34));
-    border-radius: 6px;
-}
-
-.zcButton:hover {
-    background: var(--tmd-element-hover, #ebf7fe);
-    border-color: var(--tmd-accent-hover, #7dd3fc);
-    color: var(--tmd-accent-hover, #015a8c);
-}
-
-.zcButton .tooltip {
-    position: absolute;
-    color: black;
-    text-align: center;
-    padding: 4px;
-    border-radius: 4px;
-    background: #FFFF88;
-    border: 2px solid #e7e787;
-    width: max-content;
-    visibility: hidden;
-    z-index: 10;
-}
-
-.zcButton .tooltip[position=left] {
-    right: calc(100% + 1vw);
-}
-
-.zcButton .tooltip[position=right] {
-    left: calc(100% + 1vw);
-}
-
-.zcButton:hover .tooltip {
-    visibility: visible;
-}
-
-.zcButton[data-zc-style="green"] {
-    background: rgb(124, 255, 124);
-    border-color: rgb(82, 204, 82);
-    color: black;
-}
-
-.zcButton[data-zc-style="green"]:hover {
-    background: rgb(94, 197, 94);
-    color: black;
-}
-
-.zcButton[data-zc-style="inverted"] {
-    background: var(--tmd-accent, #303030);
-    border: none;
-    color: var(--tmd-text, white);
-}
-
-.zcButton[data-zc-style="inverted"]:hover {
-    background: var(--tmd-accent-hover, #474747);
-}
-
 .zcInput {
     background: var(--tmd-element, white);
     color: var(--tmd-text, black);
@@ -139,71 +79,6 @@
     font-weight: bold;
 }
 
-.zcSelect {
-    cursor: pointer;
-    background: var(--tmd-element, white);
-    color: var(--tmd-text, black);
-    border: 2px solid var(--tmd-accent, rgb(195, 195, 195));
-    border-radius: 0.4em;
-    padding: 0.45em;
-    z-index: 10;
-}
-
-.zcSelect[opened="true"] {
-    border-color: var(--tmd-accent-hover, rgb(0, 96, 223));
-}
-
-.zcSelect[opened="false"]:hover {
-    border-color: var(--tmd-accent-hover, rgb(170, 170, 170));
-}
-
-.zcSelect>svg {
-    position: absolute;
-    right: 0.45em;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1.5em;
-    height: 1.5em;
-    color: var(--tmd-accent, rgb(0, 96, 223));
-}
-
-.zcSelect>div[data-zc-position="bottom"] {
-    position: absolute;
-    top: calc(100% + 0.45em);
-    left: 0;
-    width: 100%;
-    background: var(--tmd-element, #f6f6f6);
-    border: 2px solid var(--tmd-element-hover, rgb(235 235 235));
-    border-radius: 0.4em;
-}
-
-.zcSelect>div[data-zc-position="top"] {
-    position: absolute;
-    bottom: calc(100% + 0.45em);
-    left: 0;
-    width: 100%;
-    background: var(--tmd-element, #f6f6f6ed);
-    border: 2px solid var(--tmd-element-hover, rgb(235 235 235));
-    border-radius: 0.4em;
-}
-
-.zcSelect>div>div {
-    color: var(--tmd-text, black);
-    width: 100%;
-    padding: 0.45em;
-    border-radius: 0.25em;
-}
-
-.zcSelect>div>div>svg {
-    width: 1.25em;
-    height: 1.25em;
-    color: var(--tmd-accent, rgb(0, 96, 223));
-}
-
-.zcSelect>div>div:hover {
-    background: var(--tmd-element-hover, #ededed);
-}
-
 .zcToastsContainer {
     display: flex;
     flex-direction: column;
@@ -235,6 +110,18 @@
     }
 }
 
+@keyframes zcSlideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 @keyframes zcSlideOutToLeft {
     from {
         transform: translateX(0);
@@ -247,22 +134,33 @@
     }
 }
 
+@keyframes zcSlideOutToRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
 .zcToast {
     display: flex;
     column-gap: 0.6em;
     align-items: center;
     max-width: 25vw;
-    animation: zcSlideInFromLeft 0.3s ease-out forwards;
     border-radius: 0.15em;
     position: relative;
 }
 
-.zcToast.exiting {
-    animation: zcSlideOutToLeft 0.3s ease-out forwards;
-}
-
 .zcToast p {
     color: white;
+}
+
+.zcToast > svg {
+    flex-shrink: 0;
 }
 
 .zcDialog {

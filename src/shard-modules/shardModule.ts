@@ -1,5 +1,4 @@
 import { ShardContext } from "../shards";
-import { Anchor } from "../ui"
 
 export type ShardModuleTarget = HTMLElement | SVGElement;
 

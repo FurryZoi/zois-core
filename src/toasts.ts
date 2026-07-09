@@ -1,7 +1,8 @@
 import { CircleAlert, CircleCheck, CircleX, createElement, Info } from "lucide";
 import { ModData } from "./index";
-import { MOD_DATA } from "./modsApi";
-import { getRelativeX, getRelativeY } from "./ui";
+import { MOD_DATA } from "./index";
+import { setPosition } from "./ui";
+import { logger } from "./logging";
 
 interface Toast {
     id: string
@@ -15,10 +16,23 @@ interface Toast {
 function createToastsContainer() {
     const container = document.createElement("div");
     container.classList.add("zcToastsContainer");
-    const update = () => container.style.cssText = `font-family: ${CommonGetFontName()}; bottom: ${getRelativeY(5)}px; left: ${getRelativeX(5)}px;`;
+    container.addEventListener("click", () => {
+        const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        for (const toast of container.children) {
+            if (toast instanceof HTMLElement) {
+                toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
+            }
+        }
+        setTimeout(() => container.innerHTML = "", 300);
+    });
+    const update = () => {
+        container.style.cssText = `font-family: ${CommonGetFontName()};`;
+        setPosition(container, 5, 5, window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left");
+    };
     window.addEventListener("resize", update);
     document.body.append(container);
     update();
+    document.addEventListener("zois-core:coresettingschanged", update);
     return container;
 }
 
@@ -57,6 +71,7 @@ function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement {
 }
 
 function createToast({ title, message, type, duration, theme, id }: Toast) {
+    const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
     const backgroundColor = theme ? theme.backgroundColor : type === "success" ? "rgb(122, 213, 162)" : type === "warning" ? "rgb(244, 220, 147)" : type === "error" ? "rgb(255, 163, 163)" : "rgb(148, 178, 217)";
     const textColor = theme ? theme.titleColor : (type === "info" || type === "spinner") ? "rgb(0, 2, 125)" : type === "success" ? "#244428" : type === "error" ? "rgb(128, 22, 22)" : "rgb(100, 74, 16)";
     const progressBarColor = theme ? theme.progressBarColor : "#00000014";
@@ -71,6 +86,7 @@ function createToast({ title, message, type, duration, theme, id }: Toast) {
         const canvasHeight = MainCanvas.canvas.clientHeight;
         const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
         toast.style.cssText = `width: 100%; font-size: ${2.85 * scaleFactor}px; padding: ${1 * scaleFactor}px; background: ${backgroundColor}; border: 1px solid #555;`;
+        toast.style.animation = `${pos.includes("left") ? "zcSlideInFromLeft" : "zcSlideInFromRight"} 0.3s ease-out forwards`;
     };
 
     if (type !== "spinner") {
@@ -107,7 +123,10 @@ function createToast({ title, message, type, duration, theme, id }: Toast) {
     update();
     window.addEventListener("resize", update);
     toastContainer.append(toast);
-    setTimeout(() => toast.classList.add("exiting"), duration);
+    setTimeout(() => {
+        // const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
+    }, duration);
     setTimeout(() => toast.remove(), duration + 300);
 }
 
@@ -118,14 +137,36 @@ export class ToastsManager {
     }
 
     private process({ title, message, duration, type, id, theme }: Toast): void {
-        createToast({
-            id,
-            title,
-            message,
-            duration,
-            type,
-            theme
-        });
+        const coreSettings = window.ZOISCORE.getSettings();
+        if (coreSettings.toasts?.blacklist?.enabled && coreSettings.toasts.blacklist.content?.length !== 0) {
+            if (
+                coreSettings.toasts.blacklist.content?.some((v) => {
+                    const regexp = new RegExp(v);
+                    return regexp.test(title ?? "") || regexp.test(message);
+                })
+            ) {
+                logger.log("Toast message blocked due to blacklist settings");
+                return;
+            }
+        }
+        if (coreSettings.toasts?.preventUsingSingleTheme) {
+            createToast({
+                id,
+                title,
+                message,
+                duration,
+                type
+            });
+        } else {
+            createToast({
+                id,
+                title,
+                message,
+                duration,
+                type,
+                theme
+            });
+        }
     }
 
     public info({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {

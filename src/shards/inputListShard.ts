@@ -1,9 +1,10 @@
-import { MOD_DATA } from "../modsApi";
-import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../ui";
+import { MOD_DATA } from "../index";
+import { addDynamicClass, Anchor, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 import { StyleModule } from "../shard-modules";
-import { CircleX, createElement, Trash2 } from "lucide";
+import { CircleX, createElement, RotateCcw, Trash2 } from "lucide";
 import { ButtonShard } from "./buttonShard";
+import { logger } from "../logging";
 
 export interface InputListShardContext<V extends number | string = number | string> extends ShardContext<"input"> {
     value?: V[];
@@ -15,62 +16,114 @@ export interface InputListShardContext<V extends number | string = number | stri
 }
 
 export class InputListShard extends Shard<InputListShardContext> {
+    protected get dynamicClassContainer(): DynamicClassStyles {
+        return {
+            base: {
+                display: "flex",
+                flexDirection: "column",
+                gap: "1vw",
+                border: "2px solid var(--tmd-accent, black)",
+                borderRadius: "4px",
+                padding: "0.75vw",
+                background: "var(--tmd-element, none)"
+            },
+            "> div:first-child": {
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                columnGap: "0.75vw",
+                width: "100%"
+            },
+            "> div:first-child > b": {
+                fontSize: "clamp(10px, 2.4vw, 28px)",
+                color: "var(--tmd-text, black)"
+            },
+            "> div:first-child > div:last-child": {
+                display: "flex",
+                columnGap: "0.75vw",
+            },
+            "> div:last-child": {
+                display: "flex",
+                gap: "0.25em",
+                alignContent: "flex-start",
+                flexWrap: "wrap",
+                overflowY: "scroll",
+                width: "100%"
+            },
+            "> div:last-child > div": {
+                cursor: "pointer",
+                background: "var(--tmd-element-hover, rgb(206, 206, 206))",
+                color: "var(--tmd-text, black)",
+                height: "fit-content",
+                padding: "0.25em 0.45em",
+                borderRadius: "0.25em",
+                fontSize: "clamp(8px, 1.85vw, 24px)"
+            },
+        };
+    }
+
+    protected get dynamicClassInput(): DynamicClassStyles {
+        return {
+            base: {
+                border: "none !important",
+                outline: "none !important",
+                background: "none !important",
+                flexGrow: "1",
+                width: "6vw",
+                fontSize: "clamp(8px, 1.85vw, 20px)"
+            }
+        };
+    }
+
+    protected get dynamicClassToolsButton(): DynamicClassStyles {
+        return {
+            base: {
+                cursor: "pointer",
+                display: "grid",
+                placeItems: "center",
+                background: "var(--tmd-accent, #333)",
+                color: "white",
+                width: "2.5vw",
+                aspectRatio: "1/1",
+                borderRadius: "8px",
+                border: "none"
+            },
+            hover: {
+                background: "var(--tmd-accent-hover, #00c2cc)",
+            }
+        };
+    }
+
     override generateBody(): Record<keyof NonNullable<InputListShardContext<number | string>["modules"]>, HTMLElement | SVGElement> {
         const { value, title, fontSize, numbersOnly, onChange, isDisabled } = this.context;
         const checkbox = document.createElement("div");
         const items: string[] = [];
         const div = document.createElement("div");
-        div.style.cssText = `
-                display: flex; flex-direction: column; gap: 1vw; border: 2px solid var(--tmd-accent, black);
-                border-radius: 4px; padding: 0.75vw; background: var(--tmd-element, none);
-                `;
+        addDynamicClass(div, this.dynamicClassContainer);
         setFontFamily(div, MOD_DATA.fontFamily);
 
-        const buttonsElement = document.createElement("div");
-        buttonsElement.style.cssText = "display: flex; justify-content: center; column-gap: 1vw; width: 100%;";
+        const headerElement = document.createElement("div");
+        const toolsElement = document.createElement("div");
 
         const titleElement = document.createElement("b");
         titleElement.textContent = title + ":";
-        titleElement.style.cssText = "width: 100%; font-size: clamp(10px, 2.4vw, 24px); color: var(--tmd-text, black);";
 
         const itemsElement = document.createElement("div");
-        itemsElement.style.cssText = `display: flex; gap: 1vw; flex-wrap: wrap; align-content: flex-start;
-                overflow-y: scroll;`;
 
         const input = document.createElement("input");
-        input.style.cssText = "border: none; outline: none; background: none; height: fit-content; flex-grow: 1; padding: 0.8vw; width: 6vw; font-size: clamp(8px, 2vw, 20px);";
+        addDynamicClass(input, this.dynamicClassInput);
 
         const addButton = (icon: SVGElement, onClick: () => void) => {
-            // const b = document.createElement("button");
-            // b.style.cssText = "cursor: pointer; display: grid; place-items: center; background: var(--tmd-element-hover, #e0e0e0); width: 10%; max-width: 40px; aspect-ratio: 1/1; border-radius: 8px; border: none;";
-            // icon.style.cssText = "width: 90%;";
-            // b.append(icon);
-            const shard = new ButtonShard({
-                icon,
-                onClick,
-                style: "default",
-                parent: buttonsElement,
-                modules: {
-                    icon: [
-                        new StyleModule({
-                            width: "70%",
-                            height: "70%"
-                        })
-                    ],
-                    base: [
-                        new StyleModule({
-                            width: "2em",
-                            aspectRatio: "1/1"
-                        })
-                    ]
-                }
-            });
-            shard.mount();
+            const b = document.createElement("button");
+            addDynamicClass(b, this.dynamicClassToolsButton);
+            icon.style.cssText = "width: 80%; height: auto;";
+            b.append(icon);
+            b.addEventListener("click", onClick);
+            toolsElement.append(b);
         }
 
         const addItem = (text: string) => {
             const item = document.createElement("div");
-            item.style.cssText = "cursor: pointer; background: var(--tmd-element-hover, rgb(206, 206, 206)); color: var(--tmd-text, black); height: fit-content; padding: 0.8vw; border-radius: 0.8vw; font-size: clamp(8px, 2vw, 20px);";
             item.textContent = text;
             itemsElement.insertBefore(item, input);
             item.addEventListener("click", (e) => {
@@ -81,7 +134,7 @@ export class InputListShard extends Shard<InputListShardContext> {
             items.push(text);
         }
 
-        addButton(createElement(CircleX), () => {
+        addButton(createElement(RotateCcw), () => {
             if (typeof isDisabled === "function" && isDisabled()) return div.classList.add("zcDisabled");
             itemsElement.innerHTML = "";
             items.splice(0, items.length);
@@ -118,8 +171,9 @@ export class InputListShard extends Shard<InputListShardContext> {
             }
         });
         div.addEventListener("click", (e) => { if (e.currentTarget == div) input.focus() });
+        headerElement.append(titleElement, toolsElement);
         itemsElement.append(input);
-        div.append(buttonsElement, titleElement, itemsElement);
+        div.append(headerElement, itemsElement);
 
         value?.forEach((v) => addItem(String(v)));
         return {

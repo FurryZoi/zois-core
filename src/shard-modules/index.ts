@@ -6,3 +6,4 @@ export * from "./styleModule";
 export * from "./dynamicClassModule";
 export * from "./attributesModule";
 export * from "./clickModule";
+export * from "./multiClickModule";

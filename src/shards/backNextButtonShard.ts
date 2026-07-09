@@ -1,4 +1,4 @@
-import { MOD_DATA } from "../modsApi";
+import { MOD_DATA } from "../index";
 // import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 

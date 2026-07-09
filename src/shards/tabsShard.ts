@@ -1,4 +1,4 @@
-import { MOD_DATA } from "../modsApi";
+import { MOD_DATA } from "../index";
 import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
@@ -42,7 +42,6 @@ export class TabsShard extends Shard<TabsShardContext> {
                 tabEl.setAttribute("data-opened", "true");
                 const originalAppend = document.body.append.bind(document.body);
                 document.body.append = (...nodes: (Node | string)[]) => {
-                    console.log("Nodes", nodes);
                     tabElements.push(...nodes);
                     originalAppend(...nodes);
                 };

@@ -22,12 +22,12 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "rootDir": "./",
-    "baseUrl": "src",
+    // "baseUrl": "src",
     "outDir": "dist",
-    "paths": {
-      "@/*": [
-        "*"
-      ]
-    }
+    // "paths": {
+    //   "@/*": [
+    //     "*"
+    //   ]
+    // }
   },
 }

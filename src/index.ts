@@ -1,5 +1,7 @@
-import { createMod, findModByName, hookFunction, HookPriority, MOD_DATA, registerMod } from "./modsApi";
-import { BaseSubscreen, SubscreenConstructor } from "./ui";
+import { registerCore } from "./core";
+import { dialogsManager } from "./dialogs";
+import { createModSdk, findModByName, hookFunction, HookPriority } from "./modSdk";
+import { BaseSubscreen, getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 
 
 export interface ModData {
@@ -47,6 +49,69 @@ interface ThemedColorsModule {
 }
 
 export { version } from "../package.json";
+export let MOD_DATA: ModData;
+
+export function registerMod(modData: ModData): void {
+    if (!window.ZOISCORE) registerCore();
+    MOD_DATA = modData;
+    createModSdk();
+
+    hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
+        const currentSubscreen = getCurrentSubscreen();
+        if (CommonKey.IsPressed(args[0], "Escape") && !!currentSubscreen) {
+            currentSubscreen.exit();
+            return false;
+        }
+        const zcDialog = document.querySelector(".zcDialog");
+        if (zcDialog instanceof HTMLDivElement) {
+            zcDialog.focus();
+            return false;
+        }
+        return next(args);
+    });
+
+    window.addEventListener(
+        "zois-core:open",
+        async (event) => {
+            if (!(event instanceof ZoiOpenEvent)) return;
+            const target = event.detail.target;
+            if (target === undefined) return;
+            if (target.startsWith(MOD_DATA.key + ":")) {
+                const currentSubscreen = getCurrentSubscreen();
+                const mod = target.substring(0, MOD_DATA.key.length);
+                const subscreen = target.substring(MOD_DATA.key.length + 1);
+                if (currentSubscreen?.constructor?.name === subscreen) return;
+                const s = MOD_DATA.subscreens?.find((s) => s.name === subscreen);
+                if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to modded subscreen. Confirm the redirecting." })) {
+                    await PreferenceOpenSubscreen("Extensions");
+                    await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
+                    setSubscreen(new s());
+                }
+            } else {
+                switch (target) {
+                    case "Admin": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Admin subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenAdminScreen();
+                        }
+                        break;
+                    }
+                    case "Wardrobe": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Wardrobe subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenWardrobeScreen();
+                        }
+                        break;
+                    }
+                    case "Information": {
+                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Information subscreen. Confirm the redirecting." })) {
+                            ChatRoomOpenInformationScreen();
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    );
+}
 
 export function formatString(text: string): (
     { html: string, isBeatifulString: true } |
@@ -124,6 +189,12 @@ export class SubscreenLoadedEvent extends CustomEvent<{ subscreen: BaseSubscreen
 export class SubscreenUnloadedEvent extends CustomEvent<{ subscreen: BaseSubscreen }> {
     constructor(detail: { subscreen: BaseSubscreen }) {
         super(`zois-core:subscreenunloaded`, { detail });
+    }
+}
+
+export class CoreSettingsChangedEvent extends CustomEvent<never> {
+    constructor() {
+        super(`zois-core:coresettingschanged`);
     }
 }
 

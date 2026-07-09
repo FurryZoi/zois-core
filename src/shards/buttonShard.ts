@@ -1,5 +1,5 @@
-import { MOD_DATA } from "../modsApi";
-import { Anchor, autosetFontSize, setFontFamily, setFontSize } from "../ui";
+import { MOD_DATA } from "../index";
+import { addDynamicClass, Anchor, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
 export interface ButtonShardContext extends ShardContext<"icon" | "text"> {
@@ -17,12 +17,67 @@ export interface ButtonShardContext extends ShardContext<"icon" | "text"> {
 }
 
 export class ButtonShard extends Shard<ButtonShardContext> {
+    protected get dynamicClassButton(): DynamicClassStyles {
+        return {
+            base: {
+                cursor: "pointer",
+                background: "var(--tmd-element, white)",
+                color: "var(--tmd-text, black)",
+                border: "2px solid var(--tmd-accent, rgb(34, 34, 34))",
+                borderRadius: "6px",
+            },
+            hover: {
+                background: "var(--tmd-element-hover, #ebf7fe)",
+                borderColor: "var(--tmd-accent-hover, #7dd3fc)",
+                color: "var(--tmd-accent-hover, #015a8c)"
+            },
+            "> .tooltip": {
+                position: "absolute",
+                color: "black",
+                textAlign: "center",
+                padding: "4px",
+                borderRadius: "4px",
+                background: "#FFFF88",
+                border: "2px solid #e7e787",
+                width: "max-content",
+                visibility: "hidden",
+                zIndex: "10"
+            },
+            "> .tooltip[position=left]": {
+                right: "calc(100% + 1vw)"
+            },
+            "> .tooltip[position=right]": {
+                left: "calc(100% + 1vw)"
+            },
+            ":hover .tooltip": {
+                visibility: "visible"
+            },
+            "[data-zc-style=green]": {
+                background: "rgb(124, 255, 124)",
+                borderColor: "rgb(82, 204, 82)",
+                color: "black",
+            },
+            "[data-zc-style=green]:hover": {
+                background: "rgb(94, 197, 94)",
+                color: "black"
+            },
+            "[data-zc-style=inverted]": {
+                background: "var(--tmd-accent, #303030)",
+                border: "none",
+                color: "var(--tmd-text, white)"
+            },
+            "[data-zc-style=inverted]:hover": {
+                background: "var(--tmd-accent-hover, #474747)"
+            }
+        };
+    }
+
     override generateBody(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { text, fontSize, width, height, padding, style, icon, iconAbsolutePosition = true, tooltip, onClick, isDisabled } = this.context;
         let iconElement: HTMLImageElement | SVGElement | undefined;
         let textElement: HTMLSpanElement | undefined;
         const btn = document.createElement("button");
-        btn.classList.add("zcButton");
+        addDynamicClass(btn, this.dynamicClassButton);
         btn.setAttribute("data-zc-style", style);
         btn.style.display = "flex";
         btn.style.alignItems = "center";
@@ -50,9 +105,6 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         if (text) {
             textElement = document.createElement("span");
             textElement.textContent = text;
-            // if (icon && !iconAbsolutePosition) {
-            //     textElement.style.width = "100%";
-            // }
             btn.append(textElement);
         }
 

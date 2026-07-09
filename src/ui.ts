@@ -1,8 +1,8 @@
-import { Check, ChevronDown, CircleX, createElement, Trash2 } from "lucide";
 import { getThemedColorsModule, SubscreenLoadedEvent, SubscreenUnloadedEvent } from "./index";
 import { StyleModule } from "./shard-modules";
-import { MOD_DATA } from "./modsApi";
-import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard } from "./shards";
+import { MOD_DATA } from "./index";
+import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard } from "./shards";
+import { logger } from "./logging";
 
 export type Anchor = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -32,6 +32,7 @@ export interface DynamicClassStyles {
     disabled?: Partial<CSSStyleDeclaration>
     before?: Partial<CSSStyleDeclaration>
     after?: Partial<CSSStyleDeclaration>
+    [key: string]: Partial<CSSStyleDeclaration> | undefined
 }
 
 export function hexToRgb(hex: string) {
@@ -163,7 +164,12 @@ function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
         );
     };
 
-    return `base:${sortedStringify(styles.base)}|hover:${sortedStringify(styles.hover)}|active:${sortedStringify(styles.active)}|before:${sortedStringify(styles.before)}|after:${sortedStringify(styles.after)}`;
+    let cacheKey = "";
+    for (const [key, value] of Object.entries(styles)) {
+        if (value === undefined) continue;
+        cacheKey += `${key}:=${sortedStringify(value)}|`;
+    }
+    return cacheKey;
 }
 
 export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles: DynamicClassStyles): void {
@@ -191,32 +197,15 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
 
     let cssRules = "";
 
-    if (styles.base) {
-        cssRules += buildCssBlock(`.${className}`, styles.base);
-    }
-
-    if (styles.hover) {
-        cssRules += buildCssBlock(`.${className}:hover`, styles.hover);
-    }
-
-    if (styles.active) {
-        cssRules += buildCssBlock(`.${className}:active`, styles.active);
-    }
-
-    if (styles.focus) {
-        cssRules += buildCssBlock(`.${className}:focus`, styles.focus);
-    }
-
-    if (styles.disabled) {
-        cssRules += buildCssBlock(`.${className}:disabled`, styles.disabled);
-    }
-
-    if (styles.before) {
-        cssRules += buildCssBlock(`.${className}:before`, styles.before);
-    }
-
-    if (styles.after) {
-        cssRules += buildCssBlock(`.${className}:after`, styles.after);
+    for (const [key, value] of Object.entries(styles)) {
+        if (value === undefined) continue;
+        if (key === "base") {
+            cssRules += buildCssBlock(`.${className}`, value);
+        } else if (["hover", "active", "focus", "disabled", "before", "after"].includes(key)) {
+            cssRules += buildCssBlock(`.${className}:${key}`, value);
+        } else {
+            cssRules += buildCssBlock(`.${className}${key}`, value);
+        }
     }
 
     let styleElement = document.getElementById(`${MOD_DATA.key ?? ""}-dynamic-classes`);
@@ -243,11 +232,19 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
     previousSubscreen = currentSubscreen;
     currentSubscreen = subscreen;
     if (previousSubscreen) {
-        previousSubscreen.unload();
+        try {
+            previousSubscreen.unload();
+        } catch (e) {
+            logger.error("Failed to unload subscreen", previousSubscreen);
+        }
         window.dispatchEvent(new SubscreenUnloadedEvent({ subscreen: previousSubscreen }));
     }
     if (subscreen) {
-        subscreen.load();
+        try {
+            subscreen.load();
+        } catch (e) {
+            logger.error("Failed to load subscreen", subscreen);
+        }
         window.dispatchEvent(new SubscreenLoadedEvent({ subscreen }));
     }
 }
@@ -322,6 +319,11 @@ export abstract class BaseSubscreen {
         setPreviousSubscreen();
     }
 
+    create(shard: Shard) {
+        const htmlElement = shard.mount() as HTMLElement;
+        return htmlElement;
+    }
+
     createButton(ctx: ButtonShardContext): HTMLButtonElement {
         const shard = new ButtonShard(ctx);
         const htmlElement = shard.mount() as HTMLButtonElement;
@@ -341,9 +343,9 @@ export abstract class BaseSubscreen {
         return htmlElement;
     }
 
-    createCheckbox(ctx: CheckboxShardContext): HTMLInputElement {
+    createCheckbox(ctx: CheckboxShardContext): HTMLDivElement {
         const shard = new CheckboxShard(ctx);
-        const htmlElement = shard.mount() as HTMLInputElement;
+        const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 

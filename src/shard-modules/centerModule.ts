@@ -1,5 +1,5 @@
 import { ShardContext } from "../shards";
-import { ShardModule, ShardModuleTarget } from "./shardModule";
+import { ShardModule } from "./shardModule";
 
 export class CenterModule extends ShardModule<ShardContext> {
     override overrideContext(context: ShardContext, target: HTMLElement): ShardContext {

@@ -24,9 +24,9 @@
       "import": "./dist/messaging.js",
       "types": "./dist/types/messaging.d.ts"
     },
-    "./modsApi": {
-      "import": "./dist/modsApi.js",
-      "types": "./dist/types/modsApi.d.ts"
+    "./mod-sdk": {
+      "import": "./dist/modSdk.js",
+      "types": "./dist/types/modSdk.d.ts"
     },
     "./ui": {
       "import": "./dist/ui.js",
@@ -55,6 +55,10 @@
     "./validation": {
       "import": "./dist/validation.js",
       "types": "./dist/types/validation.d.ts"
+    },
+    "./logging": {
+      "import": "./dist/logging.js",
+      "types": "./dist/types/logging.d.ts"
     }
   },
   "pnpm": {

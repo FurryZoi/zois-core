@@ -15,7 +15,7 @@ try {
         entryPoints: ["./src/**/*.*"],
         outdir: distDir,
         bundle: false,
-        minify: true,
+        minify: false,
         format: "esm",
         treeShaking: true,
         splitting: false,

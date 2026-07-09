@@ -1,4 +1,4 @@
-import { InputShardContext, ShardContext, TextShardContext } from "../shards";
+import { ShardContext } from "../shards";
 import { ShardModule, ShardModuleTarget } from "./shardModule";
 
 export class ClickModule extends ShardModule {
