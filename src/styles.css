@@ -146,6 +146,20 @@
     }
 }
 
+@keyframes pop {
+    0% {
+        transform: scale(0.9);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
 .zcToast {
     display: flex;
     column-gap: 0.6em;
@@ -159,7 +173,7 @@
     color: white;
 }
 
-.zcToast > svg {
+.zcToast>svg {
     flex-shrink: 0;
 }
 
