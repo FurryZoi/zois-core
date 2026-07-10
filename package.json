@@ -70,12 +70,12 @@
     "bondage-club-mod-sdk": "^1.2.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
-    "lucide": "^0.541.0",
+    "lucide": "^1.24.0",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "bc-stubs": "126.0.0-Beta.1",
-    "esbuild": "^0.25.12",
+    "bc-stubs": "130.0.0-Beta.1",
+    "esbuild": "^0.28.1",
     "nodemon": "^3.1.14",
     "typescript": "^5.9.3"
   }
