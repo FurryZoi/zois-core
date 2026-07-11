@@ -7,13 +7,6 @@ import { createElement, Terminal } from "lucide";
 import { ButtonShard, ContainerShard } from "./shards";
 import { StyleModule } from "./shard-modules";
 
-interface Mod {
-    name: string
-    fullName: string
-    key: string
-    version: string
-    subscreens?: SubscreenConstructor[]
-}
 
 export interface CoreSettings {
     devMode?: boolean

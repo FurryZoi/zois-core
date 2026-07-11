@@ -59,6 +59,10 @@
     "./logging": {
       "import": "./dist/logging.js",
       "types": "./dist/types/logging.d.ts"
+    },
+    "./localization": {
+      "import": "./dist/localization.js",
+      "types": "./dist/types/localization.d.ts"
     }
   },
   "pnpm": {

@@ -1,5 +1,6 @@
 import { registerCore } from "./core";
 import { dialogsManager } from "./dialogs";
+import { loadLocalization } from "./localization";
 import { createModSdk, findModByName, hookFunction, HookPriority } from "./modSdk";
 import { BaseSubscreen, getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 
@@ -22,6 +23,13 @@ export interface ModData {
         iconStrokeColor: string
     }
     subscreens?: SubscreenConstructor[]
+    localization?: {
+        locales: {
+            default: string
+            supported: string[]
+        }
+        translationsFolderPath: string
+    }
 }
 
 interface ThemedColorsModule {
@@ -55,6 +63,7 @@ export function registerMod(modData: ModData): void {
     if (!window.ZOISCORE) registerCore();
     MOD_DATA = modData;
     createModSdk();
+    loadLocalization();
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
         const currentSubscreen = getCurrentSubscreen();
