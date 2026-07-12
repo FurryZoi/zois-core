@@ -30,6 +30,16 @@ export interface ModData {
         }
         translationsFolderPath: string
     }
+    changelog?: {
+        data: {
+            hash: string
+            author: string
+            message: string
+            date: string
+        }[]
+        repo: string
+        owner: string
+    }
 }
 
 interface ThemedColorsModule {
@@ -59,7 +69,7 @@ interface ThemedColorsModule {
 export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
-export function registerMod(modData: ModData): void {
+export function bootstrap(modData: ModData): void {
     if (!window.ZOISCORE) registerCore();
     MOD_DATA = modData;
     createModSdk();

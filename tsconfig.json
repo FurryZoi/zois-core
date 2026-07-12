@@ -4,7 +4,7 @@
     "**/*.js",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "scripts/generateChangelog.mjs"  ],
   "react": ["./node_modules/@types/react"],
   "compilerOptions": {
     "target": "ESNext",
