@@ -1,4 +1,5 @@
-import { addDynamicClass, autosetFontSize, DynamicClassStyles } from "../ui";
+import { MOD_DATA } from "..";
+import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
 export interface BackNextButtonShardContext extends ShardContext<"backButton" | "nextButton" | "text"> {
@@ -49,6 +50,8 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         const { onChange, isDisabled } = this.context;
         const div = document.createElement("div");
         addDynamicClass(div, this.dynamicClassContainer);
+        setFontFamily(div, MOD_DATA.fontFamily);
+
         let currentIndex = this.context.currentIndex;
         let items = this.context.items;
 
