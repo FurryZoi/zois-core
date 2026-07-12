@@ -133,8 +133,9 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
             }
             if (typeof onChange === "function") onChange();
             if (input.checked) {
-                input.classList.add("pop");
-                setTimeout(() => input.classList.remove("pop"), 400);
+                // TODO: Fix animation glitch or get rid of this part
+                // input.classList.add("pop");
+                // setTimeout(() => input.classList.remove("pop"), 400);
             }
         });
 

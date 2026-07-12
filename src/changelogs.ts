@@ -1,6 +1,22 @@
-import { MOD_DATA } from ".";
+import { MOD_DATA, ModData } from ".";
 import { logger } from "./logging";
 import { toastsManager } from "./toasts";
+
+const avatarsCache = new Map<string, string>();
+
+interface GithubCommit {
+    sha: string
+    author?: {
+        login: string
+        id: number
+        avatar_url?: string
+    }
+    committer?: {
+        login: string
+        id: number
+        avatar_url?: string
+    }
+}
 
 class GitHubAPI {
     private static baseUrl = 'https://api.github.com';
@@ -14,7 +30,7 @@ class GitHubAPI {
         return headers;
     }
 
-    public static async getCommit(sha: string): Promise<any> {
+    public static async getCommit(sha: string): Promise<GithubCommit | null> {
         const effectiveOwner = MOD_DATA.changelog?.owner;
         const effectiveRepo = MOD_DATA.changelog?.repo;
         const url = `${GitHubAPI.baseUrl}/repos/${effectiveOwner}/${effectiveRepo}/commits/${sha}`;
@@ -41,7 +57,7 @@ export async function showChangelogModal(): Promise<void> {
         message: "Preparing changelog..."
     });
 
-    const { owner, repo, data } = changelog;
+    const { data } = changelog;
 
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -112,12 +128,11 @@ export async function showChangelogModal(): Promise<void> {
     commitsList.style.gap = '16px';
 
     for (const commitData of data) {
-        const commitElement = await createCommitElement(commitData, owner, repo);
+        const commitElement = await createCommitElement(commitData);
         if (commitElement) commitsList.appendChild(commitElement);
     }
 
     content.appendChild(commitsList);
-
 
     modal.appendChild(header);
     modal.appendChild(content);
@@ -139,10 +154,12 @@ export async function showChangelogModal(): Promise<void> {
     toastsManager.removeSpinner(id);
 }
 
-async function createCommitElement(commitData: any, owner: string, repo: string): Promise<HTMLElement | null> {
+async function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>["data"][number]): Promise<HTMLElement | null> {
     try {
-        const fullCommit = await GitHubAPI.getCommit(commitData.hash);
-        const changelogCommit = MOD_DATA.changelog?.data.find((c) => c.hash === commitData.hash)!;
+        if (!avatarsCache.has(changelogCommit.author)) {
+            const githubCommit = await GitHubAPI.getCommit(changelogCommit.hash);
+            avatarsCache.set(changelogCommit.author, githubCommit?.author?.avatar_url || githubCommit?.committer?.avatar_url || "https://github.com/identicons/default.png")
+        }
 
         const commitDiv = document.createElement('div');
         commitDiv.style.cssText = `
@@ -154,11 +171,11 @@ async function createCommitElement(commitData: any, owner: string, repo: string)
             border-radius: 8px;
             transition: all 0.2s;
         `;
-        commitDiv.onmouseover = () => commitDiv.style.borderColor = '#3b82f6';
-        commitDiv.onmouseout = () => commitDiv.style.borderColor = '#e5e7eb';
+        commitDiv.onmouseover = () => commitDiv.style.borderColor = "#3b82f6";
+        commitDiv.onmouseout = () => commitDiv.style.borderColor = "#e5e7eb";
 
         const avatar = document.createElement('img');
-        avatar.src = fullCommit?.author?.avatar_url || fullCommit?.committer?.avatar_url || 'https://github.com/identicons/default.png';
+        avatar.src = avatarsCache.get(changelogCommit.author)!;
         avatar.style.cssText = `
             width: 48px;
             height: 48px;
@@ -166,23 +183,23 @@ async function createCommitElement(commitData: any, owner: string, repo: string)
             flex-shrink: 0;
         `;
 
-        const info = document.createElement('div');
-        info.style.flex = '1';
+        const info = document.createElement("div");
+        info.style.flex = "1";
 
-        const author = document.createElement('div');
+        const author = document.createElement("div");
         author.textContent = changelogCommit.author;
-        author.style.fontWeight = '600';
-        author.style.marginBottom = '4px';
+        author.style.fontWeight = "600";
+        author.style.marginBottom = "4px";
 
-        const message = document.createElement('div');
+        const message = document.createElement("div");
         message.textContent = changelogCommit.message;
-        message.style.cssText = 'color: #374151; line-height: 1.4;';
+        message.style.cssText = "color: #374151; line-height: 1.4;";
 
         info.append(author, message);
 
         commitDiv.style.cursor = 'pointer';
         commitDiv.onclick = () => {
-            window.open(`https://github.com/${owner}/${repo}/commit/${commitData.hash}`, '_blank');
+            window.open(`https://github.com/${MOD_DATA.changelog!.owner}/${MOD_DATA.changelog!.repo}/commit/${changelogCommit.hash}`, "_blank");
         };
 
         commitDiv.appendChild(avatar);
@@ -190,7 +207,7 @@ async function createCommitElement(commitData: any, owner: string, repo: string)
 
         return commitDiv;
     } catch (err) {
-        logger.error(`Failed to load commit ${commitData.hash}:`, err);
+        logger.error(`Failed to load commit ${changelogCommit.hash}:`, err);
         return null;
     }
 }
