@@ -22,7 +22,7 @@ export interface ModData {
         iconFillColor: string
         iconStrokeColor: string
     }
-    subscreens?: SubscreenConstructor[]
+    subscreens?: Record<string, SubscreenConstructor>
     localization?: {
         locales: {
             default: string
@@ -70,7 +70,7 @@ export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
 export function bootstrap(modData: ModData): void {
-    if (!window.ZOISCORE) registerCore();
+    if (!window.ZOIS_CORE) registerCore();
     MOD_DATA = modData;
     createModSdk();
     loadLocalization();
@@ -90,42 +90,23 @@ export function bootstrap(modData: ModData): void {
     });
 
     window.addEventListener(
-        "zois-core:open",
-        async (event) => {
-            if (!(event instanceof ZoiOpenEvent)) return;
+        "zois-core:setsubscreen",
+        async (_event) => {
+            const event = _event as SetSubscreenEvent;
             const target = event.detail.target;
+            const isTrusted = event.detail.isTrusted;
             if (target === undefined) return;
             if (target.startsWith(MOD_DATA.key + ":")) {
                 const currentSubscreen = getCurrentSubscreen();
                 const mod = target.substring(0, MOD_DATA.key.length);
                 const subscreen = target.substring(MOD_DATA.key.length + 1);
                 if (currentSubscreen?.constructor?.name === subscreen) return;
-                const s = MOD_DATA.subscreens?.find((s) => s.name === subscreen);
-                if (s && await dialogsManager.confirm({ message: "This deep link wants to redirect you to modded subscreen. Confirm the redirecting." })) {
+                const s = MOD_DATA.subscreens?.[subscreen];
+                if (s === undefined) return;
+                if (isTrusted || await dialogsManager.confirm({ message: `Confirm the redirecting to modded subscreen ${target}` })) {
                     await PreferenceOpenSubscreen("Extensions");
                     await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
                     setSubscreen(new s());
-                }
-            } else {
-                switch (target) {
-                    case "Admin": {
-                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Admin subscreen. Confirm the redirecting." })) {
-                            ChatRoomOpenAdminScreen();
-                        }
-                        break;
-                    }
-                    case "Wardrobe": {
-                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Wardrobe subscreen. Confirm the redirecting." })) {
-                            ChatRoomOpenWardrobeScreen();
-                        }
-                        break;
-                    }
-                    case "Information": {
-                        if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Information subscreen. Confirm the redirecting." })) {
-                            ChatRoomOpenInformationScreen();
-                        }
-                        break;
-                    }
                 }
             }
         }
@@ -146,7 +127,6 @@ export function formatString(text: string): (
     const markdownRegex = /\[([^\]]+?)\]\(([^)]+?)\)/g;
     const newResult = result.replace(markdownRegex, (match, linkText, url) => {
         hasChanges = true;
-        // Экранируем текст ссылки на случай спецсимволов
         const escapedText = linkText
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -175,26 +155,8 @@ export function formatString(text: string): (
     return { isBeatifulString: false };
 }
 
-export class ZoiOpenEvent extends CustomEvent<{ target: string }> {
-    constructor(detail: { target: string }) {
-        super(`zois-core:open`, { detail });
-    }
-}
-
-export class SetSubscreenEvent extends CustomEvent<{
-    modName: string
-    subscreen: {
-        name: string
-        args?: []
-    }
-}> {
-    constructor(detail: {
-        modName: string,
-        subscreen: {
-            name: string
-            args?: []
-        }
-    }) {
+export class SetSubscreenEvent extends CustomEvent<{ target: string, isTrusted: boolean }> {
+    constructor(detail: { target: string, isTrusted: boolean }) {
         super(`zois-core:setsubscreen`, { detail });
     }
 }

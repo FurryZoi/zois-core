@@ -1,11 +1,12 @@
 import styles from "./styles.css";
-import { ModData, formatString, ZoiOpenEvent, version, CoreSettingsChangedEvent, waitFor } from "./index";
+import { ModData, formatString, version, CoreSettingsChangedEvent, waitFor, SetSubscreenEvent } from "./index";
 import { hookFunction, HookPriority } from "./modSdk";
-import { Anchor, BaseSubscreen, getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
+import { Anchor, getCurrentSubscreen, setSubscreen } from "./ui";
 import { MainSubscreen } from "./core-subscreen/mainSubscreen";
 import { createElement, Terminal } from "lucide";
 import { ButtonShard, ContainerShard } from "./shards";
 import { StyleModule } from "./shard-modules";
+import { dialogsManager } from "./dialogs";
 
 
 export interface CoreSettings {
@@ -21,16 +22,7 @@ export interface CoreSettings {
     }
 }
 
-let previousSubscreen: BaseSubscreen | null = null;
-let currentSubscreen: BaseSubscreen | null = null;
 export let coreSettings: CoreSettings = {};
-
-// function setSubscreen(subscreen: BaseSubscreen | null) {
-//     previousSubscreen = currentSubscreen;
-//     if (currentSubscreen) currentSubscreen.unload();
-//     currentSubscreen = subscreen;
-//     if (currentSubscreen) currentSubscreen.load();
-// }
 
 export function syncSettings() {
     if (typeof coreSettings !== "object") return;
@@ -115,36 +107,8 @@ export async function registerCore() {
     const style = document.createElement("style");
     style.innerHTML = styles;
     document.head.append(style);
-    window.ZOISCORE = Object.freeze({
-        loaded: true,
+    window.ZOIS_CORE = Object.freeze({
         version,
-        // setSubscreen: (subscreen: string | null, constructorParams: unknown[] = [], callback?: (subscreen: BaseSubscreen) => void) => {
-        //     if (subscreen === null) {
-        //         setSubscreen(null);
-        //         return;
-        //     }
-        //     const [modKey, subscreenName] = subscreen.split(":");
-        //     if (modKey === undefined || subscreenName === undefined) {
-        //         console.error(`Invalid subscreen`, subscreen);
-        //         return;
-        //     }
-        //     const targetMod = mods.find((m) => m.key === modKey);
-        //     if (!targetMod) {
-        //         console.error(`Invalid mod`, modKey);
-        //         return;
-        //     }
-        //     const targetSubscreenConstructor = targetMod.subscreens?.find((s) => s.name === subscreenName);
-        //     if (!targetSubscreenConstructor) {
-        //         console.error(`Invalid subscreen`, subscreenName);
-        //         return;
-        //     }
-        //     if (currentSubscreen !== null) {
-        //         currentSubscreen
-        //     }
-        //     const subscreenObject = new targetSubscreenConstructor(...constructorParams);
-        //     callback?.(subscreenObject);
-        //     setSubscreen(subscreenObject);
-        // },
         enableDevMode: () => {
             coreSettings.devMode = true;
             syncSettings();
@@ -186,7 +150,7 @@ export async function registerCore() {
             ),
         ];
     });
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', async (event) => {
         const link = (event.target as HTMLElement).closest('a');
 
         if (link && link.href) {
@@ -199,7 +163,29 @@ export async function registerCore() {
                     if (link.href.startsWith("zc://open")) {
                         const target = url.pathname.split("/").filter(Boolean)[1];
                         if (target === undefined) return;
-                        window.dispatchEvent(new ZoiOpenEvent({ target }));
+                        switch (target) {
+                            case "Admin": {
+                                if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Admin subscreen. Confirm the redirecting." })) {
+                                    ChatRoomOpenAdminScreen();
+                                }
+                                break;
+                            }
+                            case "Wardrobe": {
+                                if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Wardrobe subscreen. Confirm the redirecting." })) {
+                                    ChatRoomOpenWardrobeScreen();
+                                }
+                                break;
+                            }
+                            case "Information": {
+                                if (await dialogsManager.confirm({ message: "This deep link wants to redirect you to Information subscreen. Confirm the redirecting." })) {
+                                    ChatRoomOpenInformationScreen();
+                                }
+                                break;
+                            }
+                            default: {
+                                window.dispatchEvent(new SetSubscreenEvent({ target, isTrusted: false }));
+                            }
+                        }
                     }
                 }
             } catch (e) {

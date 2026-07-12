@@ -1,6 +1,5 @@
 interface Window {
-    ZOISCORE: {
-        loaded: boolean
+    ZOIS_CORE: {
         enableDevMode: () => void
         getSettings: () => import("../src/core").CoreSettings
     }

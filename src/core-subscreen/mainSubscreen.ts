@@ -38,7 +38,17 @@ export class MainSubscreen extends CoreSubscreen {
             y: 40,
             width: 90,
             height: 90,
-            icon: createElement(BookText)
+            icon: createElement(BookText),
+            onClick: () => {
+                window.open(`https://github.com/FurryZoi/zois-core`, "_blank");
+            }
+        });
+
+        this.createText({
+            text: "This place is in WIP stage",
+            x: 1000,
+            y: 500,
+            fontSize: 6
         });
     }
 

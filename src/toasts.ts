@@ -17,7 +17,7 @@ function createToastsContainer() {
     const container = document.createElement("div");
     container.classList.add("zcToastsContainer");
     container.addEventListener("click", () => {
-        const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
         for (const toast of container.children) {
             if (toast instanceof HTMLElement) {
                 toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
@@ -27,7 +27,7 @@ function createToastsContainer() {
     });
     const update = () => {
         container.style.cssText = `font-family: ${CommonGetFontName()};`;
-        setPosition(container, 5, 5, window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left");
+        setPosition(container, 5, 5, window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left");
     };
     window.addEventListener("resize", update);
     document.body.append(container);
@@ -76,7 +76,7 @@ function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement | 
 }
 
 function createToast({ title, message, type, duration, theme, id }: Toast) {
-    const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+    const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
     const backgroundColor = theme ? theme.backgroundColor : type === "success" ? "rgb(122, 213, 162)" : type === "warning" ? "rgb(244, 220, 147)" : type === "error" ? "rgb(255, 163, 163)" : "rgb(148, 178, 217)";
     const textColor = theme ? theme.titleColor : (type === "info" || type === "spinner") ? "rgb(0, 2, 125)" : type === "success" ? "#244428" : type === "error" ? "rgb(128, 22, 22)" : "rgb(100, 74, 16)";
     const progressBarColor = theme ? theme.progressBarColor : "#00000014";
@@ -129,7 +129,7 @@ function createToast({ title, message, type, duration, theme, id }: Toast) {
     window.addEventListener("resize", update);
     toastContainer.append(toast);
     setTimeout(() => {
-        // const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        // const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
         toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
     }, duration);
     setTimeout(() => toast.remove(), duration + 300);
@@ -142,7 +142,7 @@ export class ToastsManager {
     }
 
     private process({ title, message, duration, type, id, theme }: Toast): void {
-        const coreSettings = window.ZOISCORE.getSettings();
+        const coreSettings = window.ZOIS_CORE.getSettings();
         if (coreSettings.toasts?.blacklist?.enabled && coreSettings.toasts.blacklist.content?.length !== 0) {
             if (
                 coreSettings.toasts.blacklist.content?.some((v) => {
@@ -208,7 +208,7 @@ export class ToastsManager {
     public removeSpinner(id: string): void {
         const toast = document.querySelector<HTMLDivElement>(`div[data-zc-toast-id="${id}"]`);
         if (!toast) return;
-        const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
         toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
         setTimeout(() => toast.remove(), 300);
     }
