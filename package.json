@@ -1,6 +1,6 @@
 {
   "name": "zois-core",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "The core for the my mods, which contains a shared code reused in all my mods",
   "bin": {
     "generate-changelog": "scripts/generateChangelog.mjs"
