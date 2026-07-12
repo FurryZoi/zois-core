@@ -36,8 +36,8 @@ function createToastsContainer() {
     return container;
 }
 
-function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement {
-    let icon: SVGElement;
+function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement | HTMLDivElement {
+    let icon: SVGElement | HTMLDivElement;
     switch (type) {
         case "info":
             icon = createElement(Info);
@@ -60,9 +60,14 @@ function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement {
             icon.style.stroke = theme ? theme.iconStrokeColor : "rgb(122, 213, 162)";
             break;
         case "spinner":
-            icon = createElement(Info);
-            icon.style.fill = theme ? theme.iconFillColor : "#addbff";
-            icon.style.stroke = theme ? theme.iconStrokeColor : "#385073";
+            icon = document.createElement("div");
+            icon.style.cssText = `
+                box-sizing: border-box;
+                border: 2px solid;
+                border-radius: 100%;
+                border-color: transparent ${theme ? theme.iconFillColor : "rgb(68, 70, 202)"};
+                animation: zcSpin 0.65s linear infinite;
+            `;
             break;
     }
     icon.style.cssText += `flex-shink: 0; width: 1.65em; height: 1.65em;`;
@@ -201,9 +206,11 @@ export class ToastsManager {
     }
 
     public removeSpinner(id: string): void {
-        const toast = document.querySelector(`div[data-zc-toast-id="${id}"]`);
-        toast?.classList.add("exiting");
-        setTimeout(() => toast?.remove(), 300);
+        const toast = document.querySelector<HTMLDivElement>(`div[data-zc-toast-id="${id}"]`);
+        if (!toast) return;
+        const pos = window.ZOISCORE.getSettings().toasts?.position ?? "bottom-left";
+        toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
+        setTimeout(() => toast.remove(), 300);
     }
 }
 
