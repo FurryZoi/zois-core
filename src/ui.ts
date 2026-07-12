@@ -258,7 +258,6 @@ export function getPreviousSubscreen(): BaseSubscreen | null {
 }
 
 export abstract class BaseSubscreen {
-    private tabHandlers: Omit<TabsShardContext["tabs"][0], "name"> = {};
     protected readonly setSubscreen = setSubscreen;
 
     get currentSubscreen(): BaseSubscreen | null {
@@ -271,9 +270,7 @@ export abstract class BaseSubscreen {
 
     abstract get name(): string;
 
-    run() {
-        this.tabHandlers.run?.();
-    }
+    run() {}
     load() {
         this.createButton({
             x: 1815,
@@ -281,6 +278,10 @@ export abstract class BaseSubscreen {
             width: 90,
             height: 90,
             icon: "Icons/Exit.png",
+            tooltip: {
+                position: "left",
+                text: "Back"
+            },
             modules: {
                 base: [
                     new StyleModule({
@@ -301,15 +302,7 @@ export abstract class BaseSubscreen {
             subscreenHooks[this.name].forEach((hook) => hook(this));
         }
     }
-    unload() {
-        this.tabHandlers.unload?.();
-        // this.htmlElements.forEach((e) => {
-        //     e.remove();
-        // });
-        // this.resizeEventListeners.forEach((e) => {
-        //     removeEventListener("resize", e);
-        // });
-    }
+    unload() {}
     click() { }
     exit() {
         setPreviousSubscreen();

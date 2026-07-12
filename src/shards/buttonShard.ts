@@ -33,12 +33,11 @@ export class ButtonShard extends Shard<ButtonShardContext> {
             },
             "> .tooltip": {
                 position: "absolute",
-                color: "black",
+                color: "var(--tmd-text, black)",
                 textAlign: "center",
-                padding: "4px",
+                padding: "0.3em 0.6em",
                 borderRadius: "4px",
-                background: "#FFFF88",
-                border: "2px solid #e7e787",
+                background: "var(--tmd-element-hint, #e6e6e6)",
                 width: "max-content",
                 visibility: "hidden",
                 zIndex: "10"
@@ -62,12 +61,13 @@ export class ButtonShard extends Shard<ButtonShardContext> {
                 color: "black"
             },
             "[data-zc-style=inverted]": {
-                background: "var(--tmd-accent, #303030)",
-                border: "none",
+                background: "var(--tmd-accent, #111)",
+                border: "2px solid var(--tmd-accent, #111)",
                 color: "var(--tmd-text, white)"
             },
             "[data-zc-style=inverted]:hover": {
-                background: "var(--tmd-accent-hover, #474747)"
+                background: "var(--tmd-accent-hover, none)",
+                color: "var(--tmd-text, black)"
             }
         };
     }
