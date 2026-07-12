@@ -16,22 +16,6 @@
     color: var(--tmd-text, black);
 }
 
-.zcBackNextButton {
-    display: flex;
-    column-gap: 2vw;
-    justify-content: center;
-    align-items: center;
-    background: var(--tmd-element, white);
-    color: var(--tmd-text, black);
-    border: 2px solid var(--tmd-accent, black);
-    border-radius: 4px;
-}
-
-.zcBackNextButton-btnDisabled {
-    background: #ffa590;
-    pointer-events: none;
-}
-
 .zcTabs {
     display: flex;
 }
