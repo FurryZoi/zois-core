@@ -1,4 +1,4 @@
-import { setSize } from "../ui";
+import { recolorSVG, setSize } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
 export interface SvgShardContext extends ShardContext {
@@ -21,28 +21,7 @@ export class SvgShard extends Shard<SvgShardContext> {
 
             return div.firstElementChild as SVGElement;
         }
-        function recolorSVG(svgElement: Element, { fill, stroke }: { fill: string, stroke: string }) {
-            const elements = svgElement.querySelectorAll('*');
 
-            elements.forEach((element) => {
-                if (element.getAttribute('fill') !== 'none') {
-                    element.setAttribute('fill', fill);
-                }
-
-                if (element.getAttribute('stroke') !== 'none') {
-                    element.setAttribute('stroke', stroke);
-                }
-            });
-
-            if (svgElement.getAttribute('fill') !== 'none') {
-                svgElement.setAttribute('fill', fill);
-            }
-            if (svgElement.getAttribute('stroke') !== 'none') {
-                svgElement.setAttribute('stroke', stroke);
-            }
-
-            return svgElement;
-        }
         const svg = dataURLToSVGElement(dataurl);
         if (svg) {
             recolorSVG(svg, { fill, stroke });

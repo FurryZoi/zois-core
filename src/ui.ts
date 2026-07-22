@@ -3,6 +3,7 @@ import { StyleModule } from "./shard-modules";
 import { MOD_DATA } from "./index";
 import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard } from "./shards";
 import { logger } from "./logging";
+import exitIcon from "./assets/icons/exit.svg";
 
 export type Anchor = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -45,10 +46,36 @@ export function hexToRgb(hex: string) {
     return `rgb(${r}, ${g}, ${b})`;
 }
 
-export function dataUrlSvgWithColor(dataUrl: string, newColor: string): string {
-    return dataUrl
-        .replace(/fill="[^"]*"/g, `fill="${newColor}"`)
-        .replace(/stroke="[^"]*"/g, `stroke="${newColor}"`);
+export function recolorSVG(svgElement: SVGElement, { fill, stroke }: { fill: string, stroke: string }): SVGElement {
+    const elements = svgElement.querySelectorAll('*');
+
+    elements.forEach((element) => {
+        if (element.getAttribute('fill') !== 'none') {
+            element.setAttribute('fill', fill);
+        }
+
+        if (element.getAttribute('stroke') !== 'none') {
+            element.setAttribute('stroke', stroke);
+        }
+    });
+
+    if (svgElement.getAttribute('fill') !== 'none') {
+        svgElement.setAttribute('fill', fill);
+    }
+
+    if (svgElement.getAttribute('stroke') !== 'none') {
+        svgElement.setAttribute('stroke', stroke);
+    }
+
+    return svgElement;
+}
+
+export function dataUrlSvgWithColor(dataUrl: string, newColor: { fill?: string, stroke?: string }): string {
+    if (newColor.fill?.startsWith("#")) newColor.fill = hexToRgb(newColor.fill);
+    if (newColor.stroke?.startsWith("#")) newColor.stroke = hexToRgb(newColor.stroke);
+    if (newColor.fill) dataUrl = dataUrl.replace(/fill="[^"]*"/g, `fill="${newColor.fill}"`);
+    if (newColor.stroke) dataUrl = dataUrl.replace(/stroke="[^"]*"/g, `stroke="${newColor.stroke}"`);
+    return dataUrl;
 }
 
 export function dataUrlSvgReplaceVars(dataUrl: string, vars: Record<string, string>): string {
@@ -235,7 +262,7 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
         try {
             previousSubscreen.unload();
         } catch (e) {
-            logger.error("Failed to unload subscreen", previousSubscreen);
+            logger.error("Failed to unload subscreen", previousSubscreen, e);
         }
         window.dispatchEvent(new SubscreenUnloadedEvent({ subscreen: previousSubscreen }));
     }
@@ -243,7 +270,7 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
         try {
             subscreen.load();
         } catch (e) {
-            logger.error("Failed to load subscreen", subscreen);
+            logger.error("Failed to load subscreen", subscreen, e);
         }
         window.dispatchEvent(new SubscreenLoadedEvent({ subscreen }));
     }
@@ -270,14 +297,14 @@ export abstract class BaseSubscreen {
 
     abstract get name(): string;
 
-    run() {}
+    run() { }
     load() {
         this.createButton({
             x: 1815,
             y: 75,
             width: 90,
             height: 90,
-            icon: "Icons/Exit.png",
+            icon: dataUrlSvgWithColor(exitIcon, { fill: cssVar("--tmd-text", "black") }),
             tooltip: {
                 position: "left",
                 text: "Back"
@@ -302,7 +329,7 @@ export abstract class BaseSubscreen {
             subscreenHooks[this.name].forEach((hook) => hook(this));
         }
     }
-    unload() {}
+    unload() { }
     click() { }
     exit() {
         setPreviousSubscreen();
