@@ -58,6 +58,9 @@ export function registerSubscreen() {
 let loginScreenElements: Element[] = [];
 
 export async function registerCore() {
+    const style = document.createElement("style");
+    style.innerHTML = styles;
+    document.head.append(style);
     if (localStorage.getItem("autoConnectToDevServer") === "true") {
         hookFunction("CommonGetServer", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
             return "https://bondage-club-server-test.herokuapp.com/";
@@ -104,9 +107,6 @@ export async function registerCore() {
         coreSettings = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.ZOIS_CORE) ?? "{}");
     }
     if (coreSettings.devMode) registerSubscreen();
-    const style = document.createElement("style");
-    style.innerHTML = styles;
-    document.head.append(style);
     window.ZOIS_CORE = Object.freeze({
         version,
         enableDevMode: () => {

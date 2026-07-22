@@ -40,6 +40,7 @@ export interface ModData {
         repo: string
         owner: string
     }
+    onReady?: () => void
 }
 
 interface ThemedColorsModule {
@@ -111,6 +112,10 @@ export function bootstrap(modData: ModData): void {
             }
         }
     );
+
+    ServerIsLoggedInAsync().then(() => {
+        if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
+    });
 }
 
 export function formatString(text: string): (
@@ -266,10 +271,6 @@ export function injectStyles(stylesToInject: string) {
     const style = document.createElement("style");
     style.innerHTML = stylesToInject;
     document.head.append(style);
-}
-
-export function waitForStart(callback: () => void) {
-    waitFor(() => typeof window.Player?.MemberNumber === "number").then(() => setTimeout(callback, getRandomNumber(3000, 6000)));
 }
 
 export function normalizeObject<T>(obj: T[]): T[];

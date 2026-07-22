@@ -20,10 +20,5 @@
     "baseUrl": "src",
     "rootDir": "src",
     "outDir": "dist/types",
-    "paths": {
-      "@/*": [
-        "*"
-      ]
-    }
   },
 }

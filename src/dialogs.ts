@@ -1,3 +1,5 @@
+import { logger } from "./logging"
+
 interface BaseDialogProps<T> {
     type: "prompt" | "confirm" | "pick"
     message: string
@@ -23,8 +25,6 @@ interface PickDialogProps<T> extends BaseDialogProps<T | false> {
     }[]
 }
 
-type DialogProps = ConfirmDialogProps | PromptDialogProps | PickDialogProps<unknown>;
-
 function createDialog<T>(dialog: Omit<ConfirmDialogProps, "promise"> | Omit<PromptDialogProps, "promise"> | Omit<PickDialogProps<T>, "promise">): Promise<string | T | boolean> {
     return new Promise((resolve, reject) => {
 
@@ -33,7 +33,7 @@ function createDialog<T>(dialog: Omit<ConfirmDialogProps, "promise"> | Omit<Prom
         const clear = () => {
             _dialog.remove();
             background.remove();
-            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keydown", handleKeyDown, { capture: true });
         };
 
         const submit = () => {
@@ -64,7 +64,7 @@ function createDialog<T>(dialog: Omit<ConfirmDialogProps, "promise"> | Omit<Prom
             if (e.key === "Escape") cancel();
         };
 
-        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keydown', handleKeyDown, { capture: true });
 
         const background = document.createElement("div");
         background.style.cssText = "position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; opacity: 0.5; background: black;";

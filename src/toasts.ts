@@ -125,9 +125,10 @@ function createToast({ title, message, type, duration, theme, id }: Toast) {
 
     textContainer.append(_message);
     toast.append(getToastIcon(type, theme), textContainer);
-    update();
     window.addEventListener("resize", update);
     toastContainer.append(toast);
+    update();
+    void toast.offsetHeight;
     setTimeout(() => {
         // const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
         toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
