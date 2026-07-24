@@ -4,7 +4,7 @@
     "**/*.js",
     "**/*.ts",
     "**/*.tsx"
-, "scripts/generateChangelog.mjs"  ],
+, "scripts/zois-core.mjs"  ],
   "react": ["./node_modules/@types/react"],
   "compilerOptions": {
     "target": "ESNext",

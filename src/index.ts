@@ -32,13 +32,19 @@ export interface ModData {
     }
     changelog?: {
         data: {
-            hash: string
-            author: string
-            message: string
-            date: string
-        }[]
-        repo: string
-        owner: string
+            generated_at: string
+            changes: {
+                message: string
+                sha: string
+                author: {
+                    name: string
+                    avatar_url: string
+                }
+                date: string
+                tags: ("feature" | "chore" | "fix")[]
+                commit_url: string
+            }[]
+        }
     }
     onReady?: () => void
 }

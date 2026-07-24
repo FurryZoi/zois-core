@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "The core for the my mods, which contains a shared code reused in all my mods",
   "bin": {
-    "generate-changelog": "scripts/generateChangelog.mjs"
+    "zois-core": "scripts/zois-core.mjs"
   },
   "scripts": {
     "build": "node scripts/build.mjs"
@@ -78,7 +78,9 @@
     ]
   },
   "dependencies": {
+    "@octokit/rest": "^22.0.1",
     "bondage-club-mod-sdk": "^1.2.0",
+    "chalk": "^5.6.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "lucide": "^1.24.0",
@@ -88,7 +90,6 @@
     "bc-stubs": "130.0.0-Beta.1",
     "esbuild": "^0.28.1",
     "nodemon": "^3.1.14",
-    "simple-git": "^3.36.0",
     "typescript": "^5.9.3"
   }
 }
