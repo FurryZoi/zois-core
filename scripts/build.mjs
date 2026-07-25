@@ -2,6 +2,8 @@ import esbuild from "esbuild";
 import path from "path";
 import fs, { existsSync } from "fs";
 import { execSync } from "child_process";
+import copy from "esbuild-plugin-copy";
+import { globSync } from 'glob';
 
 if (existsSync("dist")) fs.rmSync("dist", { recursive: true, force: true });
 else fs.mkdirSync("dist");
@@ -12,7 +14,11 @@ const distDir = path.resolve(import.meta.dirname, "..", "dist");
 console.log("\x1b[36m%s\x1b[0m", "[ESM]:", "Building...");
 try {
     await esbuild.build({
-        entryPoints: ["./src/**/*.*"],
+        entryPoints: globSync('./src/**/*', {
+            ignore: ['./src/**/*.d.ts'],
+            dotRelative: true,
+            nodir: true
+        }),
         outdir: distDir,
         bundle: false,
         minify: false,
@@ -26,7 +32,16 @@ try {
             ".ts": "ts",
             ".svg": "copy",
             ".png": "copy",
-        }
+        },
+        plugins: [
+            copy({
+                resolveFrom: "cwd",
+                assets: {
+                    from: ["./src/types/globals.d.ts"],
+                    to: ["./dist/types"]
+                }
+            })
+        ]
     });
     console.log("\x1b[32m%s\x1b[0m", "[ESM]:", "Done");
 } catch (err) {
@@ -37,7 +52,7 @@ try {
 
 console.log("\x1b[36m%s\x1b[0m", "[DTS]:", "Generating types...");
 try {
-    execSync("tsc -p tsconfig.dts.json", { 
+    execSync("tsc -p tsconfig.dts.json", {
         stdio: 'pipe',
         encoding: 'utf-8'
     });

@@ -3,9 +3,12 @@
     "node_modules/bc-stubs/bc/**/*.d.ts",
     "**/*.js",
     "**/*.ts",
-    "**/*.tsx"
-, "scripts/zois-core.mjs"  ],
-  "react": ["./node_modules/@types/react"],
+    "**/*.tsx",
+    "scripts/zois-core.mjs"
+  ],
+  "react": [
+    "./node_modules/@types/react"
+  ],
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
