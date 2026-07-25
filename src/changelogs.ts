@@ -168,7 +168,7 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
                     borderRadius: "6px",
                     background: tag === "fix" ? "#f9b4b4" : tag === "feature" ? "#cbffcbc7" : "#a1e0f4",
                     color: tag === "fix" ? "#771515" : tag === "feature" ? "#147914" : "#09093e",
-                    borderWidth: "1",
+                    borderWidth: "1px",
                     borderStyle: "solid",
                     borderColor: tag === "fix" ? "#ca6565" : tag === "feature" ? "#4eea4e" : "#66adec"
                 }
