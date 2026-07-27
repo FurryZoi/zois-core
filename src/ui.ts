@@ -175,6 +175,13 @@ export function autosetFontSize(element: HTMLElement) {
     });
 }
 
+export function setSizeUnitVariable() {
+    const canvasWidth = MainCanvas.canvas.clientWidth;
+    const canvasHeight = MainCanvas.canvas.clientHeight;
+    const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
+    document.documentElement.style.setProperty('--size-unit', scaleFactor.toString());
+}
+
 const createdDynamicClasses: {
     key: string
     className: string
@@ -299,6 +306,7 @@ export abstract class BaseSubscreen {
 
     run() { }
     load() {
+        setSizeUnitVariable();
         this.createButton({
             x: 1815,
             y: 75,
@@ -325,9 +333,9 @@ export abstract class BaseSubscreen {
                 fontSize: 8
             }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
         }
-        if (subscreenHooks[this.constructor.name]) {
-            subscreenHooks[this.name].forEach((hook) => hook(this));
-        }
+        // if (subscreenHooks[this.constructor.name]) {
+        //     subscreenHooks[this.name].forEach((hook) => hook(this));
+        // }
     }
     unload() { }
     click() { }
@@ -335,6 +343,9 @@ export abstract class BaseSubscreen {
         setPreviousSubscreen();
     }
     update() { }
+    resize() {
+        setSizeUnitVariable();
+    }
     setPreviousSubscreen() {
         setPreviousSubscreen();
     }

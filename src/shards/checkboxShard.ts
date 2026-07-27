@@ -15,7 +15,6 @@ export interface CheckboxShardContext extends ShardContext<"checkbox" | "label">
 }
 
 export class CheckboxShard extends Shard<CheckboxShardContext> {
-
     protected get dynamicClassInput(): DynamicClassStyles {
         return {
             base: {
@@ -29,7 +28,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 appearance: "none",
             },
             ":checked": {

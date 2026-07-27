@@ -17,6 +17,10 @@ export interface ShardContext<T extends string = never> {
 export abstract class Shard<Context extends ShardContext = ShardContext> {
     protected body: Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement> | null = null;
 
+    protected get mountReturnValue() {
+        return this.body?.base ?? null;
+    }
+
     constructor(protected context: Context) {
         this.body = this.generateBody();
         this.processModules("overrideContext");
@@ -34,7 +38,7 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
             window.removeEventListener("zois-core:subscreenunloaded", onUnload);
         };
         window.addEventListener("zois-core:subscreenunloaded", onUnload);
-        return this.body!.base;
+        return this.mountReturnValue;
     }
 
     protected abstract generateBody(): Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement>
@@ -49,7 +53,7 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
                         try {
                             this.context = <Context>module.overrideContext(this.context, this.body![key]);
                         } catch (e) {
-                            logger.error("OverrideContext call failed in", module);
+                            logger.error("OverrideContext call failed in", module, e);
                         }
                     }
                 }
@@ -62,8 +66,8 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
                     if (module instanceof ShardModule) {
                         try {
                             module.layoutEffect(this.context, this.body![key]);
-                        } catch {
-                            logger.error("LayoutEffect call failed in", module);
+                        } catch (e) {
+                            logger.error("LayoutEffect call failed in", module, e);
                         }
                     }
                 }
@@ -76,8 +80,8 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
                     if (module instanceof ShardModule) {
                         try {
                             module.effect(this.context, this.body![key]);
-                        } catch {
-                            logger.error("Effect call failed in", module);
+                        } catch (e) {
+                            logger.error("Effect call failed in", module, e);
                         }
                     }
                 }
