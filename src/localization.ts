@@ -10,7 +10,7 @@ export function getText(tag: string, replacements?: Record<string, string | numb
         return tag;
     }
     const defaultLocale = MOD_DATA.localization.locales.default;
-    const preferredLocale = TranslationLanguage;
+    const preferredLocale = TranslationLanguage.toLowerCase();
     const value = getNestedValue(translations[preferredLocale], tag) ?? getNestedValue(translations[defaultLocale], tag);
     if (!value) {
         logger.warn("Unknown translation tag:", tag);
@@ -44,7 +44,7 @@ export async function loadLocalization() {
 
     const supportedLocales = MOD_DATA.localization.locales.supported;
     const defaultLocale = MOD_DATA.localization.locales.default;
-    const preferredLocale = TranslationLanguage;
+    const preferredLocale = TranslationLanguage.toLowerCase();
 
     if (!supportedLocales.includes(defaultLocale)) {
         logger.warn(`Default locale ${defaultLocale} isn't supported, fix configuration`);
@@ -53,8 +53,8 @@ export async function loadLocalization() {
 
     hookFunction("TranslationSwitchLanguage", HookPriority.OBSERVE, (args, next) => {
         const value = next(args);
-        if (supportedLocales.includes(TranslationLanguage) && !(TranslationLanguage in translations)) {
-            fetchTranslationsForLocale(TranslationLanguage);
+        if (supportedLocales.includes(TranslationLanguage.toLowerCase()) && !(TranslationLanguage.toLowerCase() in translations)) {
+            fetchTranslationsForLocale(TranslationLanguage.toLowerCase());
         }
         return value;
     });
