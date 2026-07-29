@@ -1,4 +1,5 @@
 import { MOD_DATA } from "../index";
+import { hookFunction, HookPriority } from "../modSdk";
 import { autosetFontSize, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 
@@ -15,6 +16,7 @@ export interface TabsShardContext extends Omit<ShardContext, "height"> {
 
 export class TabsShard extends Shard<TabsShardContext> {
     private tabHandlers: Omit<TabsShardContext["tabs"][0], "name"> = {};
+    private clearDrawProcessHook: (() => void) | null = null;
 
     constructor(context: TabsShardContext) {
         // this.tabHandlers = {};
@@ -23,6 +25,7 @@ export class TabsShard extends Shard<TabsShardContext> {
 
     override generateBody(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
         this.tabHandlers ??= {};
+        this.clearDrawProcessHook = null;
         const { tabs, currentTabName } = this.context;
         let tabElements: (Node | string)[] = [];
 
@@ -45,6 +48,7 @@ export class TabsShard extends Shard<TabsShardContext> {
                     tabElements.push(...nodes);
                     originalAppend(...nodes);
                 };
+                this.clearDrawProcessHook?.();
                 this.tabHandlers.unload?.();
                 this.tabHandlers.exit?.();
                 this.tabHandlers = {
@@ -53,7 +57,14 @@ export class TabsShard extends Shard<TabsShardContext> {
                     unload: tab.unload,
                     exit: tab.exit
                 };
+                this.clearDrawProcessHook = null;
                 this.tabHandlers.load?.();
+                if (tab.run) {
+                    this.clearDrawProcessHook = hookFunction("DrawProcess", HookPriority.ADD_BEHAVIOR, (args, next) => {
+                        next(args);
+                        tab.run?.();
+                    });
+                }
                 document.body.append = originalAppend;
             };
             const tabEl = document.createElement("button");
@@ -62,6 +73,8 @@ export class TabsShard extends Shard<TabsShardContext> {
             tabEl.addEventListener("click", switchTab);
             tabsEl.append(tabEl);
         });
+        
+        window.addEventListener("zois-core:subscreenunloaded", () => this.clearDrawProcessHook?.(), { once: true });
 
         return {
             base: tabsEl
