@@ -46,7 +46,7 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
     protected processModules(stage: "overrideContext" | "layoutEffect" | "effect") {
         const modules = this.context.modules ?? {};
 
-        if (stage === "effect") {
+        if (stage === "overrideContext") {
             for (const key of Object.keys(modules) as (keyof typeof modules)[]) {
                 for (const module of modules[key] ?? []) {
                     if (module instanceof ShardModule) {
