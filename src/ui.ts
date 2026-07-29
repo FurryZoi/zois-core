@@ -1,4 +1,4 @@
-import { getThemedColorsModule, SubscreenLoadedEvent, SubscreenUnloadedEvent } from "./index";
+import { SubscreenLoadedEvent, SubscreenUnloadedEvent } from "./index";
 import { StyleModule } from "./shard-modules";
 import { MOD_DATA } from "./index";
 import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard } from "./shards";
@@ -411,8 +411,8 @@ export abstract class BaseSubscreen {
     }
 
     drawPolylineArrow({
-        points, strokeColor = getThemedColorsModule()?.base?.text ?? "black", lineWidth = 2,
-        circleRadius = 5, circleColor = getThemedColorsModule()?.base?.text ?? "black"
+        points, strokeColor = cssVar("--tmd-text", "black"), lineWidth = 2,
+        circleRadius = 5, circleColor = cssVar("--tmd-text", "black")
     }: DrawPolylineArrowArgs): void {
         if (points.length < 2) return;
 
