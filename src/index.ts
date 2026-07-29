@@ -1,3 +1,4 @@
+import { ChangelogEntryTag } from "./changelogs";
 import { registerCore } from "./core";
 import { dialogsManager } from "./dialogs";
 import { loadLocalization } from "./localization";
@@ -41,7 +42,7 @@ export interface ModData {
                     avatar_url: string
                 }
                 date: string
-                tags: ("feature" | "chore" | "fix")[]
+                tags: ChangelogEntryTag[]
                 commit_url: string
             }[]
         }

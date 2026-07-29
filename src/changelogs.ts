@@ -3,22 +3,51 @@ import { logger } from "./logging";
 import { toastsManager } from "./toasts";
 import { addDynamicClass } from "./ui";
 
-const avatarsCache = new Map<string, string>();
+export type ChangelogEntryTag = "feature" | "chore" | "fix" | "localization";
 
-interface GithubCommit {
-    sha: string
-    author?: {
-        login: string
-        id: number
-        avatar_url?: string
-    }
-    committer?: {
-        login: string
-        id: number
-        avatar_url?: string
+interface TagProperties {
+    name: string
+    coloring: {
+        text: string
+        background: string
+        border: string
     }
 }
 
+const TAGS: Record<ChangelogEntryTag, TagProperties> = {
+    fix: {
+        name: "Fix",
+        coloring: {
+            text: "#771515",
+            background: "#f9b4b4",
+            border: "#ca6565"
+        }
+    },
+    chore: {
+        name: "Chore",
+        coloring: {
+            text: "#464646",
+            background: "#f2f2f2",
+            border: "#e2e2e2"
+        }
+    },
+    feature: {
+        name: "Feature",
+        coloring: {
+            text: "#147914",
+            background: "#cbffcbc7",
+            border: "#4eea4e"
+        }
+    },
+    localization: {
+        name: "Localization",
+        coloring: {
+            text: "#09093e",
+            background: "#a1e0f4",
+            border: "#66adec"
+        }
+    }
+};
 
 export function showChangelogModal() {
     const changelog = MOD_DATA.changelog!;
@@ -154,28 +183,28 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
         message.textContent = changelogCommit.message;
         message.style.cssText = "color: #374151; line-height: 1.4;";
 
-        
+
         const tags = document.createElement("div");
         tags.style.cssText = "display: flex; gap: 4px; position: absolute; right: 2px; top: 2px;";
 
         for (const tag of changelogCommit.tags) {
             const tagEl = document.createElement("p");
-            tagEl.textContent = tag;
+            tagEl.textContent = TAGS[tag].name;
             addDynamicClass(tagEl, {
                 base: {
                     fontSize: "0.85em",
                     padding: "2px 6px",
                     borderRadius: "6px",
-                    background: tag === "fix" ? "#f9b4b4" : tag === "feature" ? "#cbffcbc7" : "#a1e0f4",
-                    color: tag === "fix" ? "#771515" : tag === "feature" ? "#147914" : "#09093e",
+                    background: TAGS[tag].coloring.background,
+                    color: TAGS[tag].coloring.text,
                     borderWidth: "1px",
                     borderStyle: "solid",
-                    borderColor: tag === "fix" ? "#ca6565" : tag === "feature" ? "#4eea4e" : "#66adec"
+                    borderColor: TAGS[tag].coloring.border
                 }
             });
             tags.append(tagEl);
         }
-        
+
         info.append(author, message, tags);
 
         commitDiv.style.cursor = 'pointer';
