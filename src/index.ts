@@ -259,20 +259,6 @@ export function getNickname(target: Character): string {
     return CharacterNickname(target);
 }
 
-export function getThemedColorsModule(): ThemedColorsModule | null {
-    if (!findModByName("Themed")) return null;
-    const data = LZString.decompressFromBase64(Player.ExtensionSettings.Themed ?? "") ?? "{}";
-    let themedData;
-    try {
-        themedData = JSON.parse(data);
-    } catch { };
-    if (
-        !themedData?.GlobalModule?.themedEnabled ||
-        !themedData?.GlobalModule?.doVanillaGuiOverhaul
-    ) return null;
-    return themedData.ColorsModule;
-}
-
 export function injectStyles(stylesToInject: string) {
     const style = document.createElement("style");
     style.innerHTML = stylesToInject;
