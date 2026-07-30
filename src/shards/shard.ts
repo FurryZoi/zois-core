@@ -50,10 +50,12 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
             for (const key of Object.keys(modules) as (keyof typeof modules)[]) {
                 for (const module of modules[key] ?? []) {
                     if (module instanceof ShardModule) {
-                        try {
-                            this.context = <Context>module.overrideContext(this.context, this.body![key]);
-                        } catch (e) {
-                            logger.error("OverrideContext call failed in", module, e);
+                        if (this.body?.[key]) {
+                            try {
+                                this.context = <Context>module.overrideContext(this.context, this.body[key]);
+                            } catch (e) {
+                                logger.error("OverrideContext call failed in", module, e);
+                            }
                         }
                     }
                 }
@@ -64,10 +66,12 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
             for (const key of Object.keys(modules) as (keyof typeof modules)[]) {
                 for (const module of modules[key] ?? []) {
                     if (module instanceof ShardModule) {
-                        try {
-                            module.layoutEffect(this.context, this.body![key]);
-                        } catch (e) {
-                            logger.error("LayoutEffect call failed in", module, e);
+                        if (this.body?.[key]) {
+                            try {
+                                module.layoutEffect(this.context, this.body[key]);
+                            } catch (e) {
+                                logger.error("LayoutEffect call failed in", module, e);
+                            }
                         }
                     }
                 }
@@ -78,10 +82,12 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
             for (const key of Object.keys(modules) as (keyof typeof modules)[]) {
                 for (const module of modules[key] ?? []) {
                     if (module instanceof ShardModule) {
-                        try {
-                            module.effect(this.context, this.body![key]);
-                        } catch (e) {
-                            logger.error("Effect call failed in", module, e);
+                        if (this.body?.[key]) {
+                            try {
+                                module.effect(this.context, this.body[key]);
+                            } catch (e) {
+                                logger.error("Effect call failed in", module, e);
+                            }
                         }
                     }
                 }

@@ -127,6 +127,8 @@ export class ButtonShard extends Shard<ButtonShardContext> {
             textElement = document.createElement("span");
             textElement.textContent = text;
             textElement.style.height = "100%";
+            textElement.style.display = "grid";
+            textElement.style.placeContent = "center";
             textElement.style.overflow = "scroll";
             btn.append(textElement);
         }

@@ -28,6 +28,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: "0",
                 transition: "background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 appearance: "none",
             },
