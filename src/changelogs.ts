@@ -133,17 +133,25 @@ export function showChangelogModal() {
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
-    overlay.onclick = (e) => {
-        if (e.target === overlay) document.body.removeChild(overlay);
+    const exitHandler = () => {
+        document.removeEventListener("keydown", keyDownHandler, { capture: true });
+        document.body.removeChild(overlay);
     };
 
-    closeBtn.onclick = () => document.body.removeChild(overlay);
-    document.addEventListener('keydown', function handler(e) {
-        if (e.key === 'Escape') {
-            document.body.removeChild(overlay);
-            document.removeEventListener('keydown', handler);
+    const keyDownHandler = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            exitHandler();
         }
-    });
+    };
+
+    overlay.onclick = (e) => {
+        if (e.target === overlay) exitHandler();
+    };
+
+    closeBtn.onclick = exitHandler;
+    document.addEventListener("keydown", keyDownHandler, { capture: true });
 }
 
 function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>["data"]["changes"][number]) {
