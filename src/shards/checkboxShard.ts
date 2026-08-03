@@ -36,7 +36,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
                 backgroundColor: "var(--tmd-accent, black)",
                 borderColor: "var(--tmd-accent, black)",
             },
-            ":checked > svg": {
+            ":checked + svg": {
                 strokeDashoffset: "0",
             },
             ":checked:hover": {
@@ -50,35 +50,19 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
             ".pop": {
                 animation: "pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
             },
-            "> .tooltip": {
-                position: "absolute",
-                color: "var(--tmd-text, black)",
-                fontSize: "0.65em",
-                textAlign: "center",
-                padding: "0.3em 0.6em",
-                borderRadius: "4px",
-                background: "var(--tmd-element-hint, #e6e6e6)",
-                width: "max-content",
-                visibility: "hidden",
-                zIndex: "10"
-            },
-            "> .tooltip[position=left]": {
-                right: "calc(100% + 1vw)"
-            },
-            "> .tooltip[position=right]": {
-                left: "calc(100% + 1vw)"
-            },
-            ":hover .tooltip": {
-                visibility: "visible"
-            },
         };
     }
 
     protected get dynamicClassCheckmark(): DynamicClassStyles {
         return {
             base: {
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
                 width: "70%",
                 height: "70%",
+                pointerEvents: "none",
                 stroke: "var(--tmd-text, white)",
                 strokeWidth: "3.5",
                 strokeLinecap: "round",
@@ -88,6 +72,46 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
                 strokeDashoffset: "24",
                 transition: "stroke-dashoffset 0.45s cubic-bezier(0.25, 0.1, 0.25, 1)",
             }
+        };
+    }
+
+    protected get dynamicClassTooltip(): DynamicClassStyles {
+        return {
+            base: {
+                position: "absolute",
+                color: "var(--tmd-text, black)",
+                fontSize: "0.65em",
+                textAlign: "center",
+                padding: "0.3em 0.6em",
+                borderRadius: "4px",
+                background: "var(--tmd-element-hint, #e6e6e6)",
+                width: "max-content",
+                visibility: "hidden",
+                zIndex: "10",
+                pointerEvents: "none",
+                whiteSpace: "nowrap",
+            },
+            "[position=left]": {
+                right: "calc(100% + 1vw)",
+            },
+            "[position=right]": {
+                left: "calc(100% + 1vw)",
+            },
+        };
+    }
+
+    protected get dynamicClassBox(): DynamicClassStyles {
+        return {
+            base: {
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: "0",
+            },
+            ":hover .tooltip": {
+                visibility: "visible",
+            },
         };
     }
 
@@ -103,6 +127,10 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         wrapper.style.alignItems = "center";
         wrapper.style.columnGap = "1vw";
         wrapper.style.padding = "0.25em";
+        setFontFamily(wrapper, MOD_DATA.fontFamily);
+
+        const box = document.createElement("div");
+        addDynamicClass(box, this.dynamicClassBox);
 
         const input = document.createElement("input");
         input.type = "checkbox";
@@ -113,13 +141,18 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         const checkmark = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         checkmark.setAttribute("viewBox", "0 0 24 24");
         checkmark.setAttribute("class", "checkmark");
-        checkmark.innerHTML = `<path d="M5 13L9 17L19 7" />`;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M5 13L9 17L19 7");
+        checkmark.appendChild(path);
+
         addDynamicClass(checkmark, this.dynamicClassCheckmark);
+
+        box.append(input, checkmark);
 
         const label = document.createElement("p");
         label.textContent = text;
         label.style.color = this.textColor;
-        setFontFamily(label, MOD_DATA.fontFamily);
 
         if (typeof isDisabled === "function" && isDisabled()) {
             input.disabled = true;
@@ -132,6 +165,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
                 return;
             }
             if (typeof onChange === "function") onChange();
+
             if (input.checked) {
                 // TODO: Fix animation glitch or get rid of this part
                 // input.classList.add("pop");
@@ -139,15 +173,17 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
             }
         });
 
-        input.appendChild(checkmark);
-        wrapper.append(input, label);
+        wrapper.append(box, label);
 
         if (tooltip) {
             const tooltipEl = document.createElement("span");
             tooltipEl.classList.add("tooltip");
             tooltipEl.setAttribute("position", tooltip.position);
             tooltipEl.textContent = tooltip.text;
-            input.appendChild(tooltipEl);
+
+            addDynamicClass(tooltipEl, this.dynamicClassTooltip);
+
+            box.appendChild(tooltipEl);
         }
 
         return {

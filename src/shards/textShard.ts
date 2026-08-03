@@ -19,7 +19,7 @@ export class TextShard extends Shard<TextShardContext> {
         const p = document.createElement("p");
         p.innerHTML = this.context.text ?? "";
         p.style.color = this.context.color ?? this.defaultColor;
-        p.style.overflow = "scroll";
+        p.style.overflow = "clip";
         if (this.context.withBackground) p.style.background = "var(--tmd-element,rgb(239, 239, 239))";
         if (this.context.withBorder) p.style.border = "2px solid var(--tmd-accent, rgb(236, 236, 236))";
         setFontFamily(p, MOD_DATA.fontFamily);
