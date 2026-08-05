@@ -126,7 +126,9 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         if (text) {
             textElement = document.createElement("span");
             textElement.textContent = text;
-            textElement.style.overflow = "clip";
+            textElement.style.overflow = "auto";
+            textElement.style.padding = "0.08em";
+            textElement.style.maxHeight = "100%";
             btn.append(textElement);
         }
 
