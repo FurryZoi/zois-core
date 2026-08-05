@@ -159,8 +159,8 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
         const commitDiv = document.createElement('div');
         commitDiv.style.cssText = `
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            align-items: center;
             padding: 12px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
@@ -168,6 +168,14 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
         `;
         commitDiv.onmouseover = () => commitDiv.style.borderColor = "#3b82f6";
         commitDiv.onmouseout = () => commitDiv.style.borderColor = "#e5e7eb";
+
+        const avatarAndInfo = document.createElement("div");
+        avatarAndInfo.style.cssText = `
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        `;
+        commitDiv.append(avatarAndInfo);
 
         const avatar = document.createElement('img');
         avatar.src = changelogCommit.author.avatar_url;
@@ -177,23 +185,34 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
             border-radius: 50%;
             flex-shrink: 0;
         `;
+        avatarAndInfo.append(avatar);
 
         const info = document.createElement("div");
         info.style.flex = "1";
         info.style.position = "relative";
+        avatarAndInfo.append(info);
 
         const author = document.createElement("div");
         author.textContent = changelogCommit.author.name;
         author.style.fontWeight = "600";
         author.style.marginBottom = "4px";
+        info.append(author);
 
         const message = document.createElement("div");
         message.textContent = changelogCommit.message;
         message.style.cssText = "color: #374151; line-height: 1.4;";
+        info.append(message);
 
+        if (changelogCommit.note) {
+            const note = document.createElement("div");
+            note.textContent = changelogCommit.note ?? "";
+            note.style.cssText = "color: #374151; line-height: 1; font-size: 0.8em;";
+            commitDiv.append(note);
+        }
 
         const tags = document.createElement("div");
         tags.style.cssText = "display: flex; gap: 4px; position: absolute; right: 2px; top: 2px;";
+        info.append(tags);
 
         for (const tag of changelogCommit.tags) {
             const tagEl = document.createElement("p");
@@ -213,15 +232,10 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
             tags.append(tagEl);
         }
 
-        info.append(author, message, tags);
-
         commitDiv.style.cursor = 'pointer';
         commitDiv.onclick = () => {
             window.open(changelogCommit.commit_url, "_blank");
         };
-
-        commitDiv.appendChild(avatar);
-        commitDiv.appendChild(info);
 
         return commitDiv;
     } catch (err) {

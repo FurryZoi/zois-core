@@ -36,6 +36,7 @@ export interface ModData {
             generated_at: string
             changes: {
                 message: string
+                note?: string
                 sha: string
                 author: {
                     name: string
@@ -43,7 +44,7 @@ export interface ModData {
                 }
                 date: string
                 tags: ChangelogEntryTag[]
-                commit_url: string
+                commit_url: string,
             }[]
         }
     }
