@@ -94,7 +94,7 @@ export class ButtonShard extends Shard<ButtonShardContext> {
     }
 
     override generateBody(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
-        const { text, variant, icon, iconAbsolutePosition = true, tooltip, href, onClick, isDisabled } = this.context;
+        const { height, text, variant, icon, iconAbsolutePosition = true, tooltip, href, onClick, isDisabled } = this.context;
         let iconElement: HTMLImageElement | SVGElement | undefined;
         let textElement: HTMLSpanElement | undefined;
         const btn = document.createElement("button");
@@ -126,9 +126,12 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         if (text) {
             textElement = document.createElement("span");
             textElement.textContent = text;
-            textElement.style.overflow = "auto";
-            textElement.style.padding = "0.08em";
-            textElement.style.maxHeight = "100%";
+            if (height) {
+                textElement.style.overflow = "hidden";
+                textElement.style.textOverflow = "ellipsis";
+                textElement.style.whiteSpace = "nowrap";
+                textElement.style.maxHeight = "100%";
+            }
             btn.append(textElement);
         }
 

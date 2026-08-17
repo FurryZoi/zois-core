@@ -1,6 +1,6 @@
 import styles from "./styles.css";
 import { ModData, formatString, version, CoreSettingsChangedEvent, waitFor, SetSubscreenEvent } from "./index";
-import { hookFunction, HookPriority } from "./modSdk";
+import { createModSdk, hookFunction, HookPriority } from "./modSdk";
 import { Anchor, getCurrentSubscreen, setSubscreen } from "./ui";
 import { MainSubscreen } from "./core-subscreen/mainSubscreen";
 import { createElement, Terminal } from "lucide";
@@ -57,10 +57,24 @@ export function registerSubscreen() {
 
 let loginScreenElements: Element[] = [];
 
-export async function registerCore() {
+export function registerCore() {
     const style = document.createElement("style");
     style.innerHTML = styles;
     document.head.append(style);
+
+    window.ZOIS_CORE = Object.freeze({
+        version,
+        enableDevMode: () => {
+            if (typeof Player?.MemberNumber !== "number") return;
+            coreSettings.devMode = true;
+            syncSettings();
+            registerSubscreen();
+        },
+        getSettings: () => {
+            return JSON.parse(JSON.stringify(coreSettings));
+        }
+    });
+
     if (localStorage.getItem("autoConnectToDevServer") === "true") {
         hookFunction("CommonGetServer", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
             return "https://bondage-club-server-test.herokuapp.com/";
@@ -81,7 +95,6 @@ export async function registerCore() {
             padding: 1,
             parent: container,
             text: "You connected to dev server",
-
         }).mount();
         new ButtonShard({
             width: 90,
@@ -102,22 +115,7 @@ export async function registerCore() {
         ServerURL = CommonGetServer();
         ServerInit();
     }
-    await waitFor(() => typeof Player?.MemberNumber === "number");
-    if (typeof Player.ExtensionSettings.ZOIS_CORE === "string") {
-        coreSettings = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.ZOIS_CORE) ?? "{}");
-    }
-    if (coreSettings.devMode) registerSubscreen();
-    window.ZOIS_CORE = Object.freeze({
-        version,
-        enableDevMode: () => {
-            coreSettings.devMode = true;
-            syncSettings();
-            registerSubscreen();
-        },
-        getSettings: () => {
-            return JSON.parse(JSON.stringify(coreSettings));
-        }
-    });
+
     hookFunction("ChatRoomMessageCreateReplyMessageElement", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
         const [msgId, displayMessage, data] = args;
         const r = formatString(displayMessage);
@@ -150,6 +148,7 @@ export async function registerCore() {
             ),
         ];
     });
+
     document.addEventListener('click', async (event) => {
         const link = (event.target as HTMLElement).closest('a');
 
@@ -192,4 +191,11 @@ export async function registerCore() {
             }
         }
     }, true);
+
+    waitFor(() => typeof Player?.MemberNumber === "number").then(() => {
+        if (typeof Player.ExtensionSettings.ZOIS_CORE === "string") {
+            coreSettings = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.ZOIS_CORE) ?? "{}");
+        }
+        if (coreSettings.devMode) registerSubscreen();
+    });
 }

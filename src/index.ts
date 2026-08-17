@@ -79,9 +79,9 @@ export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
 export function bootstrap(modData: ModData): void {
-    if (!window.ZOIS_CORE) registerCore();
     MOD_DATA = modData;
     createModSdk();
+    if (!window.ZOIS_CORE) registerCore();
     loadLocalization();
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
