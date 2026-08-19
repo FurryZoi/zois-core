@@ -153,6 +153,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         const label = document.createElement("p");
         label.textContent = text;
         label.style.color = this.textColor;
+        label.style.margin = "0";
 
         if (typeof isDisabled === "function" && isDisabled()) {
             input.disabled = true;

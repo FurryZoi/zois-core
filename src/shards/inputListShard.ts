@@ -22,6 +22,7 @@ export class InputListShard extends Shard<InputListShardContext> {
                 border: "2px solid var(--tmd-accent, black)",
                 borderRadius: "4px",
                 padding: "0.75vw",
+                boxSizing: "border-box",
                 background: "var(--tmd-element, none)"
             },
             "> div:first-child": {

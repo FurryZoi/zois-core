@@ -221,6 +221,7 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
                 base: {
                     fontSize: "0.85em",
                     padding: "2px 6px",
+                    margin: "0",
                     borderRadius: "6px",
                     background: TAGS[tag].coloring.background,
                     color: TAGS[tag].coloring.text,

@@ -24,6 +24,7 @@ export class SelectShard extends Shard<SelectShardContext> {
                 border: "2px solid var(--tmd-accent, rgb(195, 195, 195))",
                 borderRadius: "0.4em",
                 padding: "0.25em",
+                boxSizing: "border-box",
                 zIndex: "10"
             },
             "[opened=true]": {
@@ -31,6 +32,9 @@ export class SelectShard extends Shard<SelectShardContext> {
             },
             "[opened=false]:hover": {
                 borderColor: "var(--tmd-accent-hover, rgb(170, 170, 170))"
+            },
+            "> p": {
+                margin: "0"
             },
             ">svg": {
                 position: "absolute",
@@ -63,6 +67,7 @@ export class SelectShard extends Shard<SelectShardContext> {
                 color: "var(--tmd-text, black)",
                 width: "100%",
                 padding: "0.25em",
+                boxSizing: "border-box",
                 borderRadius: "0.25em"
             },
             ">div>div>svg": {
