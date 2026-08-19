@@ -73,22 +73,8 @@ export class ButtonShard extends Shard<ButtonShardContext> {
                 background: "var(--tmd-accent, #5b5bff)",
                 color: "var(--tmd-text, white)",
                 padding: "0.1em",
+                boxSizing: "border-box",
                 borderRadius: "50%",
-            },
-            ":hover > .external-link-icon": {
-                minWidth: "fit-content",
-                padding: "0.1em 0.25em",
-                borderRadius: "0.5em",
-                bottom: "calc(100% + 0.25em)",
-                top: "unset",
-            },
-            "> .external-link-icon > span": {
-                display: "none",
-                fontSize: "0.5em",
-                whiteSpace: "nowrap"
-            },
-            ":hover > .external-link-icon > span": {
-                display: "inline"
             }
         };
     }
@@ -146,13 +132,31 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         if (href) {
             const externalLinkContainer = document.createElement("div");
             externalLinkContainer.classList.add("external-link-icon");
+
             const externalLinkIcon = createElement(ExternalLink);
             externalLinkIcon.style.width = "auto";
             externalLinkIcon.style.height = "100%";
-            const externalLinkLabel = document.createElement("span");
-            externalLinkLabel.textContent = href;
-            externalLinkContainer.append(externalLinkIcon, externalLinkLabel);
+
+            externalLinkContainer.append(externalLinkIcon);
             btn.append(externalLinkContainer);
+
+            let hrefTooltip: HTMLDivElement | null = null;
+            btn.addEventListener("mouseenter", () => {
+                if (hrefTooltip) return;
+                hrefTooltip = document.createElement("div");
+                hrefTooltip.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;
+                width: fit-content; height: fit-content; font-size: calc(3.5px * var(--size-unit));
+                z-index: 100; color: var(--tmd-text, black); background: var(--tmd-element, #f8f8f8); padding: 0.2em;
+                border-radius: 4px; border: 1px solid var(--tmd-element-hover, #9f9f9f);`;
+                setFontFamily(hrefTooltip, CommonGetFontName());
+                hrefTooltip.textContent = href;
+                document.body.append(hrefTooltip);
+            });
+            btn.addEventListener("mouseleave", () => {
+                if (!hrefTooltip) return;
+                hrefTooltip.remove();
+                hrefTooltip = null;
+            });
         }
 
         if (typeof isDisabled === "function" && isDisabled()) btn.classList.add("zcDisabled");
