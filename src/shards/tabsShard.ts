@@ -1,3 +1,4 @@
+import { eventBus } from "../events";
 import { MOD_DATA } from "../index";
 import { hookFunction, HookPriority } from "../modSdk";
 import { autosetFontSize, setFontFamily } from "../ui";
@@ -74,7 +75,7 @@ export class TabsShard extends Shard<TabsShardContext> {
             tabsEl.append(tabEl);
         });
         
-        window.addEventListener("zois-core:subscreenunloaded", () => this.clearDrawProcessHook?.(), { once: true });
+        eventBus?.once("subscreenUnloaded", () => this.clearDrawProcessHook?.());
 
         return {
             base: tabsEl
