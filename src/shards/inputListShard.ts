@@ -92,7 +92,7 @@ export class InputListShard extends Shard<InputListShardContext> {
         };
     }
 
-    override generateBody(): Record<keyof NonNullable<InputListShardContext<number | string>["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<InputListShardContext<number | string>["modules"]>, HTMLElement | SVGElement> {
         const { value, title, fontSize, numbersOnly, onChange, isDisabled } = this.context;
         const checkbox = document.createElement("div");
         const items: string[] = [];

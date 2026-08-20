@@ -23,7 +23,7 @@ export class TabsShard extends Shard<TabsShardContext> {
         super(context);
     }
 
-    override generateBody(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
         this.tabHandlers ??= {};
         this.clearDrawProcessHook = null;
         const { tabs, currentTabName } = this.context;
@@ -81,7 +81,7 @@ export class TabsShard extends Shard<TabsShardContext> {
         }
     }
 
-    override update() {
+    protected update() {
         super.update();
         autosetFontSize(this.body!.base as HTMLElement);
     }

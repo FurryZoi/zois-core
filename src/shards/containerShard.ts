@@ -18,11 +18,11 @@ export class ContainerShard extends Shard<ContainerShardContext> {
         };
     }
 
-    protected override get mountReturnValue(): HTMLElement | SVGElement | null {
+    protected get mountReturnValue(): HTMLElement | SVGElement | null {
         return this.body?.content ?? null;
     }
 
-    override generateBody(): Record<
+    protected generateBody(): Record<
         keyof NonNullable<ContainerShardContext["modules"]>,
         HTMLElement | SVGElement
     > {

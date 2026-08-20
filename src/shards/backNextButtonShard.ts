@@ -46,7 +46,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         };
     }
 
-    override generateBody(): Record<keyof NonNullable<BackNextButtonShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<BackNextButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { onChange, isDisabled } = this.context;
         const div = document.createElement("div");
         addDynamicClass(div, this.dynamicClassContainer);
@@ -119,7 +119,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         };
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         autosetFontSize(this.body!.base as HTMLElement);
     }

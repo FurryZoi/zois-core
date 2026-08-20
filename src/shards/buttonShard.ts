@@ -79,7 +79,7 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         };
     }
 
-    override generateBody(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { height, text, variant, icon, iconAbsolutePosition = true, tooltip, href, onClick, isDisabled } = this.context;
         let iconElement: HTMLImageElement | SVGElement | undefined;
         let textElement: HTMLSpanElement | undefined;
@@ -173,7 +173,7 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         }
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         if ((this.context.fontSize ?? "auto") === "auto") autosetFontSize(this.body!.base as HTMLElement);
         else if (typeof this.context.fontSize === "number") setFontSize(this.body!.base as HTMLElement, this.context.fontSize);

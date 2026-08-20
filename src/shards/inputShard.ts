@@ -13,7 +13,7 @@ export interface InputShardContext extends ShardContext {
 }
 
 export class InputShard extends Shard<InputShardContext> {
-    override generateBody(): Record<keyof NonNullable<InputShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<InputShardContext["modules"]>, HTMLElement | SVGElement> {
         const { textArea, placeholder, value, isDisabled, onChange, onInput } = this.context;
         const input = document.createElement(textArea ? "textarea" : "input");
         input.classList.add("zcInput");
@@ -35,7 +35,7 @@ export class InputShard extends Shard<InputShardContext> {
         }
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         if ((this.context.fontSize ?? "auto") === "auto") autosetFontSize(this.body!.base as HTMLElement);
         else if (typeof this.context.fontSize === "number") setFontSize(this.body!.base as HTMLElement, this.context.fontSize);

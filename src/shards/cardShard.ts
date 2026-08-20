@@ -9,7 +9,7 @@ export interface CardShardContext extends ShardContext<"base" | "name" | "value"
 }
 
 export class CardShard extends Shard<CardShardContext> {
-    override generateBody(): Record<keyof NonNullable<CardShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<CardShardContext["modules"]>, HTMLElement | SVGElement> {
         const { name, value, icon } = this.context;
         const cardEl = document.createElement("div");
         cardEl.classList.add("zcCard");
@@ -38,7 +38,7 @@ export class CardShard extends Shard<CardShardContext> {
         };
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         autosetFontSize(this.body!.base as HTMLElement);
     }

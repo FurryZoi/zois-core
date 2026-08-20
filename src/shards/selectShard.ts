@@ -80,7 +80,8 @@ export class SelectShard extends Shard<SelectShardContext> {
             }
         };
     }
-    override generateBody(): Record<keyof NonNullable<SelectShardContext["modules"]>, HTMLElement | SVGElement> {
+
+    protected generateBody(): Record<keyof NonNullable<SelectShardContext["modules"]>, HTMLElement | SVGElement> {
         let { options, currentOption, x, y } = CommonCloneDeep(this.context);
         let isOpened = false;
         let optionsContainer: HTMLDivElement;
@@ -140,7 +141,7 @@ export class SelectShard extends Shard<SelectShardContext> {
         }
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         autosetFontSize(this.body!.base as HTMLElement);
     }
