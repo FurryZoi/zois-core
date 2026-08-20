@@ -119,7 +119,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         return "var(--tmd-text, black)";
     }
 
-    override generateBody(): Record<keyof NonNullable<CheckboxShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<CheckboxShardContext["modules"]>, HTMLElement | SVGElement> {
         const { isChecked, text, tooltip, onChange, isDisabled } = this.context;
 
         const wrapper = document.createElement("div");
@@ -194,7 +194,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         };
     }
 
-    override update(): void {
+    protected update(): void {
         super.update();
         if (this.body?.base) {
             autosetFontSize(this.body.base as HTMLElement);

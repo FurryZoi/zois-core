@@ -3,6 +3,7 @@ import { ModData } from "./index";
 import { MOD_DATA } from "./index";
 import { setPosition } from "./ui";
 import { logger } from "./logging";
+import { eventBus } from "./events";
 
 interface Toast {
     id: string
@@ -32,7 +33,7 @@ function createToastsContainer() {
     window.addEventListener("resize", update);
     document.body.append(container);
     update();
-    document.addEventListener("zois-core:coresettingschanged", update);
+    eventBus?.on("zois-core:coreSettingsChanged", update);
     return container;
 }
 

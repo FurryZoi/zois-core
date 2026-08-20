@@ -1,6 +1,7 @@
 import { ChangelogEntryTag } from "./changelogs";
 import { registerCore } from "./core";
 import { dialogsManager } from "./dialogs";
+import { createEventBus, eventBus } from "./events";
 import { loadLocalization } from "./localization";
 import { createModSdk, findModByName, hookFunction, HookPriority } from "./modSdk";
 import { BaseSubscreen, getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
@@ -82,6 +83,7 @@ export function bootstrap(modData: ModData): void {
     MOD_DATA = modData;
     createModSdk();
     if (!window.ZOIS_CORE) registerCore();
+    createEventBus();
     loadLocalization();
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
@@ -98,28 +100,24 @@ export function bootstrap(modData: ModData): void {
         return next(args);
     });
 
-    window.addEventListener(
-        "zois-core:setsubscreen",
-        async (_event) => {
-            const event = _event as SetSubscreenEvent;
-            const target = event.detail.target;
-            const isTrusted = event.detail.isTrusted;
-            if (target === undefined) return;
-            if (target.startsWith(MOD_DATA.key + ":")) {
-                const currentSubscreen = getCurrentSubscreen();
-                const mod = target.substring(0, MOD_DATA.key.length);
-                const subscreen = target.substring(MOD_DATA.key.length + 1);
-                if (currentSubscreen?.constructor?.name === subscreen) return;
-                const s = MOD_DATA.subscreens?.[subscreen];
-                if (s === undefined) return;
-                if (isTrusted || await dialogsManager.confirm({ message: `Confirm the redirecting to modded subscreen ${target}` })) {
-                    await PreferenceOpenSubscreen("Extensions");
-                    await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
-                    setSubscreen(new s());
-                }
+    eventBus?.on("setSubscreen", async (data) => {
+        const target = data.target;
+        const isTrusted = data.isTrusted;
+        if (target === undefined) return;
+        if (target.startsWith(MOD_DATA.key + ":")) {
+            const currentSubscreen = getCurrentSubscreen();
+            const mod = target.substring(0, MOD_DATA.key.length);
+            const subscreen = target.substring(MOD_DATA.key.length + 1);
+            if (currentSubscreen?.constructor?.name === subscreen) return;
+            const s = MOD_DATA.subscreens?.[subscreen];
+            if (s === undefined) return;
+            if (isTrusted || await dialogsManager.confirm({ message: `Confirm the redirecting to modded subscreen ${target}` })) {
+                await PreferenceOpenSubscreen("Extensions");
+                await PreferenceSubscreenExtensionsOpen(mod, ["Online", "ChatRoom"]);
+                setSubscreen(new s());
             }
         }
-    );
+    });
 
     ServerIsLoggedInAsync().then(() => {
         if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
@@ -166,30 +164,6 @@ export function formatString(text: string): (
     }
 
     return { isBeatifulString: false };
-}
-
-export class SetSubscreenEvent extends CustomEvent<{ target: string, isTrusted: boolean }> {
-    constructor(detail: { target: string, isTrusted: boolean }) {
-        super(`zois-core:setsubscreen`, { detail });
-    }
-}
-
-export class SubscreenLoadedEvent extends CustomEvent<{ subscreen: BaseSubscreen }> {
-    constructor(detail: { subscreen: BaseSubscreen }) {
-        super(`zois-core:subscreenloaded`, { detail });
-    }
-}
-
-export class SubscreenUnloadedEvent extends CustomEvent<{ subscreen: BaseSubscreen }> {
-    constructor(detail: { subscreen: BaseSubscreen }) {
-        super(`zois-core:subscreenunloaded`, { detail });
-    }
-}
-
-export class CoreSettingsChangedEvent extends CustomEvent<never> {
-    constructor() {
-        super(`zois-core:coresettingschanged`);
-    }
 }
 
 export function sleep(ms: number): Promise<() => {}> {

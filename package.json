@@ -70,6 +70,10 @@
     "./changelogs": {
       "import": "./dist/changelogs.js",
       "types": "./dist/types/changelogs.d.ts"
+    },
+    "./events": {
+      "import": "./dist/events.js",
+      "types": "./dist/types/events.d.ts"
     }
   },
   "pnpm": {

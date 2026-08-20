@@ -37,7 +37,7 @@ try {
             copy({
                 resolveFrom: "cwd",
                 assets: {
-                    from: ["./src/types/globals.d.ts"],
+                    from: ["./src/types/global.d.ts"],
                     to: ["./dist/types"]
                 }
             })

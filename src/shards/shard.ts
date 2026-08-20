@@ -1,4 +1,4 @@
-import { SubscreenUnloadedEvent } from "..";
+import { eventBus } from "../events";
 import { logger } from "../logging";
 import { ShardModule } from "../shard-modules";
 import { setPosition, setPadding, getRelativeWidth, getRelativeHeight, Anchor } from "../ui";
@@ -15,7 +15,7 @@ export interface ShardContext<T extends string = never> {
 }
 
 export abstract class Shard<Context extends ShardContext = ShardContext> {
-    protected body: Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement> | null = null;
+    public body: Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement> | null = null;
 
     protected get mountReturnValue() {
         return this.body?.base ?? null;
@@ -31,13 +31,16 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
         parentElement.append(this.body!.base);
         this.update();
         this.processModules("effect");
+        eventBus?.emit("shardMounted", {
+            shard: this
+        });
         window.addEventListener("resize", () => this.update());
-        const onUnload = (event: Event) => {
-            if (!(event instanceof SubscreenUnloadedEvent)) return;
+        eventBus?.once("subscreenUnloaded", () => {
             this.body!.base.remove();
-            window.removeEventListener("zois-core:subscreenunloaded", onUnload);
-        };
-        window.addEventListener("zois-core:subscreenunloaded", onUnload);
+            eventBus?.emit("shardUnmounted", {
+                shard: this
+            });
+        });
         return this.mountReturnValue;
     }
 

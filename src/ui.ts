@@ -1,9 +1,9 @@
-import { SubscreenLoadedEvent, SubscreenUnloadedEvent } from "./index";
 import { StyleModule } from "./shard-modules";
 import { MOD_DATA } from "./index";
 import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard } from "./shards";
 import { logger } from "./logging";
 import exitIcon from "./assets/icons/exit.svg";
+import { eventBus } from "./events";
 
 export type Anchor = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -271,7 +271,6 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
         } catch (e) {
             logger.error("Failed to unload subscreen", previousSubscreen, e);
         }
-        window.dispatchEvent(new SubscreenUnloadedEvent({ subscreen: previousSubscreen }));
     }
     if (subscreen) {
         try {
@@ -279,7 +278,6 @@ export function setSubscreen(subscreen: BaseSubscreen | null): void {
         } catch (e) {
             logger.error("Failed to load subscreen", subscreen, e);
         }
-        window.dispatchEvent(new SubscreenLoadedEvent({ subscreen }));
     }
 }
 
@@ -333,11 +331,15 @@ export abstract class BaseSubscreen {
                 fontSize: 8
             }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
         }
-        // if (subscreenHooks[this.constructor.name]) {
-        //     subscreenHooks[this.name].forEach((hook) => hook(this));
-        // }
+        eventBus?.emit("subscreenLoaded", {
+            subscreen: this
+        });
     }
-    unload() { }
+    unload() {
+        eventBus?.emit("subscreenUnloaded", {
+            subscreen: this
+        });
+    }
     click() { }
     exit() {
         setPreviousSubscreen();

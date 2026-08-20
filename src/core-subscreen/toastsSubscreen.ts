@@ -1,6 +1,5 @@
-import { CoreSettingsChangedEvent } from "../index";
 import { Anchor } from "../ui";
-import { coreSettings } from "../core";
+import { coreSettings, syncSettings } from "../core";
 import { CoreSubscreen } from "./coreSubscreen";
 import { toastsManager } from "../toasts";
 
@@ -90,7 +89,7 @@ export class ToastsSubscreen extends CoreSubscreen {
             padding: 1,
             width: 400,
             onClick: () => {
-                document.dispatchEvent(new CoreSettingsChangedEvent());
+                syncSettings();
                 toastsManager.success({
                     title: "Something was completed successfully",
                     message: "Message details",

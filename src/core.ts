@@ -1,5 +1,5 @@
 import styles from "./styles.css";
-import { ModData, formatString, version, CoreSettingsChangedEvent, waitFor, SetSubscreenEvent } from "./index";
+import { ModData, formatString, version, waitFor } from "./index";
 import { createModSdk, hookFunction, HookPriority } from "./modSdk";
 import { Anchor, getCurrentSubscreen, setSubscreen } from "./ui";
 import { MainSubscreen } from "./core-subscreen/mainSubscreen";
@@ -7,6 +7,7 @@ import { createElement, Terminal } from "lucide";
 import { ButtonShard, ContainerShard } from "./shards";
 import { StyleModule } from "./shard-modules";
 import { dialogsManager } from "./dialogs";
+import { EventBus, getEventBus } from "./events";
 
 
 export interface CoreSettings {
@@ -24,11 +25,15 @@ export interface CoreSettings {
 
 export let coreSettings: CoreSettings = {};
 
+let coreEventBus: EventBus | null = null;
+
 export function syncSettings() {
     if (typeof coreSettings !== "object") return;
     Player.ExtensionSettings.ZOIS_CORE = LZString.compressToBase64(JSON.stringify(coreSettings));
     ServerPlayerExtensionSettingsSync("ZOIS_CORE");
-    document.dispatchEvent(new CoreSettingsChangedEvent());
+    coreEventBus?.emit("coreSettingsChanged", {
+        settings: structuredClone(coreSettings)
+    });
 }
 
 export function registerSubscreen() {
@@ -46,6 +51,9 @@ export function registerSubscreen() {
         run: () => {
             getCurrentSubscreen()?.run();
         },
+        resize: () => {
+            getCurrentSubscreen()?.resize();
+        },
         click: () => {
             getCurrentSubscreen()?.click();
         },
@@ -62,6 +70,8 @@ export function registerCore() {
     style.innerHTML = styles;
     document.head.append(style);
 
+    coreEventBus = getEventBus("zois-core");
+
     window.ZOIS_CORE = Object.freeze({
         version,
         enableDevMode: () => {
@@ -72,7 +82,8 @@ export function registerCore() {
         },
         getSettings: () => {
             return JSON.parse(JSON.stringify(coreSettings));
-        }
+        },
+        getEventBus
     });
 
     if (localStorage.getItem("autoConnectToDevServer") === "true") {
@@ -182,7 +193,10 @@ export function registerCore() {
                                 break;
                             }
                             default: {
-                                window.dispatchEvent(new SetSubscreenEvent({ target, isTrusted: false }));
+                                coreEventBus?.emit("setSubscreen", {
+                                    target,
+                                    isTrusted: false
+                                });
                             }
                         }
                     }
