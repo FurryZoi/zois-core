@@ -2,10 +2,18 @@ import fs from "fs/promises";
 import path from "path";
 import chalk from 'chalk';
 import { Octokit } from "@octokit/rest";
+import { existsSync } from "fs";
+import { simpleGit } from "simple-git";
+import { Terminal } from "./lib/terminal.mjs";
 
 const octokit = new Octokit();
+const terminal = new Terminal("zois-core");
+const git = simpleGit();
 const args = process.argv.slice(2);
 const command = args[0];
+const cwd = process.cwd();
+const CHANGELOG_CONFIG_FILE_NAME = "changelog.config.json";
+const CHANGELOG_BUNDLE_FILE_NAME = "changelog.json";
 
 function getArg(name) {
     const arg = args.find((a) => a.startsWith("--" + name));
@@ -16,15 +24,15 @@ function getArg(name) {
 switch (command) {
     case "generate-changelog": {
         generateChangelog().catch((err) => {
-            console.log(chalk.red("Script failed:"), err.message);
+            terminal.error(chalk.red("Script failed:"), err.message);
             process.exit(1);
         });
         break;
     }
     default: {
-        console.log(chalk.red("Unknown command"), `"${chalk.cyan(command)}"`);
-        console.log("Available commands:")
-        console.log(`• ${chalk.cyan("generate-changelog")} — Generate changelog bundle`)
+        terminal.log(chalk.red("Unknown command"), `"${chalk.cyan(command)}"`);
+        terminal.log("Available commands:")
+        terminal.log(`• ${chalk.cyan("generate-changelog")} — Generate changelog bundle`)
     }
 }
 
@@ -74,47 +82,97 @@ async function getCommitsSince(owner, repo, sinceSha, perPage = 50) {
         }));
 
     } catch (error) {
-        console.log(chalk.red("Error getting commits:"), error.message);
+        terminal.log(chalk.red("Error getting commits:"), error.message);
         throw error;
     }
 }
 
+async function getGitRemote() {
+    try {
+        const remotes = await git.getRemotes(true);
+        const origin = remotes.find(r => r.name === "origin");
+
+        if (!origin || !origin.refs || !origin.refs.fetch) {
+            return null;
+        }
+
+        const url = origin.refs.fetch;
+        const match = url.match(/(?:[:/])([^/]+)\/([^/]+?)(?:\.git)?$/);
+
+        if (!match) {
+            throw new Error("Git remote could not be identified:", url);
+        }
+
+        return {
+            owner: match[1],
+            name: match[2],
+            url
+        };
+    } catch (err) {
+        terminal.log(chalk.red(err));
+        return null;
+    }
+}
+
 async function generateChangelog() {
-    const owner = getArg("owner");
-    if (!owner) {
-        console.log(chalk.red("--owner argument not specified"));
+    let config;
+    if (existsSync(path.join(cwd, CHANGELOG_CONFIG_FILE_NAME))) {
+        const configText = await fs.readFile(path.join(cwd, CHANGELOG_CONFIG_FILE_NAME), "utf-8");
+
+        try {
+            config = JSON.parse(configText);
+        } catch {
+            terminal.log(chalk.red(`Failed to parse ${CHANGELOG_CONFIG_FILE_NAME}`));
+        }
+    } else {
+        terminal.log(`${CHANGELOG_CONFIG_FILE_NAME} was not detected`);
+    }
+
+    const repo = await getGitRemote();
+    if (repo === null) {
+        terminal.log(chalk.red("Git remote is not detected"));
         process.exit(1);
     }
-    const repo = getArg("repo");
-    if (!repo) {
-        console.log(chalk.red("--repo argument not specified"));
-        process.exit(1);
-    }
+
+    const { owner: repoOwner, name: repoName } = repo;
+
     const fromCommit = getArg("from");
     if (!fromCommit) {
-        console.log(chalk.red("--from argument not specified"));
+        terminal.log(chalk.red("--from argument not specified"));
         process.exit(1);
     }
-    console.log(`Generating changelog from commit ${chalk.cyan(fromCommit)}...`);
 
-    const commits = await getCommitsSince(owner, repo, fromCommit);
+    terminal.log(`Generating changelog from commit ${chalk.cyan(fromCommit)}...`);
+
+    const commits = await getCommitsSince(repoOwner, repoName, fromCommit);
+
+    const contributors = [];
+    for (const commit of commits) {
+        const name = config?.overrides?.authors?.[commit.author.name]?.name ? config.overrides.authors[commit.author.name].name : commit.author.name;
+        if (contributors.find((p) => p.name === name)) continue;
+        const avatar_url = config?.overrides?.authors?.[commit.author.name]?.avatar_url ? config.overrides.authors[commit.author.name].avatar_url : (commit.author.avatar_url ?? "https://avatars.githubusercontent.com/" + commit.author.name);
+        const is_owner = commit.author.name === repoOwner;
+        contributors.push({
+            name,
+            avatar_url,
+            is_owner
+        });
+    }
 
     const resultToWrite = {
         generated_at: (new Date()).toISOString(),
-        changes: commits.map((c) => ({
-            message: c.message,
-            sha: c.sha,
-            author: {
-                name: c.author.name,
-                avatar_url: c.author.avatar_url ?? "https://avatars.githubusercontent.com/" + c.author.name,
-            },
-            date: c.date,
+        contributors,
+        changes: commits.map((commit) => ({
+            message: commit.message,
+            sha: commit.sha,
+            author: config?.overrides?.authors?.[commit.author.name]?.name ? config.overrides.authors[commit.author.name].name : commit.author.name,
+            date: commit.date,
             tags: [],
-            commit_url: `https://github.com/${owner}/${repo}/commit/${c.sha}`
+            commit_url: `https://github.com/${repoOwner}/${repoName}/commit/${commit.sha}`
         }))
     };
 
-    const outputPath = path.join(process.cwd(), "changelog.json");
+    const outputPath = path.join(cwd, CHANGELOG_BUNDLE_FILE_NAME);
 
     await fs.writeFile(
         outputPath,
@@ -122,5 +180,5 @@ async function generateChangelog() {
         "utf-8"
     );
 
-    console.log(`Generated changelog.json. (${commits.length} commits)`);
+    terminal.log(`Generated changelog.json. (${commits.length} commits)`);
 }

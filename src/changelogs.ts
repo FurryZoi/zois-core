@@ -1,7 +1,9 @@
+import { createElement, Crown, Hand, HandGrab, Heart } from "lucide";
 import { MOD_DATA, ModData } from ".";
 import { logger } from "./logging";
 import { toastsManager } from "./toasts";
 import { addDynamicClass } from "./ui";
+import handIcon from "./assets/icons/hand.svg";
 
 export type ChangelogEntryTag = "feature" | "chore" | "fix" | "localization";
 
@@ -116,22 +118,141 @@ export function showChangelogModal() {
         flex: 1;
     `;
 
+    const contributorsTitle = document.createElement("p");
+    contributorsTitle.style.cssText = `
+        font-size: 22px;
+        margin: 0;
+    `;
+    contributorsTitle.textContent = "Contributors";
+
+
+    const contributorsList = document.createElement("div");
+    contributorsList.style.display = "flex";
+    contributorsList.style.justifyContent = "center";
+    contributorsList.style.flexWrap = "wrap";
+    contributorsList.style.gap = "16px";
+    contributorsList.style.padding = "16px";
+
+    for (const contributor of data.contributors) {
+        const container = document.createElement("div");
+        container.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;  
+        `;
+
+        const imageContainer = document.createElement("div");
+        imageContainer.style.cssText = `
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            border-radius: 50%;
+            overflow: hidden;
+        `;
+
+        const handGrabIcon = document.createElement("img");
+        handGrabIcon.src = handIcon;
+        handGrabIcon.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 35%;
+            width: 40px;
+            height: 40px;
+            line-height: 1;
+            pointer-events: none;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.45));
+            z-index: 10;
+            transform-origin: center bottom;
+            animation: zcStrokeUD 1.3s ease-in-out infinite;
+        `;
+
+        const hearts = [
+            { left: "18%", top: "35%", duration: "2.5s", size: "16px" },
+            { left: "25%", top: "10%", duration: "2s", size: "10px" },
+            { left: "40%", top: "40%", duration: "1.0s", size: "12px" },
+            { left: "55%", top: "28%", duration: "4.5s", size: "14px" },
+            { left: "35%", top: "48%", duration: "1.0s", size: "15px" },
+            { left: "65%", top: "42%", duration: "1.5s", size: "13px" },
+        ];
+
+        hearts.forEach((h) => {
+            const heart = createElement(Heart, { fill: "#ff4d6d", stroke: "#ff4d6d" });
+            heart.style.cssText = `
+                position: absolute;
+                pointer-events: none;
+                z-index: 5;
+                animation: zcFloatHeart ${h.duration} ease-out infinite;
+                left: ${h.left};
+                top: ${h.top};
+                width: ${h.size};
+                height: ${h.size};
+            `;
+            imageContainer.append(heart);
+        });
+
+        const image = document.createElement("img");
+        image.src = contributor.avatar_url;
+        image.style.cssText = `
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        `;
+
+        imageContainer.append(image, handGrabIcon);
+
+        const name = document.createElement("span");
+        name.textContent = contributor.name;
+        name.style.textAlign = "center";
+        container.append(imageContainer, name);
+
+        if (contributor.is_owner) {
+            const ownerLabelContainer = document.createElement("div");
+            ownerLabelContainer.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                border-radius: 6px;
+                padding: 2px 4px;
+                font-size: 10px;
+                background: #fbfb142e;
+                border: 1px solid #60600a;
+            `;
+            const crown = createElement(Crown, { width: "10px", height: "10px", fill: "#ffe300" });
+            const label = document.createElement("span");
+            label.textContent = "Project owner";
+            ownerLabelContainer.append(crown, label);
+            container.append(ownerLabelContainer);
+        }
+
+        contributorsList.append(container);
+    }
+
+    const changesTitle = document.createElement("p");
+    changesTitle.style.cssText = `
+        font-size: 22px;
+        margin: 0;
+    `;
+    changesTitle.textContent = "Changes";
+
     const commitsList = document.createElement('div');
     commitsList.style.display = 'flex';
     commitsList.style.flexDirection = 'column';
     commitsList.style.gap = '16px';
+    commitsList.style.marginTop = "16px";
 
     for (const commitData of data.changes) {
-        const commitElement = createCommitElement(commitData);
-        if (commitElement) commitsList.appendChild(commitElement);
+        const commitElement = createCommitElement(data, commitData.sha);
+        if (commitElement) commitsList.append(commitElement);
     }
 
-    content.appendChild(commitsList);
+    content.append(contributorsTitle, contributorsList, changesTitle, commitsList);
 
-    modal.appendChild(header);
-    modal.appendChild(content);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+    modal.append(header);
+    modal.append(content);
+    overlay.append(modal);
+    document.body.append(overlay);
 
     const exitHandler = () => {
         document.removeEventListener("keydown", keyDownHandler, { capture: true });
@@ -154,20 +275,39 @@ export function showChangelogModal() {
     document.addEventListener("keydown", keyDownHandler, { capture: true });
 }
 
-function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>["data"]["changes"][number]) {
+function createCommitElement(changelogData: NonNullable<ModData["changelog"]>["data"], commitSha: string) {
     try {
-        const commitDiv = document.createElement('div');
-        commitDiv.style.cssText = `
+        const commit = changelogData.changes.find((c) => c.sha === commitSha);
+        if (!commit) {
+            logger.warn(`Commit ${commitSha} is not exists in changelog bundle`);
+            return;
+        }
+        const author = changelogData.contributors.find((c) => c.name === commit?.author);
+        if (!author) {
+            logger.warn(`Author ${commit.author} is not exists in changelog bundle`);
+            return;
+        }
+
+        const commitWrapper = document.createElement("div");
+        commitWrapper.style.cssText = `
+            background: #e8e8f4;
+            border-radius: 8px;
+        `;
+
+        const commitContainer = document.createElement('div');
+        commitContainer.style.cssText = `
             display: flex;
             flex-direction: column;
             gap: 12px;
             padding: 12px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
+            background: white;
             transition: all 0.2s;
         `;
-        commitDiv.onmouseover = () => commitDiv.style.borderColor = "#3b82f6";
-        commitDiv.onmouseout = () => commitDiv.style.borderColor = "#e5e7eb";
+        commitWrapper.append(commitContainer);
+        commitContainer.onmouseover = () => commitContainer.style.borderColor = "#3b82f6";
+        commitContainer.onmouseout = () => commitContainer.style.borderColor = "#e5e7eb";
 
         const avatarAndInfo = document.createElement("div");
         avatarAndInfo.style.cssText = `
@@ -175,10 +315,10 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
             gap: 12px;
             align-items: center;
         `;
-        commitDiv.append(avatarAndInfo);
+        commitContainer.append(avatarAndInfo);
 
         const avatar = document.createElement('img');
-        avatar.src = changelogCommit.author.avatar_url;
+        avatar.src = author.avatar_url;
         avatar.style.cssText = `
             width: 48px;
             height: 48px;
@@ -192,29 +332,29 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
         info.style.position = "relative";
         avatarAndInfo.append(info);
 
-        const author = document.createElement("div");
-        author.textContent = changelogCommit.author.name;
-        author.style.fontWeight = "600";
-        author.style.marginBottom = "4px";
-        info.append(author);
+        const authorName = document.createElement("div");
+        authorName.textContent = author.name;
+        authorName.style.fontWeight = "600";
+        authorName.style.marginBottom = "4px";
+        info.append(authorName);
 
         const message = document.createElement("div");
-        message.textContent = changelogCommit.message;
+        message.textContent = commit.message;
         message.style.cssText = "color: #374151; line-height: 1.4;";
         info.append(message);
 
-        if (changelogCommit.note) {
+        if (commit.note) {
             const note = document.createElement("div");
-            note.textContent = changelogCommit.note ?? "";
-            note.style.cssText = "color: #374151; line-height: 1; font-size: 0.8em;";
-            commitDiv.append(note);
+            note.textContent = commit.note ?? "";
+            note.style.cssText = "color: rgb(69, 75, 83); line-height: 1; font-size: 0.8em; padding: 4px;";
+            commitWrapper.append(note);
         }
 
         const tags = document.createElement("div");
         tags.style.cssText = "display: flex; gap: 4px; position: absolute; right: 2px; top: 2px;";
         info.append(tags);
 
-        for (const tag of changelogCommit.tags) {
+        for (const tag of commit.tags) {
             const tagEl = document.createElement("p");
             tagEl.textContent = TAGS[tag].name;
             addDynamicClass(tagEl, {
@@ -233,14 +373,14 @@ function createCommitElement(changelogCommit: NonNullable<ModData["changelog"]>[
             tags.append(tagEl);
         }
 
-        commitDiv.style.cursor = 'pointer';
-        commitDiv.onclick = () => {
-            window.open(changelogCommit.commit_url, "_blank");
+        commitContainer.style.cursor = 'pointer';
+        commitContainer.onclick = () => {
+            window.open(commit.commit_url, "_blank");
         };
 
-        return commitDiv;
+        return commitWrapper;
     } catch (err) {
-        logger.error(`Failed to load commit ${changelogCommit.sha}:`, err);
+        logger.error(`Failed to load commit ${commitSha}:`, err);
         return null;
     }
 }

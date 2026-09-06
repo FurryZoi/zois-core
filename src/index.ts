@@ -35,14 +35,16 @@ export interface ModData {
     changelog?: {
         data: {
             generated_at: string
+            contributors: {
+                name: string
+                avatar_url: string
+                is_owner: boolean
+            }[]
             changes: {
                 message: string
                 note?: string
                 sha: string
-                author: {
-                    name: string
-                    avatar_url: string
-                }
+                author: string
                 date: string
                 tags: ChangelogEntryTag[]
                 commit_url: string,
