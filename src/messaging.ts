@@ -57,7 +57,12 @@ function isClassConstructor(c: unknown): c is ClassConstructor<unknown> {
 }
 
 class MessagesManager {
-	sendBeep<T>(data: T, targetId: number): void {
+	/**
+     * Sends beep message to a specific player.
+     * @param data - The data to send in the beep.
+     * @param targetId - The member number of the target player.
+     */
+	public sendBeep<T>(data: T, targetId: number): void {
 		const beep = {
 			IsSecret: true,
 			BeepType: "Leash",
@@ -69,7 +74,13 @@ class MessagesManager {
 		ServerSend("AccountBeep", beep);
 	}
 
-	sendPacket<T>(msg: string, _data?: T, targetNumber?: number): void {
+	/**
+     * Sends hidden packet message to the chat room or a specific player.
+     * @param msg - The message identifier.
+     * @param _data - Optional data payload to include.
+     * @param targetNumber - Optional target player member number.
+     */
+	public sendPacket<T>(msg: string, _data?: T, targetNumber?: number): void {
 		const data: ZoiChatRoomMessage = {
 			Content: MOD_DATA.key,
 			Dictionary: {
@@ -82,7 +93,15 @@ class MessagesManager {
 		ServerSend("ChatRoomChat", data);
 	}
 
-	sendAction(msg: string, target: undefined | number = undefined, dictionary: ChatMessageDictionaryEntry[] = []): void {
+	/**
+     * Sends a custom action message to the chat room with automatic pronoun replacement.
+	 * 
+     * Replaces placeholders such as `<Possessive>`, `<Intensive>`, `<SelfIntensive>`, and `<Pronoun>`.
+     * @param msg - The action message text.
+     * @param target - Optional target player member number.
+     * @param dictionary - Optional additional dictionary entries.
+     */
+	public sendAction(msg: string, target: undefined | number = undefined, dictionary: ChatMessageDictionaryEntry[] = []): void {
 		if (!msg || !ServerPlayerIsInChatRoom()) return;
 
 		const isFemale = CharacterPronounDescription(Player) === "She/Her";
@@ -112,7 +131,18 @@ class MessagesManager {
 		});
 	}
 
-	sendRequest<T>({
+	/**
+     * Sends a request to a target player and waits for a response.
+	 * 
+     * Supports both packet and beep transport. Automatically times out after 6 seconds.
+     * @param options - Request configuration.
+     * @param options.message - The request message identifier.
+     * @param options.data - Optional data to send with the request.
+     * @param options.target - Target player member number.
+     * @param options.type - Transport type: `"packet"` or `"beep"`.
+     * @returns A promise that resolves with the response data or an error flag.
+     */
+	public sendRequest<T>({
 		message, data = {}, target, type = "packet"
 	}: {
 		message: string
@@ -186,7 +216,11 @@ class MessagesManager {
 		});
 	}
 
-	sendLocal(message: string | Node): void {
+	/**
+	 * Displays a local message in the chat log (visible only to the current player).
+	 * @param message - The message content as a string or DOM node.
+	 */
+	public sendLocal(message: string | Node): void {
 		if (!ServerPlayerIsInChatRoom()) return;
 
 		const div = document.createElement("div");
@@ -205,20 +239,32 @@ class MessagesManager {
 		ElementScrollToEnd("TextAreaChatLog");
 	}
 
-	sendChat(message: string): void {
+	/**
+     * Sends a regular chat message to the chat room.
+     * @param message - The chat message content.
+     */
+	public sendChat(message: string): void {
 		ServerSend("ChatRoomChat", { Type: "Chat", Content: message });
 	}
 
-	onRequest(
+	/**
+     * Registers a listener for incoming requests of a specific message type.
+     * Supports optional DTO validation. Works with both packet and beep transports.
+     * @param message - The request message identifier to listen for.
+     * @param dtoOrListener - Optional DTO class constructor or the listener function.
+     * @param listener - The listener function.
+     * @returns A cleanup function that removes the registered listeners.
+     */
+	public onRequest(
 		message: string,
 		listener: (data: any, sender: Character | number, senderName?: string) => unknown
 	): () => void
-	onRequest(
+	public onRequest(
 		message: string,
 		dto: ClassConstructor<unknown>,
 		listener: (data: any, sender: Character | number, senderName?: string) => unknown
 	): () => void
-	onRequest(
+	public onRequest(
 		message: string,
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character | number, senderName?: string) => unknown),
 		listener?: (data: any, sender: Character | number, senderName?: string) => unknown
@@ -297,16 +343,24 @@ class MessagesManager {
 		};
 	}
 
-	onPacket(
+	/**
+     * Registers a listener for incoming packet messages of a specific type.
+     * Supports optional DTO validation.
+     * @param message - The packet message identifier to listen for.
+     * @param dtoOrListener - Optional DTO class constructor or the listener function.
+     * @param listener - The listener function.
+     * @returns A cleanup function that removes the registered listener.
+     */
+	public onPacket(
 		message: string,
 		listener: (data: any, sender: Character) => void,
 	): () => void
-	onPacket(
+	public onPacket(
 		message: string,
 		dto: ClassConstructor<unknown>,
 		listener: (data: any, sender: Character) => void,
 	): () => void
-	onPacket(
+	public onPacket(
 		message: string,
 		dtoOrListener: ClassConstructor<unknown> | ((data: any, sender: Character) => void),
 		listener?: (data: any, sender: Character) => void,
@@ -341,4 +395,10 @@ class MessagesManager {
 	}
 }
 
+/**
+ * Manager for sending and receiving messages, packets, beeps, actions, and requests
+ * between players in the chat room.
+ * Supports both packet-based and beep-based communication, request-response patterns,
+ * local messages, and custom actions with pronoun replacement.
+ */
 export const messagesManager = new MessagesManager();

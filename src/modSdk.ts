@@ -22,6 +22,14 @@ export function createModSdk(): void {
     });
 }
 
+/**
+* Hook a BC function.
+* @template TFunctionName - The name of the hooked function, _e.g._ `"Player.CanChange"`
+* @param functionName - Name of function to hook. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
+* @param priority - Number used to determinate order hooks will be called in. Higher number is called first
+* @param hook - The hook itself to use, @see PatchHook
+* @returns Function that can be called to remove this hook
+*/
 export function hookFunction<TFunctionName extends string>(
     functionName: TFunctionName,
     priority: HookPriority,
@@ -36,6 +44,22 @@ export function hookFunction<TFunctionName extends string>(
     }
 }
 
+/**
+* Patch a BC function
+*
+* **This method is DANGEROUS** to use and has high potential to conflict with other mods.
+*
+* Only use it if what you are trying to accomplish can't be done easily with `hookFunction`.
+*
+* This function tranforms BC function to string, replaces patches as pure text and then `eval`uates it.
+* If you don't know what this means, please avoid this function.
+* @template TFunctionName - The name of the patched function, _e.g._ `"Player.CanChange"`
+* @param functionName - Name of function to patch. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
+* @param patches - Object in key: value format, where keys are chunks to replace and values are result.
+*
+* Patches from multiple calls are merged; where key matches the older one is replaced.
+* Specifying value of `null` removes patch with this key.
+*/
 export function patchFunction(functionName: string, patches: Record<string, string | null>): void {
     if (!modSdk) throw new Error("zois-core is not registered");
     try {
@@ -45,10 +69,15 @@ export function patchFunction(functionName: string, patches: Record<string, stri
     }
 }
 
+/**
+* Call original function, bypassing any hooks and ignoring any patches applied by ALL mods.
+* @template TFunctionName - The name of the called function, _e.g._ `"Player.CanChange"`
+* @param functionName - Name of function to call. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
+* @param args - Arguments to use for the call
+*/
 export function callOriginal<TFunctionName extends string>(
     target: TFunctionName,
-    args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>],
-    context?: any
+    args: [...Parameters<GetDotedPathType<typeof globalThis, TFunctionName>>]
 ): ReturnType<GetDotedPathType<typeof globalThis, TFunctionName>> | undefined {
     if (!modSdk) throw new Error("zois-core is not registered");
     try {
@@ -59,10 +88,16 @@ export function callOriginal<TFunctionName extends string>(
     }
 }
 
+/**
+* Returns info about all registered mods.
+*/
 export function getLoadedMods(): ModSDKModInfo[] {
     return bcModSdk.getModsInfo();
 }
 
+/**
+* Determines whether a mod with the specified name is registered.
+*/
 export function findModByName(name: string): boolean {
     return !!bcModSdk.getModsInfo().find((m) => m.name === name);
 }

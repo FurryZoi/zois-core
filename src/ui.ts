@@ -88,6 +88,12 @@ export function dataUrlSvgReplaceVars(dataUrl: string, vars: Record<string, stri
     return dataUrl;
 }
 
+/**
+* Returns the value of a CSS variable if it exists, otherwise returns the provided fallback.
+* @param name - The name of the CSS variable (e.g. `"--button-color"`).
+* @param fallback - The fallback value to return if the CSS variable is not set or empty.
+* @returns The resolved CSS variable value or the fallback.
+*/
 export function cssVar(name: string, fallback: string) {
     const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return value || fallback;
@@ -115,7 +121,15 @@ export function getRelativeX(xPos: number, anchorPosition: 'left' | 'right' = 'l
         : window.innerWidth - (MainCanvas.canvas.offsetLeft + MainCanvas.canvas.clientWidth) + xPos * scaleX;
 }
 
-
+/**
+* Sets the position of the given HTML element relative to the specified anchor point.
+* Position scaled relative to the current size of the main canvas.
+* @param element - The HTML element to position.
+* @param xPos - The base horizontal position value.
+* @param yPos - The base vertical position value.
+* @param anchor - The anchor point used for positioning. Defaults to `"top-left"`.
+* @returns void
+*/
 export function setPosition(element: HTMLElement, xPos: number, yPos: number, anchor: Anchor = "top-left") {
     const yAnchor = anchor === 'top-left' || anchor === 'top-right' ? 'top' : 'bottom';
     const xAnchor = anchor === 'top-left' || anchor === 'bottom-left' ? 'left' : 'right';
@@ -130,6 +144,14 @@ export function setPosition(element: HTMLElement, xPos: number, yPos: number, an
     });
 }
 
+/**
+* Sets the width and height of the given element,
+* scaled relative to the current size of the main canvas.
+* @param element - The element whose size should be updated.
+* @param width - The base width value.
+* @param height - The base height value.
+* @returns void
+*/
 export function setSize(element: HTMLElement | SVGElement, width: number, height: number) {
     Object.assign(element.style, {
         width: getRelativeWidth(width) + 'px',
@@ -137,6 +159,13 @@ export function setSize(element: HTMLElement | SVGElement, width: number, height
     });
 }
 
+/**
+* Sets the font size of the given HTML element based on a target font size value,
+* scaled relative to the current size of the main canvas.
+* @param element - The HTML element whose font size should be updated.
+* @param targetFontSize - The base font size value to be scaled.
+* @returns void
+*/
 export function setFontSize(element: HTMLElement, targetFontSize: number) {
     const canvasWidth = MainCanvas.canvas.clientWidth;
     const canvasHeight = MainCanvas.canvas.clientHeight;
@@ -150,10 +179,23 @@ export function setFontSize(element: HTMLElement, targetFontSize: number) {
     });
 }
 
+/**
+* Sets the font family of the given HTML element.
+* @param element - The HTML element whose font family should be updated.
+* @param fontFamily - Optional font family name. Defaults to `"sans-serif"`.
+* @returns void
+*/
 export function setFontFamily(element: HTMLElement, fontFamily?: string) {
     element.style.fontFamily = fontFamily ?? "sans-serif";
 }
 
+/**
+* Sets the padding of the given HTML element based on a target padding value,
+* scaled relative to the current size of the main canvas.
+* @param element - The HTML element whose padding should be updated.
+* @param targetPadding - The base padding value to be scaled.
+* @returns void
+*/
 export function setPadding(element: HTMLElement, targetPadding: number) {
     const canvasWidth = MainCanvas.canvas.clientWidth;
     const canvasHeight = MainCanvas.canvas.clientHeight;
@@ -167,6 +209,11 @@ export function setPadding(element: HTMLElement, targetPadding: number) {
     });
 }
 
+/**
+* Automatically sets the font size of the given HTML element based on the current size of the main canvas.
+* @param element - The HTML element whose font size should be updated.
+* @returns void
+*/
 export function autosetFontSize(element: HTMLElement) {
     const Font = MainCanvas.canvas.clientWidth <= MainCanvas.canvas.clientHeight * 2 ? MainCanvas.canvas.clientWidth / 50 : MainCanvas.canvas.clientHeight / 25;
 
@@ -206,6 +253,21 @@ function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
     return cacheKey;
 }
 
+/**
+* Adds a dynamically generated CSS class to the specified element.
+*
+* The function checks a cache of previously created classes using a key generated from the provided styles.
+* If a class with the same styles already exists, it simply adds that class name to the element.
+* Otherwise, it generates a unique class name (`dynamic-...`) with the corresponding CSS rules
+* (including pseudo-classes `:hover`, `:active`, `:focus`, `:disabled` and pseudo-elements `::before`, `::after`),
+*
+* @param targetElement - The element to which the dynamic class should be applied.
+* @param styles - An object of type `DynamicClassStyles`. Can contain:
+*   - `base` — base styles;
+*   - keys `hover`, `active`, `focus`, `disabled`, `before`, `after` — styles for the corresponding pseudo-classes/pseudo-elements;
+*   - any other keys — additional selectors in the form `.className{key}`.
+* @returns `void`
+*/
 export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles: DynamicClassStyles): void {
     const cacheKey = generateDynamicClassCacheKey(styles);
     const _class = createdDynamicClasses.find((g) => g.key === cacheKey);

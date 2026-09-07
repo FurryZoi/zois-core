@@ -176,30 +176,52 @@ export class ToastsManager {
         }
     }
 
+    /**
+    * Displays informational toast.
+    * @param options - Title, message and duration of toast.
+    */
     public info({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
         const id = this.generateToastId();
         const theme = MOD_DATA.singleToastsTheme;
         this.process({ title, message, duration, type: "info", id, theme });
     }
 
+    /**
+    * Displays success toast.
+    * @param options - Title, message and duration of toast.
+    */
     public success({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
         const id = this.generateToastId();
         const theme = MOD_DATA.singleToastsTheme;
         this.process({ title, message, duration, type: "success", id, theme });
     }
 
+    /**
+    * Displays warning toast.
+    * @param options - Title, message and duration of toast.
+    */
     public warn({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
         const id = this.generateToastId();
         const theme = MOD_DATA.singleToastsTheme;
         this.process({ title, message, duration, type: "warning", id, theme });
     }
 
+    /**
+    * Displays error toast.
+    * @param options - Title, message and duration of toast.
+    */
     public error({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
         const id = this.generateToastId();
         const theme = MOD_DATA.singleToastsTheme;
         this.process({ title, message, duration, type: "error", id, theme });
     }
 
+    /**
+    * Displays a long-running spinner toast and returns its ID.
+    * Toast can be deleted manually with `toastsManager.removeSpinner(ID)` or by the user by clicking.
+    * @param options - Title and message of toast.
+    * @returns The unique ID of the created spinner toast.
+    */
     public spinner({ title, message }: Omit<Toast, "type" | "id" | "duration" | "theme">): string {
         const id = this.generateToastId();
         const theme = MOD_DATA.singleToastsTheme;
@@ -207,6 +229,10 @@ export class ToastsManager {
         return id;
     }
 
+    /**
+    * Removes a spinner toast by its ID.
+    * @param id - Unique ID of the spinner toast to remove.
+    */
     public removeSpinner(id: string): void {
         const toast = document.querySelector<HTMLDivElement>(`div[data-zc-toast-id="${id}"]`);
         if (!toast) return;
@@ -216,4 +242,7 @@ export class ToastsManager {
     }
 }
 
+/**
+* Toast notifications controller, alternative to BC's native `ToastManager`.
+*/
 export const toastsManager = new ToastsManager();

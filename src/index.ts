@@ -81,6 +81,10 @@ interface ThemedColorsModule {
 export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
+/**
+ * Bootstraps the mod by initializing core systems and setting up essential hooks and event listeners.
+ * @param modData - The mod configuration.
+ */
 export function bootstrap(modData: ModData): void {
     MOD_DATA = modData;
     createModSdk();
@@ -172,6 +176,14 @@ export function sleep(ms: number): Promise<() => {}> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Waits until the provided condition function returns `true`.
+ * Optionally supports a cancel condition that aborts the wait early.
+ * Checks the conditions every 10 milliseconds.
+ * @param func - The condition function that must return `true` to resolve.
+ * @param cancelFunc - Optional function that returns `true` to cancel the wait. Defaults to `() => false`.
+ * @returns A promise that resolves to `true` if the condition was met, or `false` if cancelled.
+ */
 export async function waitFor(func: () => boolean, cancelFunc = () => false): Promise<boolean> {
     while (!func()) {
         if (cancelFunc()) {
@@ -188,6 +200,14 @@ export function getRandomNumber(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/**
+ * Compares two version strings and determines whether the first version is newer than the second.
+ * Versions are split by dots and compared numerically part by part.
+ * Missing parts are treated as zero.
+ * @param version1 - The first version string to compare.
+ * @param version2 - The second version string to compare against.
+ * @returns `true` if `version1` is newer than `version2`, otherwise `false`.
+ */
 export function isVersionNewer(version1: string, version2: string): boolean {
     const v1Parts = version1.split('.');
     const v2Parts = version2.split('.');
@@ -222,6 +242,13 @@ export function getSizeInKbytes(b: any): number {
     }
 }
 
+/**
+ * Finds a character in the current chat room by member number, name, or nickname.
+ * 
+ * The search is **case-insensitive**.
+ * @param value - The member number, name, or nickname to search for.
+ * @returns The matching `Character` object, or `null` if not found.
+ */
 export function getPlayer(value: string | number): Character | null {
     if (!value) return null;
     return ChatRoomCharacter.find((Character) => {

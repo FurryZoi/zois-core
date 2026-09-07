@@ -10,7 +10,7 @@
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "allowJs": false,
-    "removeComments": true,
+    "removeComments": false,
     "alwaysStrict": false,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
