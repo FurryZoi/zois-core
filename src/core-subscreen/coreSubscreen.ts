@@ -76,7 +76,7 @@ export abstract class CoreSubscreen extends BaseSubscreen {
         return htmlElement;
     }
 
-    override createInputList(ctx: InputListShardContext): HTMLDivElement {
+    override createInputList<NumbersOnly extends boolean>(ctx: InputListShardContext<NumbersOnly>): HTMLDivElement {
         const shard = new CoreInputListShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;

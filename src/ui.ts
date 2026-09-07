@@ -382,7 +382,7 @@ export abstract class BaseSubscreen {
         return htmlElement;
     }
 
-    createInputList(ctx: InputListShardContext): HTMLDivElement {
+    createInputList<NumbersOnly extends boolean>(ctx: InputListShardContext<NumbersOnly>): HTMLDivElement {
         const shard = new InputListShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;

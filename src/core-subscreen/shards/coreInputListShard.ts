@@ -3,7 +3,7 @@ import { DynamicClassStyles } from "../../ui";
 
 
 
-export class CoreInputListShard extends InputListShard {
+export class CoreInputListShard<NumbersOnly extends boolean> extends InputListShard<NumbersOnly> {
     override get dynamicClassContainer(): DynamicClassStyles {
         return {
             ...super.dynamicClassContainer,

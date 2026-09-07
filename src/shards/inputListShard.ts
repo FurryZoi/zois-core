@@ -3,16 +3,16 @@ import { addDynamicClass, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 import { createElement, RotateCcw, Trash2 } from "lucide";
 
-export interface InputListShardContext<V extends number | string = number | string> extends ShardContext<"input"> {
-    value?: V[];
-    title?: string
-    fontSize?: number | "auto"
-    numbersOnly?: boolean
-    onChange?: (value: V[]) => void
-    isDisabled?: () => boolean
+export interface InputListShardContext<NumbersOnly extends boolean> extends ShardContext<"input"> {
+    value?: NumbersOnly extends true ? number[] : (string | number)[];
+    title?: string;
+    fontSize?: number | "auto";
+    numbersOnly?: NumbersOnly;
+    onChange?: (value: NumbersOnly extends true ? number[] : (string | number)[]) => void;
+    isDisabled?: () => boolean;
 }
 
-export class InputListShard extends Shard<InputListShardContext> {
+export class InputListShard<NumbersOnly extends boolean> extends Shard<InputListShardContext<NumbersOnly>> {
     protected get dynamicClassContainer(): DynamicClassStyles {
         return {
             base: {
@@ -92,7 +92,7 @@ export class InputListShard extends Shard<InputListShardContext> {
         };
     }
 
-    protected generateBody(): Record<keyof NonNullable<InputListShardContext<number | string>["modules"]>, HTMLElement | SVGElement> {
+    protected generateBody(): Record<keyof NonNullable<InputListShardContext<NumbersOnly>["modules"]>, HTMLElement | SVGElement> {
         const { value, title, fontSize, numbersOnly, onChange, isDisabled } = this.context;
         const checkbox = document.createElement("div");
         const items: string[] = [];
@@ -138,7 +138,7 @@ export class InputListShard extends Shard<InputListShardContext> {
             items.splice(0, items.length);
             itemsElement.append(input);
             value?.forEach((v) => addItem(String(v)));
-            if (typeof onChange === "function") onChange(numbersOnly ? items.map((i) => parseInt(i)) : items);
+            if (typeof onChange === "function") onChange((numbersOnly ? items.map((i) => parseInt(i, 10)) : items) as NumbersOnly extends true ? number[] : (string | number)[]);
         });
         addButton(createElement(Trash2), () => {
             if (typeof isDisabled === "function" && isDisabled()) return div.classList.add("zcDisabled");
@@ -148,7 +148,7 @@ export class InputListShard extends Shard<InputListShardContext> {
                     c.remove();
                 }
             }
-            if (typeof onChange === "function") onChange(numbersOnly ? items.map((i) => parseInt(i)) : items);
+            if (typeof onChange === "function") onChange((numbersOnly ? items.map((i) => parseInt(i, 10)) : items) as NumbersOnly extends true ? number[] : (string | number)[]);
         });
         if (typeof isDisabled === "function" && isDisabled()) div.classList.add("zcDisabled");
         input.addEventListener("keypress", (e) => {
@@ -163,7 +163,7 @@ export class InputListShard extends Shard<InputListShardContext> {
                         ) return div.classList.add("zcDisabled");
                         addItem(input.value);
                         input.value = "";
-                        if (typeof onChange === "function") onChange(numbersOnly ? items.map((i) => parseInt(i)) : items);
+                        if (typeof onChange === "function") onChange((numbersOnly ? items.map((i) => parseInt(i, 10)) : items) as NumbersOnly extends true ? number[] : (string | number)[]);
                         break;
                 }
             }
