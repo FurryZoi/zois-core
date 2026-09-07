@@ -101,3 +101,23 @@ export function getLoadedMods(): ModSDKModInfo[] {
 export function findModByName(name: string): boolean {
     return !!bcModSdk.getModsInfo().find((m) => m.name === name);
 }
+
+/**
+ * Get hash of original function in CRC32.
+ *
+ * The hash is computed from source obtained using `toString` with line endings normalized to LF
+ * @param functionName - Name of function. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
+ */
+export function getOriginalHash(functionName: string): string {
+    if (!modSdk) throw new Error("zois-core is not registered");
+    return modSdk.getOriginalHash(functionName);
+}
+
+/**
+ * Remove all patches by `patchFunction` from specified function.
+ * @param functionName - Name of function to patch. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
+ */
+export function removePatches(functionName: string) {
+    if (!modSdk) throw new Error("zois-core is not registered");
+    modSdk.removePatches(functionName);
+}
