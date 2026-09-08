@@ -58,10 +58,10 @@ function isClassConstructor(c: unknown): c is ClassConstructor<unknown> {
 
 class MessagesManager {
 	/**
-     * Sends beep message to a specific player.
-     * @param data - The data to send in the beep.
-     * @param targetId - The member number of the target player.
-     */
+	 * Sends beep message to a specific player.
+	 * @param data - The data to send in the beep.
+	 * @param targetId - The member number of the target player.
+	 */
 	public sendBeep<T>(data: T, targetId: number): void {
 		const beep = {
 			IsSecret: true,
@@ -75,11 +75,11 @@ class MessagesManager {
 	}
 
 	/**
-     * Sends hidden packet message to the chat room or a specific player.
-     * @param msg - The message identifier.
-     * @param _data - Optional data payload to include.
-     * @param targetNumber - Optional target player member number.
-     */
+	 * Sends hidden packet message to the chat room or a specific player.
+	 * @param msg - The message identifier.
+	 * @param _data - Optional data payload to include.
+	 * @param targetNumber - Optional target player member number.
+	 */
 	public sendPacket<T>(msg: string, _data?: T, targetNumber?: number): void {
 		const data: ZoiChatRoomMessage = {
 			Content: MOD_DATA.key,
@@ -94,13 +94,13 @@ class MessagesManager {
 	}
 
 	/**
-     * Sends a custom action message to the chat room with automatic pronoun replacement.
+	 * Sends a custom action message to the chat room with automatic pronoun replacement.
 	 * 
-     * Replaces placeholders such as `<Possessive>`, `<Intensive>`, `<SelfIntensive>`, and `<Pronoun>`.
-     * @param msg - The action message text.
-     * @param target - Optional target player member number.
-     * @param dictionary - Optional additional dictionary entries.
-     */
+	 * Replaces placeholders such as `<Possessive>`, `<Intensive>`, `<SelfIntensive>`, and `<Pronoun>`.
+	 * @param msg - The action message text.
+	 * @param target - Optional target player member number.
+	 * @param dictionary - Optional additional dictionary entries.
+	 */
 	public sendAction(msg: string, target: undefined | number = undefined, dictionary: ChatMessageDictionaryEntry[] = []): void {
 		if (!msg || !ServerPlayerIsInChatRoom()) return;
 
@@ -120,28 +120,38 @@ class MessagesManager {
 			.replaceAll("<Pronoun>", capPronoun)
 			.replaceAll("<pronoun>", capPronoun.toLocaleLowerCase());
 
-		ServerSend('ChatRoomChat', {
-			Content: 'ZC_CUSTOM_ACTION',
-			Type: 'Action',
+		ServerSend("ChatRoomChat", {
+			Content: "Beep",
+			Type: "Action",
 			Target: target ?? undefined,
 			Dictionary: [
-				{ Tag: 'MISSING TEXT IN "Interface.csv": ZC_CUSTOM_ACTION', Text: msg },
+				// EN
+				{ Tag: "Beep", Text: "msg" },
+				// CN
+				{ Tag: "发送私聊", Text: "msg" },
+				// DE
+				{ Tag: "Biep", Text: "msg" },
+				// FR
+				{ Tag: "Sonner", Text: "msg" },
+				// RU
+				{ Tag: "Звуковой сигнал", Text: "msg" },
+				{ Tag: "msg", Text: msg },
 				...dictionary,
 			],
 		});
 	}
 
 	/**
-     * Sends a request to a target player and waits for a response.
+	 * Sends a request to a target player and waits for a response.
 	 * 
-     * Supports both packet and beep transport. Automatically times out after 6 seconds.
-     * @param options - Request configuration.
-     * @param options.message - The request message identifier.
-     * @param options.data - Optional data to send with the request.
-     * @param options.target - Target player member number.
-     * @param options.type - Transport type: `"packet"` or `"beep"`.
-     * @returns A promise that resolves with the response data or an error flag.
-     */
+	 * Supports both packet and beep transport. Automatically times out after 6 seconds.
+	 * @param options - Request configuration.
+	 * @param options.message - The request message identifier.
+	 * @param options.data - Optional data to send with the request.
+	 * @param options.target - Target player member number.
+	 * @param options.type - Transport type: `"packet"` or `"beep"`.
+	 * @returns A promise that resolves with the response data or an error flag.
+	 */
 	public sendRequest<T>({
 		message, data = {}, target, type = "packet"
 	}: {
@@ -240,21 +250,21 @@ class MessagesManager {
 	}
 
 	/**
-     * Sends a regular chat message to the chat room.
-     * @param message - The chat message content.
-     */
+	 * Sends a regular chat message to the chat room.
+	 * @param message - The chat message content.
+	 */
 	public sendChat(message: string): void {
 		ServerSend("ChatRoomChat", { Type: "Chat", Content: message });
 	}
 
 	/**
-     * Registers a listener for incoming requests of a specific message type.
-     * Supports optional DTO validation. Works with both packet and beep transports.
-     * @param message - The request message identifier to listen for.
-     * @param dtoOrListener - Optional DTO class constructor or the listener function.
-     * @param listener - The listener function.
-     * @returns A cleanup function that removes the registered listeners.
-     */
+	 * Registers a listener for incoming requests of a specific message type.
+	 * Supports optional DTO validation. Works with both packet and beep transports.
+	 * @param message - The request message identifier to listen for.
+	 * @param dtoOrListener - Optional DTO class constructor or the listener function.
+	 * @param listener - The listener function.
+	 * @returns A cleanup function that removes the registered listeners.
+	 */
 	public onRequest(
 		message: string,
 		listener: (data: any, sender: Character | number, senderName?: string) => unknown
@@ -344,13 +354,13 @@ class MessagesManager {
 	}
 
 	/**
-     * Registers a listener for incoming packet messages of a specific type.
-     * Supports optional DTO validation.
-     * @param message - The packet message identifier to listen for.
-     * @param dtoOrListener - Optional DTO class constructor or the listener function.
-     * @param listener - The listener function.
-     * @returns A cleanup function that removes the registered listener.
-     */
+	 * Registers a listener for incoming packet messages of a specific type.
+	 * Supports optional DTO validation.
+	 * @param message - The packet message identifier to listen for.
+	 * @param dtoOrListener - Optional DTO class constructor or the listener function.
+	 * @param listener - The listener function.
+	 * @returns A cleanup function that removes the registered listener.
+	 */
 	public onPacket(
 		message: string,
 		listener: (data: any, sender: Character) => void,
