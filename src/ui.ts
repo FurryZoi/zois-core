@@ -351,22 +351,128 @@ export function getPreviousSubscreen(): BaseSubscreen | null {
     return previousSubscreen;
 }
 
+/**
+ * Abstract class to define subscreens with lifecycle management, UI element creation and navigation functionality.
+ */
 export abstract class BaseSubscreen {
     protected readonly setSubscreen = setSubscreen;
+    protected readonly setPreviousSubscreen = setPreviousSubscreen;
 
-    get currentSubscreen(): BaseSubscreen | null {
+    protected get currentSubscreen(): BaseSubscreen | null {
         return getCurrentSubscreen();
     }
 
-    get previousSubscreen(): BaseSubscreen | null {
+    protected get previousSubscreen(): BaseSubscreen | null {
         return getPreviousSubscreen();
     }
 
     abstract get name(): string;
 
-    run() { }
-    load() {
+    /**
+     * Called each frame.
+     * 
+     * You probably want to override {@link onRun}, **do not** override `run` if you don't understand what you're doing.
+     */
+    public run() {
+        this.onRun?.();
+    }
+    /**
+     * Called each frame.
+     */
+    protected onRun?(): void
+
+    /**
+     * Called once after `setSubscreen()`.
+     * Responsible for how the subscreen will load.
+     * 
+     * You probably want to override {@link onLoad}, **do not** override `load` if you don't understand what you're doing.
+     * 
+     * Override {@link onLoad} for creating UI elements.
+     */
+    public load() {
         setSizeUnitVariable();
+        this.createExitButton();
+        if (this.name) this.createSubscreenTitle();
+        this.onLoad?.();
+        eventBus?.emit("subscreenLoaded", {
+            subscreen: this
+        });
+    }
+    /**
+     * Called once after `setSubscreen()`.
+     * 
+     * Create UI elements here.
+     */
+    protected onLoad?(): void
+
+    /**
+     * Called once when subscreen is being unloaded.
+     * 
+     * You probably want to override {@link onUnload}, **do not** override `unload` if you don't understand what you're doing.
+     */
+    public unload() {
+        this.onUnload?.();
+        eventBus?.emit("subscreenUnloaded", {
+            subscreen: this
+        });
+    }
+
+    /**
+     * Called once when subscreen is being unloaded.
+     */
+    protected onUnload?(): void
+
+    /**
+     * Called after user clicks.
+     * 
+     * You probably want to override {@link onClick}, **do not** override `click` if you don't understand what you're doing.
+     */
+    public click() {
+        this.onClick?.();
+    }
+
+    /**
+     * Called after user clicks.
+     */
+    protected onClick?(): void
+
+    /**
+     * Called after user presses `Esc` or clicks on exit button.
+     * 
+     * Not called after subscreen unloading with `setSubscreen()`
+     * 
+     * You probably want to override {@link onExit}, **do not** override `exit` if you don't understand what you're doing.
+     */
+    public exit() {
+        this.onExit?.();
+        setPreviousSubscreen();
+    }
+
+    /**
+     * Called after user presses `Esc` or clicks on exit button.
+     * 
+     * Not called after subscreen unloading with `setSubscreen()`
+     */
+    protected onExit?(): void
+
+    public update() { }
+
+    /**
+     * Called after screen size change.
+     * 
+     * You probably want to override {@link onResize}, **do not** override `resize` if you don't understand what you're doing.
+     */
+    public resize() {
+        setSizeUnitVariable();
+        this.onResize?.();
+    }
+
+    /**
+     * Called after screen size change.
+     */
+    protected onResize?(): void
+
+    public createExitButton() {
         this.createButton({
             x: 1815,
             y: 75,
@@ -383,98 +489,81 @@ export abstract class BaseSubscreen {
                         zIndex: "10"
                     })
                 ]
-            }
-        }).addEventListener("click", () => this.exit());
-        if (this.name) {
-            this.createText({
-                text: this.name,
-                x: 100,
-                y: 60,
-                fontSize: 8
-            }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
-        }
-        eventBus?.emit("subscreenLoaded", {
-            subscreen: this
+            },
+            onClick: () => this.exit()
         });
-    }
-    unload() {
-        eventBus?.emit("subscreenUnloaded", {
-            subscreen: this
-        });
-    }
-    click() { }
-    exit() {
-        setPreviousSubscreen();
-    }
-    update() { }
-    resize() {
-        setSizeUnitVariable();
-    }
-    setPreviousSubscreen() {
-        setPreviousSubscreen();
     }
 
-    create(shard: Shard) {
+    public createSubscreenTitle() {
+        this.createText({
+            text: this.name,
+            x: 100,
+            y: 60,
+            fontSize: 8
+        }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
+    }
+
+    public create(shard: Shard) {
         const htmlElement = shard.mount() as HTMLElement;
         return htmlElement;
     }
 
-    createButton(ctx: ButtonShardContext): HTMLButtonElement {
+    public createButton(ctx: ButtonShardContext): HTMLButtonElement {
         const shard = new ButtonShard(ctx);
         const htmlElement = shard.mount() as HTMLButtonElement;
 
         return htmlElement;
     }
 
-    createText(ctx: TextShardContext): HTMLParagraphElement {
+    public createText(ctx: TextShardContext): HTMLParagraphElement {
         const shard = new TextShard(ctx);
         const htmlElement = shard.mount() as HTMLParagraphElement;
         return htmlElement;
     }
 
-    createInput(ctx: InputShardContext): HTMLInputElement | HTMLTextAreaElement {
+    public createInput(ctx: InputShardContext): HTMLInputElement | HTMLTextAreaElement {
         const shard = new InputShard(ctx);
         const htmlElement = shard.mount() as HTMLInputElement | HTMLTextAreaElement;
         return htmlElement;
     }
 
-    createCheckbox(ctx: CheckboxShardContext): HTMLDivElement {
+    public createCheckbox(ctx: CheckboxShardContext): HTMLDivElement {
         const shard = new CheckboxShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    createInputList<NumbersOnly extends boolean>(ctx: InputListShardContext<NumbersOnly>): HTMLDivElement {
+    public createInputList<NumbersOnly extends boolean>(ctx: InputListShardContext<NumbersOnly>): HTMLDivElement {
         const shard = new InputListShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    createImage(ctx: ImageShardContext): HTMLImageElement {
+    public createImage(ctx: ImageShardContext): HTMLImageElement {
         const shard = new ImageShard(ctx);
         const htmlElement = shard.mount() as HTMLImageElement;
         return htmlElement;
     }
 
-    createSvg(ctx: SvgShardContext): SVGElement {
+    public createSvg(ctx: SvgShardContext): SVGElement {
         const shard = new SvgShard(ctx);
         const htmlElement = shard.mount() as SVGElement;
         return htmlElement;
     }
 
-    createBackNextButton(ctx: BackNextButtonShardContext): HTMLDivElement {
+    public createBackNextButton(ctx: BackNextButtonShardContext): HTMLDivElement {
         const shard = new BackNextButtonShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    createTabs(ctx: TabsShardContext): HTMLDivElement {
+    public createTabs(ctx: TabsShardContext): HTMLDivElement {
         const shard = new TabsShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    drawPolylineArrow({
+    public drawPolylineArrow({
         points, strokeColor = cssVar("--tmd-text", "black"), lineWidth = 2,
         circleRadius = 5, circleColor = cssVar("--tmd-text", "black")
     }: DrawPolylineArrowArgs): void {
@@ -506,28 +595,21 @@ export abstract class BaseSubscreen {
         ctx.restore();
     }
 
-    createCard(ctx: CardShardContext): HTMLDivElement {
+    public createCard(ctx: CardShardContext): HTMLDivElement {
         const shard = new CardShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    createSelect(ctx: SelectShardContext): HTMLDivElement {
+    public createSelect(ctx: SelectShardContext): HTMLDivElement {
         const shard = new SelectShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
 
-    createContainer(ctx: ContainerShardContext): HTMLDivElement {
+    public createContainer(ctx: ContainerShardContext): HTMLDivElement {
         const shard = new ContainerShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }
-}
-
-const subscreenHooks: Record<string, ((subscreen: BaseSubscreen) => void)[]> = {};
-
-export function hookSubscreen(subscreenName: string, hook: (subscreen: BaseSubscreen) => void) {
-    if (!subscreenHooks[subscreenName]) subscreenHooks[subscreenName] = [];
-    subscreenHooks[subscreenName].push(hook);
 }
