@@ -153,12 +153,13 @@ class MessagesManager {
 	 * @returns A promise that resolves with the response data or an error flag.
 	 */
 	public sendRequest<T>({
-		message, data = {}, target, type = "packet"
+		message, data = {}, target, type = "packet", responseDto
 	}: {
 		message: string
 		data?: unknown
 		target: number
-		type: "packet" | "beep"
+		type: "packet" | "beep",
+		responseDto?: ClassConstructor<unknown>
 	}): Promise<RequestResponse<T>> {
 		const requestId = crypto.randomUUID();
 		return new Promise((resolve) => {
@@ -170,7 +171,7 @@ class MessagesManager {
 					message,
 					data
 				}, target);
-				deleteHook = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, (args, next) => {
+				deleteHook = hookFunction("ChatRoomMessage", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 					const _message = args[0];
 					const sender = getPlayer(_message.Sender!);
 					if (!sender) return next(args);
@@ -179,6 +180,15 @@ class MessagesManager {
 						const data = _message.Dictionary.data;
 						if (msg === "requestResponse" && data.requestId === requestId) {
 							deleteHook();
+							if (responseDto) {
+								const validationResult = await validateData(data.data, responseDto);
+								if (!validationResult.isValid) {
+									logger.warn(`DTO Failure:`, validationResult);
+									resolve({
+										isError: true
+									});
+								}
+							}
 							resolve({
 								data: data.data,
 								isError: false
@@ -194,7 +204,7 @@ class MessagesManager {
 					message,
 					data
 				}, target);
-				deleteHook = hookFunction("ServerAccountBeep", HookPriority.ADD_BEHAVIOR, (args, next) => {
+				deleteHook = hookFunction("ServerAccountBeep", HookPriority.ADD_BEHAVIOR, async (args, next) => {
 					const beep: ServerAccountBeepResponse = args[0];
 					if (beep.BeepType !== "Leash") return next(args);
 
@@ -208,6 +218,15 @@ class MessagesManager {
 
 					if (data.type === `${MOD_DATA.key}_requestResponse` && data.requestId === requestId) {
 						deleteHook();
+						if (responseDto) {
+							const validationResult = await validateData(data.data, responseDto);
+							if (!validationResult.isValid) {
+								logger.warn(`DTO Failure:`, validationResult);
+								resolve({
+									isError: true
+								});
+							}
+						}
 						resolve({
 							data: data.data,
 							isError: false
@@ -297,10 +316,12 @@ class MessagesManager {
 				const data = _message.Dictionary?.data;
 				if (msg === "request" && data.message === message) {
 					if (typeof data.requestId !== "string" || typeof data.message !== "string") return;
-					const validationResult = await validateData(data.data, dto);
-					if (dto && !validationResult.isValid) {
-						logger.warn(`DTO Failure:`, validationResult);
-						return next(args);
+					if (dto) {
+						const validationResult = await validateData(data.data, dto);
+						if (!validationResult.isValid) {
+							logger.warn(`DTO Failure:`, validationResult);
+							return;
+						}
 					}
 					const _data = _listener?.(data.data, sender);
 					if (_data !== undefined) {
