@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "description": "The core for the my mods, which contains a shared code reused in all my mods",
   "bin": {
-    "zois-core": "scripts/zois-core.mjs"
+    "zois-core": "dist/scripts/zois-core.mjs"
   },
   "scripts": {
     "build": "node scripts/build.mjs"

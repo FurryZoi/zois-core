@@ -50,6 +50,26 @@ try {
     process.exit(1);
 }
 
+console.log("\x1b[36m%s\x1b[0m", "[CJS]:", "Building...");
+try {
+    await esbuild.build({
+        entryPoints: ["./scripts/zois-core.mjs"],
+        outdir: path.join(distDir, "scripts"),
+        bundle: true,
+        minify: true,
+        format: "cjs",
+        treeShaking: true,
+        splitting: false,
+        legalComments: "none",
+        platform: "node"
+    });
+    console.log("\x1b[32m%s\x1b[0m", "[CJS]:", "Done");
+} catch (err) {
+    console.error("\x1b[31m✗\x1b[0m \x1b[31m%s\x1b[0m", "[CJS]:", "Failed");
+    console.error("\x1b[31m%s\x1b[0m", err.message);
+    process.exit(1);
+}
+
 console.log("\x1b[36m%s\x1b[0m", "[DTS]:", "Generating types...");
 try {
     execSync("tsc -p tsconfig.dts.json", {
