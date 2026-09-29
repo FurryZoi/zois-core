@@ -14,13 +14,10 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         return {
             base: {
                 display: "flex",
-                columnGap: "2vw",
+                columnGap: "0.5em",
                 justifyContent: "center",
                 alignItems: "center",
-                background: "var(--tmd- element, white)",
                 color: "var(--tmd-text, black)",
-                border: "2px solid var(--tmd-accent, black)",
-                borderRadius: "4px"
             }
         }
     }
@@ -46,6 +43,23 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         };
     }
 
+    protected get dynamicClassValueContainer(): DynamicClassStyles {
+        return {
+            base: {
+                position: "relative",
+                display: "grid",
+                placeItems: "center",
+                background: "var(--tmd-element, white)",
+                width: "100%",
+                height: "100%",
+                borderRadius: "4px",
+                overflow: "hidden",
+                border: "2px solid var(--tmd-accent, rgb(34, 34, 34))",
+                boxSizing: "border-box"
+            }
+        };
+    }
+
     protected generateBody(): Record<keyof NonNullable<BackNextButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { onChange, isDisabled } = this.context;
         const div = document.createElement("div");
@@ -54,6 +68,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
 
         let currentIndex = this.context.currentIndex;
         let items = this.context.items;
+        let isAnimating = false;
 
         const updateClasses = () => {
             if (
@@ -64,6 +79,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
                 )
             ) backBtn.disabled = true;
             else backBtn.disabled = false;
+
             if (
                 currentIndex === items.length - 1 ||
                 (
@@ -71,45 +87,108 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
                     isDisabled(items[currentIndex + 1][1])
                 )
             ) nextBtn.disabled = true;
-            else nextBtn.disabled = false;;
+            else nextBtn.disabled = false;
         }
+
+        const slideText = (direction: "next" | "back", newIndex: number) => {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const outgoing = text;
+            const incoming = document.createElement("b");
+
+            incoming.style.cssText = `
+                position: absolute;
+                inset: 0;
+                display: grid;
+                place-items: center;
+                width: 100%;
+                text-align: center;
+                margin: 0;
+                user-select: none;
+            `;
+            incoming.textContent = items[newIndex][0];
+
+            const fromX = direction === "next" ? "100%" : "-100%";
+            const toX = direction === "next" ? "-100%" : "100%";
+
+            incoming.style.transform = `translateX(${fromX})`;
+            valueContainer.appendChild(incoming);
+
+            void incoming.offsetWidth;
+
+            outgoing.style.transition = "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+            incoming.style.transition = "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)";
+
+            outgoing.style.transform = `translateX(${toX})`;
+            incoming.style.transform = "translateX(0)";
+
+            const onEnd = () => {
+                incoming.removeEventListener("transitionend", onEnd);
+
+                outgoing.remove();
+
+                text = incoming;
+                text.style.position = "relative";
+                text.style.inset = "auto";
+                text.style.transform = "";
+                text.style.transition = "";
+
+                currentIndex = newIndex;
+                if (typeof onChange === "function") onChange(items[currentIndex][1]);
+                updateClasses();
+
+                isAnimating = false;
+            };
+
+            incoming.addEventListener("transitionend", onEnd, { once: true });
+        };
 
         const backBtn = document.createElement("button");
         backBtn.style.cssText = `
-                position: absolute; left: 1vw; font-size: 3.5vw; aspect-ratio: 1/1;
-                height: 140%; background-image: url("Icons/Prev.png"); background-size: 100%;
-                `;
+            font-size: 3.5vw; aspect-ratio: 1/1;
+            height: 100%; background-image: url("Icons/Prev.png"); background-size: 100%;
+        `;
         addDynamicClass(backBtn, this.dynamicClassButton);
         backBtn.addEventListener("click", () => {
-            if (currentIndex === 0) return backBtn.classList.add("zcDisabled");
-            if (typeof isDisabled === "function" && isDisabled(items[currentIndex - 1][1])) return backBtn.classList.add("zcDisabled");
-            currentIndex--;
-            text.textContent = items[currentIndex][0];
-            if (typeof onChange === "function") onChange(items[currentIndex][1]);
-            updateClasses();
+            if (isAnimating) return;
+            if (currentIndex === 0) return;
+            if (typeof isDisabled === "function" && isDisabled(items[currentIndex - 1][1])) return;
+            slideText("back", currentIndex - 1);
         });
 
         const nextBtn = document.createElement("button");
         nextBtn.style.cssText = `
-                position: absolute; right: 1vw; font-size: 3.5vw; aspect-ratio: 1/1;
-                height: 140%; background-image: url("Icons/Next.png"); background-size: 100%;
-                `;
+            font-size: 3.5vw; aspect-ratio: 1/1;
+            height: 100%; background-image: url("Icons/Next.png"); background-size: 100%;
+        `;
         addDynamicClass(nextBtn, this.dynamicClassButton);
         nextBtn.addEventListener("click", () => {
-            if (currentIndex === items.length - 1) return nextBtn.classList.add("zcDisabled");
-            if (typeof isDisabled === "function" && isDisabled(items[currentIndex + 1][1])) return nextBtn.classList.add("zcDisabled");
-            currentIndex++;
-            text.textContent = items[currentIndex][0];
-            if (typeof onChange === "function") onChange(items[currentIndex][1]);
-            updateClasses();
+            if (isAnimating) return;
+            if (currentIndex === items.length - 1) return;
+            if (typeof isDisabled === "function" && isDisabled(items[currentIndex + 1][1])) return;
+            slideText("next", currentIndex + 1);
         });
 
         updateClasses();
 
-        const text = document.createElement("b");
+        const valueContainer = document.createElement("div");
+        addDynamicClass(valueContainer, this.dynamicClassValueContainer);
+
+        let text = document.createElement("b");
+        text.style.cssText = `
+            position: relative;
+            width: 100%;
+            text-align: center;
+            display: grid;
+            place-items: center;
+            user-select: none;
+        `;
         text.textContent = items[currentIndex][0];
 
-        div.append(backBtn, text, nextBtn);
+        valueContainer.append(text);
+
+        div.append(backBtn, valueContainer, nextBtn);
 
         return {
             base: div,
