@@ -10,23 +10,23 @@ export interface TabsShardContext extends Omit<ShardContext, "height"> {
         load?: () => void
         unload?: () => void
         run?: () => void
-        exit?: () => void
     }[]
     currentTabName: string
 }
 
 export class TabsShard extends Shard<TabsShardContext> {
-    private tabHandlers: Omit<TabsShardContext["tabs"][0], "name"> = {};
-    private clearDrawProcessHook: (() => void) | null = null;
-
     constructor(context: TabsShardContext) {
-        // this.tabHandlers = {};
         super(context);
     }
 
     protected generateBody(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
-        this.tabHandlers ??= {};
-        this.clearDrawProcessHook = null;
+        let tabHandlers: {
+            run?: () => void
+            load?: () => void
+            unload?: () => void
+        } = {};
+        let clearDrawProcessHook: (() => void) | null = null;
+
         const { tabs, currentTabName } = this.context;
         let tabElements: (Node | string)[] = [];
 
@@ -44,42 +44,48 @@ export class TabsShard extends Shard<TabsShardContext> {
                 }
                 tabElements = [];
                 tabEl.setAttribute("data-opened", "true");
+
                 const originalAppend = document.body.append.bind(document.body);
                 document.body.append = (...nodes: (Node | string)[]) => {
                     tabElements.push(...nodes);
                     originalAppend(...nodes);
                 };
-                this.clearDrawProcessHook?.();
-                this.tabHandlers.unload?.();
-                this.tabHandlers.exit?.();
-                this.tabHandlers = {
+
+                clearDrawProcessHook?.();
+                clearDrawProcessHook = null;
+                tabHandlers.unload?.();
+                tabHandlers = {
                     run: tab.run,
                     load: tab.load,
-                    unload: tab.unload,
-                    exit: tab.exit
+                    unload: tab.unload
                 };
-                this.clearDrawProcessHook = null;
-                this.tabHandlers.load?.();
+                tabHandlers.load?.();
+
                 if (tab.run) {
-                    this.clearDrawProcessHook = hookFunction("DrawProcess", HookPriority.ADD_BEHAVIOR, (args, next) => {
+                    clearDrawProcessHook = hookFunction("DrawProcess", HookPriority.ADD_BEHAVIOR, (args, next) => {
                         next(args);
                         tab.run?.();
                     });
                 }
+
                 document.body.append = originalAppend;
             };
+
             const tabEl = document.createElement("button");
             tabEl.textContent = tab.name;
             if (tab.name === currentTabName) switchTab();
             tabEl.addEventListener("click", switchTab);
             tabsEl.append(tabEl);
         });
-        
-        eventBus?.once("subscreenUnloaded", () => this.clearDrawProcessHook?.());
+
+        eventBus?.once("subscreenUnloaded", () => {
+            clearDrawProcessHook?.();
+            tabHandlers.unload?.();
+        });
 
         return {
             base: tabsEl
-        }
+        };
     }
 
     protected update() {
