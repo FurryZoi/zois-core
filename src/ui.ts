@@ -317,6 +317,21 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
     targetElement.classList.add(className);
 }
 
+export function onClickOutside(element: HTMLElement, callback: (event: MouseEvent) => void) {
+    const handler = (event: MouseEvent) => {
+        if (element.contains(event.target as Node)) {
+            return;
+        }
+        callback(event);
+    };
+
+    document.addEventListener("click", handler, true);
+
+    return () => {
+        document.removeEventListener("click", handler, true);
+    };
+}
+
 export function setPreviousSubscreen(): void {
     setSubscreen(previousSubscreen);
 }

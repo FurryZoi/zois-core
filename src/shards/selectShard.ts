@@ -1,5 +1,5 @@
 import { MOD_DATA } from "../index";
-import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily } from "../ui";
+import { addDynamicClass, autosetFontSize, DynamicClassStyles, onClickOutside, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
 import { Check, ChevronDown, createElement } from "lucide";
 
@@ -19,9 +19,12 @@ export class SelectShard extends Shard<SelectShardContext> {
         return {
             base: {
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                columnGap: "0.5em",
                 background: "var(--tmd-element, white)",
                 color: "var(--tmd-text, black)",
-                border: "2px solid var(--tmd-accent, rgb(195, 195, 195))",
+                border: "2px solid var(--tmd-accent, rgb(34, 34, 34))",
                 borderRadius: "0.4em",
                 padding: "0.25em",
                 boxSizing: "border-box",
@@ -31,36 +34,19 @@ export class SelectShard extends Shard<SelectShardContext> {
                 borderColor: "var(--tmd-accent-hover, rgb(0, 96, 223))"
             },
             "[opened=false]:hover": {
-                borderColor: "var(--tmd-accent-hover, rgb(170, 170, 170))"
+                borderColor: "var(--tmd-accent-hover, rgb(0, 96, 223))"
             },
-            "> p": {
+            ">p": {
                 margin: "0"
             },
             ">svg": {
-                position: "absolute",
-                right: "0.45em",
-                top: "50%",
-                transform: "translateY(-50%)",
-                width: "1.5em",
-                height: "1.5em",
+                width: "1.25em",
+                height: "1.25em",
                 color: "var(--tmd-accent, rgb(0, 96, 223))"
             },
-            ">div[data-zc-position='bottom']": {
-                position: "absolute",
-                top: "calc(100% + 0.45em)",
-                left: "0",
-                width: "100%",
+            ">div": {
                 background: "var(--tmd-element, #f6f6f6)",
-                border: "2px solid var(--tmd-element-hover, rgb(235 235 235))",
-                borderRadius: "0.4em"
-            },
-            ">div[data-zc-position='top']": {
-                position: "absolute",
-                bottom: "calc(100% + 0.45em)",
-                left: "0",
-                width: "100%",
-                background: "var(--tmd-element, #f6f6f6)",
-                border: "2px solid var(--tmd-element-hover, rgb(235 235 235))",
+                boxShadow: "0px 0px 0.1em 0px black",
                 borderRadius: "0.4em"
             },
             ">div>div": {
@@ -68,7 +54,7 @@ export class SelectShard extends Shard<SelectShardContext> {
                 width: "100%",
                 padding: "0.25em",
                 boxSizing: "border-box",
-                borderRadius: "0.25em"
+                borderRadius: "0.4em"
             },
             ">div>div>svg": {
                 width: "1.25em",
@@ -82,7 +68,7 @@ export class SelectShard extends Shard<SelectShardContext> {
     }
 
     protected generateBody(): Record<keyof NonNullable<SelectShardContext["modules"]>, HTMLElement | SVGElement> {
-        let { options, currentOption, x, y } = CommonCloneDeep(this.context);
+        let { options, currentOption, x, y } = this.context;
         let isOpened = false;
         let optionsContainer: HTMLDivElement;
 
@@ -90,6 +76,13 @@ export class SelectShard extends Shard<SelectShardContext> {
         addDynamicClass(select, this.dynamicClassContainer);
         setFontFamily(select, MOD_DATA.fontFamily);
         select.setAttribute("opened", false);
+        onClickOutside(select, () => {
+            if (isOpened) {
+                isOpened = false;
+                select.setAttribute("opened", false);
+                optionsContainer.remove();
+            }
+        });
         select.addEventListener("click", () => {
             if (this.context.isDisabled && this.context.isDisabled()) return select.classList.add("zcDisabled");
             if (isOpened) {
@@ -98,24 +91,39 @@ export class SelectShard extends Shard<SelectShardContext> {
             } else {
                 isOpened = true;
                 optionsContainer = document.createElement("div");
-                optionsContainer.setAttribute(
-                    "data-zc-position",
-                    typeof y === "number" && y > (500 - select.offsetHeight / 2) ? "top" : "bottom"
-                );
+                const narrowViewport = window.matchMedia("(max-width: 768px)").matches;
+                if (narrowViewport) {
+                    optionsContainer.style.position = "fixed";
+                    optionsContainer.style.left = "50%";
+                    optionsContainer.style.top = "50%";
+                    optionsContainer.style.transform = "translate(-50%, -50%)";
+                    optionsContainer.style.width = "60%";
+                    optionsContainer.style.fontSize = "28px";
+                } else {
+                    optionsContainer.style.position = "absolute";
+                    optionsContainer.style.left = "0";
+                    optionsContainer.style[typeof y === "number" && y > (500 - select.offsetHeight / 2) ? "bottom" : "top"] = "calc(100% + 0.45em)";
+                    optionsContainer.style.width = "100%";
+                }
                 options.forEach((option) => {
                     const e = document.createElement("div");
                     e.style.cssText = "display: flex; align-items: center; column-gap: 0.5em;";
                     if (option.icon) {
-                        option.icon.style.cssText = "color: #bcbcbc;";
+                        option.icon.style.cssText = "color: #bcbcbc; flex-shrink: 0;";
                         e.append(option.icon);
                     }
-                    e.append(option.text);
+                    const _label = document.createElement("span");
+                    _label.style.overflow = "hidden";
+                    _label.style.textOverflow = "ellipsis";
+                    _label.style.width = "100%";
+                    _label.textContent = option.text;
+                    e.append(_label);
                     if (option.name === currentOption) {
                         e.append(checkmark);
                     }
                     e.addEventListener("click", () => {
                         currentOption = option.name;
-                        p.textContent = option.text;
+                        label.textContent = option.text;
                         optionsContainer.remove();
                         if (this.context.onChange) this.context.onChange(option.name);
                     });
@@ -123,16 +131,21 @@ export class SelectShard extends Shard<SelectShardContext> {
                 });
                 select.append(optionsContainer);
             }
+            select.setAttribute("opened", isOpened);
         });
 
-        const p = document.createElement("p");
-        p.textContent = options.find((option) => option.name === currentOption)?.text ?? "";
+        const label = document.createElement("p");
+        label.style.overflow = "hidden";
+        label.style.textOverflow = "ellipsis";
+        label.style.width = "100%";
+        label.textContent = options.find((option) => option.name === currentOption)?.text ?? "";
 
         const arrow = createElement(ChevronDown);
+        arrow.style.cssText = "flex-shrink: 0;";
         const checkmark = createElement(Check);
-        checkmark.style.cssText = "position: absolute; right: 0.25em;";
+        checkmark.style.cssText = "flex-shrink: 0;";
 
-        select.append(p, arrow);
+        select.append(label, arrow);
 
         if (this.context.isDisabled && this.context.isDisabled()) select.classList.add("zcDisabled");
 
