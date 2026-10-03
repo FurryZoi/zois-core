@@ -16,14 +16,15 @@ export interface ShardContext<T extends string = never> {
 
 export abstract class Shard<Context extends ShardContext = ShardContext> {
     public body: Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement> | null = null;
+    private updateListener: (() => void) | null = null
 
     protected get mountReturnValue() {
         return this.body?.base ?? null;
     }
 
     constructor(protected context: Context) {
-        this.body = this.generateBody();
         this.processModules("overrideContext");
+        this.body = this.generateBody();
         this.processModules("layoutEffect");
     }
 
@@ -31,17 +32,26 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
         parentElement.append(this.body!.base);
         this.update();
         this.processModules("effect");
+        this.updateListener = this.update.bind(this);
+        window.addEventListener("resize", this.updateListener);
+        eventBus?.once("subscreenUnloaded", this.unmount.bind(this));
         eventBus?.emit("shardMounted", {
             shard: this
         });
-        window.addEventListener("resize", () => this.update());
-        eventBus?.once("subscreenUnloaded", () => {
-            this.body!.base.remove();
-            eventBus?.emit("shardUnmounted", {
-                shard: this
-            });
-        });
         return this.mountReturnValue;
+    }
+
+    public unmount() {
+        this.body!.base.remove();
+        if (this.updateListener !== null) {
+            window.removeEventListener("resize", this.updateListener);
+            this.updateListener = null;
+        } else {
+            logger.warn("Update event listener function is null when unmount shard", this);
+        }
+        eventBus?.emit("shardUnmounted", {
+            shard: this
+        });
     }
 
     protected abstract generateBody(): Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement>
