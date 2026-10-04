@@ -5,17 +5,6 @@ import { setFontFamily } from "./ui";
 import { validateData } from "./validation";
 import { logger } from "./logging";
 
-const pendingRequests: Map<string, PendingRequest<any>> = new Map();
-const requestListeners: Map<string, (data: any, sender: Character | number, senderName?: string) => any> = new Map();
-const requestDtos: Map<string, ClassConstructor<unknown>> = new Map();
-
-interface PendingRequest<T> {
-	message: string
-	data: T
-	target: number
-	resolve: (data: T) => any
-	reject: (data: T) => any
-}
 
 type RequestResponse<T> = {
 	data?: T;

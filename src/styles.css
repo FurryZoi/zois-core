@@ -159,65 +159,6 @@
     flex-shrink: 0;
 }
 
-.zcDialog {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: rgb(57, 64, 77);
-    margin: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    border: none;
-    border-radius: 4px;
-    min-width: 200px;
-    max-width: 450px;
-    width: 90%;
-    height: fit-content;
-    z-index: 100;
-    pointer-events: all !important;
-    box-shadow: 0px 0px 6px 1px #0000006e;
-}
-
-.zcDialog>p {
-    padding: 0.85em 0px;
-    margin: 0;
-    user-select: none;
-    width: 90%;
-    color: white;
-}
-
-.zcDialog>input:focus {
-    outline: 2px solid rgb(0, 238, 255);
-}
-
-.zcDialog>div>button {
-    cursor: pointer;
-    padding: 6px 14px;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-.zcDialog>div>button:first-child {
-    background: rgba(73, 82, 99, 1);
-    color: white;
-}
-
-.zcDialog>div>button:first-child:hover {
-    background: rgb(86, 94, 108);
-}
-
-.zcDialog>div>button:last-child {
-    background: #00eeffff;
-}
-
-.zcDialog>div>button:last-child:hover {
-    background: rgb(4, 203, 217);
-}
-
 @keyframes zcSpin {
     from {
         transform: rotate(0deg);

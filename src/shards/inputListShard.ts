@@ -1,15 +1,17 @@
+import { dialogsManager } from "../dialogs";
 import { MOD_DATA } from "../index";
 import { addDynamicClass, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./shard";
-import { createElement, RotateCcw, Trash2 } from "lucide";
+import { createElement, Plus, RotateCcw, Trash2 } from "lucide";
 
 export interface InputListShardContext<NumbersOnly extends boolean> extends ShardContext<"input"> {
-    value?: NumbersOnly extends true ? number[] : (string | number)[];
-    title?: string;
-    fontSize?: number | "auto";
-    numbersOnly?: NumbersOnly;
-    onChange?: (value: NumbersOnly extends true ? number[] : (string | number)[]) => void;
-    isDisabled?: () => boolean;
+    value?: NumbersOnly extends true ? number[] : (string | number)[]
+    title?: string
+    fontSize?: number | "auto"
+    numbersOnly?: NumbersOnly
+    playerPicker?: NumbersOnly extends true ? boolean : never
+    onChange?: (value: NumbersOnly extends true ? number[] : (string | number)[]) => void
+    isDisabled?: () => boolean
 }
 
 export class InputListShard<NumbersOnly extends boolean> extends Shard<InputListShardContext<NumbersOnly>> {
@@ -93,7 +95,7 @@ export class InputListShard<NumbersOnly extends boolean> extends Shard<InputList
     }
 
     protected generateBody(): Record<keyof NonNullable<InputListShardContext<NumbersOnly>["modules"]>, HTMLElement | SVGElement> {
-        const { value, title, fontSize, numbersOnly, onChange, isDisabled } = this.context;
+        const { value, title, fontSize, numbersOnly, playerPicker, onChange, isDisabled } = this.context;
         const checkbox = document.createElement("div");
         const items: string[] = [];
         const div = document.createElement("div");
@@ -130,6 +132,25 @@ export class InputListShard<NumbersOnly extends boolean> extends Shard<InputList
                 e.stopPropagation();
             });
             items.push(text);
+        }
+
+        if (playerPicker) {
+            addButton(createElement(Plus), async () => {
+                if (typeof isDisabled === "function" && isDisabled()) return div.classList.add("zcDisabled");
+                let pickedPlayers = await dialogsManager.pickPlayers({
+                    message: "Select player",
+                });
+                if (pickedPlayers === false) return;
+                pickedPlayers = pickedPlayers.filter((p) => !items.includes(p.toString(10)));
+                if (pickedPlayers.length === 0) return;
+                pickedPlayers.forEach((p) => addItem(p.toString(10)));
+                if (typeof onChange === "function") {
+                    onChange(
+                        (numbersOnly ? items.map((i) => parseInt(i, 10)) : items) as
+                        NumbersOnly extends true ? number[] : (string | number)[]
+                    );
+                }
+            });
         }
 
         addButton(createElement(RotateCcw), () => {
