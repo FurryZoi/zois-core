@@ -1,22 +1,24 @@
+import { coreSettings, saveSettings } from "../core";
 import { CoreSubscreen } from "./coreSubscreen";
+import { createCheckbox } from "./shards";
 
 export class DevelopmentSubscreen extends CoreSubscreen {
     override get name(): string {
-        return "Development"
-    }
+        return "Development";
+    };
 
     override load(): void {
         super.load();
-        this.createCheckbox({
+        createCheckbox({
             x: 60,
             y: 200,
-            text: "Auto Connect To Dev Server",
-            isChecked: localStorage.getItem("autoConnectToDevServer") === "true",
+            text: "Auto Connect To Dev Backend Server",
+            isChecked: !!coreSettings.autoConnectToDevBackendServer,
             onChange: () => {
-                const prev = localStorage.getItem("autoConnectToDevServer");
-                localStorage.setItem("autoConnectToDevServer", prev === "true" ? "false" : "true");
-                
+                coreSettings.autoConnectToDevBackendServer = !coreSettings.autoConnectToDevBackendServer;
+                saveSettings();
+                window.location.replace(window.location.href);
             }
         });
-    }
-}
+    };
+};

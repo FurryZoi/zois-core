@@ -67,7 +67,7 @@ export class SelectShard extends Shard<SelectShardContext> {
         };
     }
 
-    protected generateBody(): Record<keyof NonNullable<SelectShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<SelectShardContext["modules"]>, HTMLElement | SVGElement> {
         let { options, currentOption, x, y } = this.context;
         let isOpened = false;
         let optionsContainer: HTMLDivElement;

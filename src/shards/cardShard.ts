@@ -9,7 +9,7 @@ export interface CardShardContext extends ShardContext<"base" | "name" | "value"
 }
 
 export class CardShard extends Shard<CardShardContext> {
-    protected generateBody(): Record<keyof NonNullable<CardShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<CardShardContext["modules"]>, HTMLElement | SVGElement> {
         const { name, value, icon } = this.context;
         const cardEl = document.createElement("div");
         cardEl.classList.add("zcCard");

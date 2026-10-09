@@ -94,7 +94,7 @@ export class InputListShard<NumbersOnly extends boolean> extends Shard<InputList
         };
     }
 
-    protected generateBody(): Record<keyof NonNullable<InputListShardContext<NumbersOnly>["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<InputListShardContext<NumbersOnly>["modules"]>, HTMLElement | SVGElement> {
         const { value, title, fontSize, numbersOnly, playerPicker, onChange, isDisabled } = this.context;
         const checkbox = document.createElement("div");
         const items: string[] = [];

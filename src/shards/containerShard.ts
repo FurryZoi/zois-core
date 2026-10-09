@@ -22,7 +22,7 @@ export class ContainerShard extends Shard<ContainerShardContext> {
         return this.body?.content ?? null;
     }
 
-    protected generateBody(): Record<
+    protected render(): Record<
         keyof NonNullable<ContainerShardContext["modules"]>,
         HTMLElement | SVGElement
     > {

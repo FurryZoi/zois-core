@@ -24,11 +24,11 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
 
     constructor(protected context: Context) {
         this.processModules("overrideContext");
-        this.body = this.generateBody();
-        this.processModules("layoutEffect");
     }
-
+    
     public mount(parentElement: HTMLElement = this.context.parent ?? document.body) {
+        this.body = this.render();
+        this.processModules("layoutEffect");
         parentElement.append(this.body!.base);
         this.update();
         this.processModules("effect");
@@ -54,7 +54,7 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
         });
     }
 
-    protected abstract generateBody(): Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement>
+    protected abstract render(): Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement>
 
     protected processModules(stage: "overrideContext" | "layoutEffect" | "effect") {
         const modules = this.context.modules ?? {};

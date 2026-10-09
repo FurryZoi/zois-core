@@ -10,7 +10,7 @@ export interface SvgShardContext extends ShardContext {
 }
 
 export class SvgShard extends Shard<SvgShardContext> {
-    protected generateBody(): Record<keyof NonNullable<SvgShardContext["modules"]>, SVGElement> {
+    protected render(): Record<keyof NonNullable<SvgShardContext["modules"]>, SVGElement> {
         const { dataurl, size, fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px" } = this.context;
         // dataurl = dataurl.replaceAll("&quot;", `"`);
         function dataURLToSVGElement(dataURL: string) {

@@ -13,7 +13,7 @@ export interface InputShardContext extends ShardContext {
 }
 
 export class InputShard extends Shard<InputShardContext> {
-    protected generateBody(): Record<keyof NonNullable<InputShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<InputShardContext["modules"]>, HTMLElement | SVGElement> {
         const { textArea, placeholder, value, isDisabled, onChange, onInput } = this.context;
         const input = document.createElement(textArea ? "textarea" : "input");
         input.classList.add("zcInput");

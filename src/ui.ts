@@ -381,7 +381,7 @@ export abstract class BaseSubscreen {
         return getPreviousSubscreen();
     }
 
-    abstract get name(): string;
+    public abstract get name(): string;
 
     /**
      * Called each frame.
@@ -402,7 +402,7 @@ export abstract class BaseSubscreen {
      * 
      * You probably want to override {@link onLoad}, **do not** override `load` if you don't understand what you're doing.
      * 
-     * Override {@link onLoad} for creating UI elements.
+     * Override {@link onLoad} to define html elements.
      */
     public load() {
         setSizeUnitVariable();
@@ -416,7 +416,7 @@ export abstract class BaseSubscreen {
     /**
      * Called once after `setSubscreen()`.
      * 
-     * Create UI elements here.
+     * Define html elements here.
      */
     protected onLoad?(): void
 
@@ -526,7 +526,6 @@ export abstract class BaseSubscreen {
     public createButton(ctx: ButtonShardContext): HTMLButtonElement {
         const shard = new ButtonShard(ctx);
         const htmlElement = shard.mount() as HTMLButtonElement;
-
         return htmlElement;
     }
 

@@ -1,13 +1,14 @@
 import styles from "./styles.css";
 import { ModData, formatString, version, waitFor } from "./index";
 import { createModSdk, hookFunction, HookPriority } from "./modSdk";
-import { Anchor, getCurrentSubscreen, setSubscreen } from "./ui";
+import { addDynamicClass, Anchor, getCurrentSubscreen, getRelativeX, setPosition, setSize, setSizeUnitVariable, setSubscreen } from "./ui";
 import { MainSubscreen } from "./core-subscreen/mainSubscreen";
 import { createElement, Terminal } from "lucide";
 import { ButtonShard, ContainerShard } from "./shards";
 import { StyleModule } from "./shard-modules";
 import { dialogsManager } from "./dialogs";
 import { EventBus, getEventBus } from "./events";
+import { logger } from "./logging";
 
 
 export interface CoreSettings {
@@ -21,16 +22,21 @@ export interface CoreSettings {
             content?: string[]
         }
     }
+    autoConnectToDevBackendServer?: boolean
 }
 
 export let coreSettings: CoreSettings = {};
 
 let coreEventBus: EventBus | null = null;
 
-export function syncSettings() {
+export function saveSettings() {
     if (typeof coreSettings !== "object") return;
-    Player.ExtensionSettings.ZOIS_CORE = LZString.compressToBase64(JSON.stringify(coreSettings));
-    ServerPlayerExtensionSettingsSync("ZOIS_CORE");
+    if (typeof localStorage.setItem !== "function") {
+        logger.error("Failed to save zois-core settings in local storage");
+        return;
+    }
+    const compressed = LZString.compressToBase64(JSON.stringify(coreSettings));
+    localStorage.setItem("ZOIS_CORE", compressed);
     coreEventBus?.emit("coreSettingsChanged", {
         settings: structuredClone(coreSettings)
     });
@@ -63,8 +69,6 @@ export function registerSubscreen() {
     });
 }
 
-let loginScreenElements: Element[] = [];
-
 export function registerCore() {
     const style = document.createElement("style");
     style.innerHTML = styles;
@@ -72,12 +76,18 @@ export function registerCore() {
 
     coreEventBus = getEventBus("zois-core");
 
+    if (typeof localStorage.getItem !== "function") {
+        logger.error("Failed to read zois-core settings from local storage");
+    } else {
+        coreSettings = JSON.parse(LZString.decompressFromBase64(localStorage.getItem("ZOIS_CORE") ?? "") ?? "{}");
+    }
+
     window.ZOIS_CORE = Object.freeze({
         version,
         enableDevMode: () => {
             if (typeof Player?.MemberNumber !== "number") return;
             coreSettings.devMode = true;
-            syncSettings();
+            saveSettings();
             registerSubscreen();
         },
         getSettings: () => {
@@ -86,41 +96,83 @@ export function registerCore() {
         getEventBus
     });
 
-    if (localStorage.getItem("autoConnectToDevServer") === "true") {
+    if (coreSettings.autoConnectToDevBackendServer) {
         hookFunction("CommonGetServer", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
             return "https://bondage-club-server-test.herokuapp.com/";
         });
-        const containerShard = new ContainerShard({
-            x: 1250,
-            y: 900,
-            modules: {
-                base: [
-                    new StyleModule({
-                        display: "flex"
-                    })
-                ]
+        const btn = ElementButton.Create(
+            "zc-login-btn",
+            () => {
+                dialog.showModal();
+            },
+            {
+                tooltip: "[zois-core] Backend server options",
+                tooltipPosition: "right",
+                image: "Icons/Online.png",
+            }
+        );
+        document.body.append(btn);
+        const dialog = ElementCreate({
+            tag: "dialog",
+            children: [
+                ElementCreate({
+                    tag: "div",
+                    children: [
+                        ElementCreate({
+                            tag: "label",
+                            children: ["You are connected to dev backend server"]
+                        }),
+                        ElementButton.Create("", () => {
+                            coreSettings.autoConnectToDevBackendServer = !coreSettings.autoConnectToDevBackendServer;
+                            saveSettings();
+                            window.location.replace(window.location.href);
+                        }, { label: "Switch back to prod backend server" }),
+                        ElementButton.Create("", () => dialog.close(), { label: "Close" })
+                    ]
+                })
+            ],
+            parent: document.body
+        });
+        addDynamicClass(dialog, {
+            ">div": {
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "calc(3px * var(--size-unit))",
+                width: "100%",
+                height: "100%",
+            },
+            ">div>label": {
+                display: "block",
+                width: "100%",
+                fontWeight: "bold",
+                fontSize: "calc(3px * var(--size-unit))",
+                textAlign: "center"
+            },
+            ">div>button:not(:last-child)": {
+                fontSize: "calc(2px * var(--size-unit))",
+                borderRadius: "4px",
+                padding: "calc(3px * var(--size-unit)) calc(16px * var(--size-unit))",
+            },
+            ">div>button:last-child": {
+                fontSize: "calc(2px * var(--size-unit))",
+                padding: "calc(2px * var(--size-unit)) calc(8px * var(--size-unit))",
+                borderRadius: "4px",
+                width: "min(20dvh, 10dvw)",
+                position: "absolute",
+                right: "calc(2px * var(--size-unit))",
+                bottom: "calc(2px * var(--size-unit))"
             }
         });
-        const container = containerShard.mount() as HTMLDivElement;
-        new ButtonShard({
-            padding: 1,
-            parent: container,
-            text: "You connected to dev server",
-        }).mount();
-        new ButtonShard({
-            width: 90,
-            height: 90,
-            padding: 1,
-            icon: "Icons/Cancel.png",
-            parent: container,
-            onClick: () => {
-                localStorage.removeItem("autoConnectToDevServer");
-                location.reload();
-            }
-        }).mount();
-        loginScreenElements.push(container);
-        hookFunction("LoginUnload", HookPriority.OVERRIDE_BEHAVIOR, (args, next) => {
-            loginScreenElements.forEach((e) => e.remove());
+        hookFunction("LoginRun", HookPriority.OBSERVE, (args, next) => {
+            setPosition(btn, 0, 0, "bottom-left");
+            setSize(dialog, 600, 250);
+            setSize(btn, 90, 90);
+            setSizeUnitVariable();
+            return next(args);
+        });
+        hookFunction("LoginUnload", HookPriority.OBSERVE, (args, next) => {
+            ElementRemove("zc-login-btn");
             return next(args);
         });
         ServerURL = CommonGetServer();
@@ -207,9 +259,6 @@ export function registerCore() {
     }, true);
 
     waitFor(() => typeof Player?.MemberNumber === "number").then(() => {
-        if (typeof Player.ExtensionSettings.ZOIS_CORE === "string") {
-            coreSettings = JSON.parse(LZString.decompressFromBase64(Player.ExtensionSettings.ZOIS_CORE) ?? "{}");
-        }
         if (coreSettings.devMode) registerSubscreen();
     });
 }

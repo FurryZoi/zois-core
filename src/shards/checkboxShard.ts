@@ -119,7 +119,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         return "var(--tmd-text, black)";
     }
 
-    protected generateBody(): Record<keyof NonNullable<CheckboxShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<CheckboxShardContext["modules"]>, HTMLElement | SVGElement> {
         const { isChecked, text, tooltip, onChange, isDisabled } = this.context;
 
         const wrapper = document.createElement("div");

@@ -1,16 +1,17 @@
 import { Anchor } from "../ui";
-import { coreSettings, syncSettings } from "../core";
+import { coreSettings, saveSettings } from "../core";
 import { CoreSubscreen } from "./coreSubscreen";
 import { toastsManager } from "../toasts";
+import { createButton, createCheckbox, createInputList, createSelect, createText } from "./shards";
 
 export class ToastsSubscreen extends CoreSubscreen {
     override get name(): string {
         return "Toasts";
-    }
+    };
 
     override load(): void {
         super.load();
-        this.createCheckbox({
+        createCheckbox({
             x: 60,
             y: 200,
             text: "Blacklist Enabled",
@@ -22,7 +23,7 @@ export class ToastsSubscreen extends CoreSubscreen {
             }
         });
 
-        this.createCheckbox({
+        createCheckbox({
             x: 60,
             y: 280,
             text: "Prevent Using Single Theme",
@@ -33,15 +34,15 @@ export class ToastsSubscreen extends CoreSubscreen {
             }
         });
 
-        this.createText({
+        createText({
             text: "Toasts Position:",
             x: 60,
-            y: 380,
+            y: 380
         });
 
-        this.createSelect({
+        createSelect({
             x: 400,
-            y: 360,
+            y: 374,
             width: 500,
             options: [
                 {
@@ -62,34 +63,36 @@ export class ToastsSubscreen extends CoreSubscreen {
                 }
             ],
             currentOption: coreSettings.toasts?.position ?? "bottom-left",
-            onChange: (pos: Anchor) => {
+            onChange: (pos) => {
                 coreSettings.toasts ??= {};
-                coreSettings.toasts.position = pos;
+                coreSettings.toasts.position = pos as Anchor;
             }
         });
 
-        this.createInputList({
-            title: "Blacklist",
+        createInputList({
             x: 1100,
             y: 200,
             width: 800,
             height: 600,
+            title: "Blacklist",
+            fontSize: 3.2,
+            placeholder: "Regular expression",
             value: coreSettings.toasts?.blacklist?.content ?? [],
             onChange: (value) => {
                 coreSettings.toasts ??= {};
                 coreSettings.toasts.blacklist ??= {};
-                coreSettings.toasts.blacklist.content = value as string[];
+                coreSettings.toasts.blacklist.content = value;
             }
         });
 
-        this.createButton({
+        createButton({
             text: "Test",
             x: 60,
             y: 850,
             padding: 1,
             width: 400,
             onClick: () => {
-                syncSettings();
+                saveSettings();
                 toastsManager.success({
                     title: "Something was completed successfully",
                     message: "Message details",
@@ -112,5 +115,5 @@ export class ToastsSubscreen extends CoreSubscreen {
                 });
             }
         });
-    }
-}
+    };
+};

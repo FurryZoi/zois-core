@@ -79,7 +79,7 @@ export class ButtonShard extends Shard<ButtonShardContext> {
         };
     }
 
-    protected generateBody(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<ButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { height, text, variant, icon, iconAbsolutePosition = true, tooltip, href, onClick, isDisabled } = this.context;
         let iconElement: HTMLImageElement | SVGElement | undefined;
         let textElement: HTMLSpanElement | undefined;

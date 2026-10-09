@@ -60,7 +60,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         };
     }
 
-    protected generateBody(): Record<keyof NonNullable<BackNextButtonShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<BackNextButtonShardContext["modules"]>, HTMLElement | SVGElement> {
         const { onChange, isDisabled } = this.context;
         const div = document.createElement("div");
         addDynamicClass(div, this.dynamicClassContainer);

@@ -8,7 +8,7 @@ export interface ImageShardContext extends ShardContext {
 export class ImageShard extends Shard<ImageShardContext> {
     private modal: HTMLDivElement | null = null;
 
-    protected generateBody(): Record<keyof NonNullable<ImageShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<ImageShardContext["modules"]>, HTMLElement | SVGElement> {
         const { src, alt = "" } = this.context;
 
         const img = document.createElement("img");

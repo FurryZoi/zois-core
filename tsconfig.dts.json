@@ -1,8 +1,8 @@
 {
   "include": [
     "node_modules/bc-stubs/bc/**/*.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
   ],
   "compilerOptions": {
     "target": "ESNext",
@@ -17,6 +17,7 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "tsx-dom",
     "baseUrl": "src",
     "rootDir": "src",
     "outDir": "dist/types",

@@ -19,7 +19,7 @@ export class TabsShard extends Shard<TabsShardContext> {
         super(context);
     }
 
-    protected generateBody(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<TabsShardContext["modules"]>, HTMLElement | SVGElement> {
         let tabHandlers: {
             run?: () => void
             load?: () => void

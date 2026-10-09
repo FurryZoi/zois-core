@@ -1,13 +1,14 @@
 {
   "include": [
     "node_modules/bc-stubs/bc/**/*.d.ts",
-    "**/*.js",
-    "**/*.ts",
-    "**/*.tsx",
-    "scripts/zois-core.mjs"
-  ],
-  "react": [
-    "./node_modules/@types/react"
+    "src/**/*.js",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/zois-core.mjs",
+    "tests/toastsManager.test.ts",
+    "tests/messagesManager.test.ts",
+    "tests/dialogsManager.test.ts",
+    "tests/setup.ts"
   ],
   "compilerOptions": {
     "target": "ESNext",
@@ -22,14 +23,8 @@
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "react",
+    "jsxImportSource": "tsx-dom",
     "rootDir": "./",
-    // "baseUrl": "src",
     "outDir": "dist",
-    // "paths": {
-    //   "@/*": [
-    //     "*"
-    //   ]
-    // }
   },
 }

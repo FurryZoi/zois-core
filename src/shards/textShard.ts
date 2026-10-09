@@ -15,7 +15,7 @@ export class TextShard extends Shard<TextShardContext> {
         return "var(--tmd-text, black)";
     }
 
-    protected generateBody(): Record<keyof NonNullable<TextShardContext["modules"]>, HTMLElement | SVGElement> {
+    protected render(): Record<keyof NonNullable<TextShardContext["modules"]>, HTMLElement | SVGElement> {
         const p = document.createElement("p");
         p.innerHTML = this.context.text ?? "";
         p.style.color = this.context.color ?? this.defaultColor;

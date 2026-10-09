@@ -6,7 +6,8 @@
     "zois-core": "dist/scripts/zois-core.js"
   },
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "test": "vitest run"
   },
   "author": "Zoi",
   "license": "MIT",
@@ -88,15 +89,19 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
     "lucide": "^1.24.0",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "tsx-dom": "^3.1.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.3",
     "bc-stubs": "130.0.0-Beta.1",
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "^2.1.1",
     "glob": "^13.0.6",
+    "happy-dom": "^20.14.5",
     "nodemon": "^3.1.14",
     "simple-git": "^3.36.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
   }
 }
