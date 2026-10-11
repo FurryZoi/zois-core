@@ -1,6 +1,12 @@
 import { StyleModule } from "./shard-modules";
 import { MOD_DATA } from "./index";
-import { TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext, InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext, ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext, CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard } from "./shards";
+import {
+    TabsShardContext, ButtonShardContext, ButtonShard, TextShardContext, TextShard, InputShardContext,
+    InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext,
+    ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext,
+    CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard,
+    ExtensionsStorageBarShardContext, ExtensionsStorageBarShard
+} from "./shards";
 import { logger } from "./logging";
 import exitIcon from "./assets/icons/exit.svg";
 import { eventBus } from "./events";
@@ -269,9 +275,28 @@ function generateDynamicClassCacheKey(styles: DynamicClassStyles) {
 * @returns `void`
 */
 export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles: DynamicClassStyles): void {
+    const className = getDynamicClass(styles);
+    targetElement.classList.add(className);
+}
+
+/**
+* Generates CSS class.
+*
+* The function checks a cache of previously created classes using a key generated from the provided styles.
+* If a class with the same styles already exists, it simply returns this class name.
+* Otherwise, it generates a unique class name (`dynamic-...`) with the corresponding CSS rules
+* (including pseudo-classes `:hover`, `:active`, `:focus`, `:disabled` and pseudo-elements `::before`, `::after`) and returns generated class name,
+*
+* @param styles - An object of type `DynamicClassStyles`. Can contain:
+*   - `base` — base styles;
+*   - keys `hover`, `active`, `focus`, `disabled`, `before`, `after` — styles for the corresponding pseudo-classes/pseudo-elements;
+*   - any other keys — additional selectors in the form `.className{key}`.
+* @returns `class name`
+*/
+export function getDynamicClass(styles: DynamicClassStyles): string {
     const cacheKey = generateDynamicClassCacheKey(styles);
     const _class = createdDynamicClasses.find((g) => g.key === cacheKey);
-    if (_class) return targetElement.classList.add(_class.className);
+    if (_class) _class.className;
     let className: string;
     do {
         className = "dynamic-" + Math.random().toString(36).substring(2, 10);
@@ -314,7 +339,7 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
         document.head.appendChild(styleElement);
     }
 
-    targetElement.classList.add(className);
+    return className;
 }
 
 export function onClickOutside(element: HTMLElement, callback: (event: MouseEvent) => void) {
@@ -623,6 +648,12 @@ export abstract class BaseSubscreen {
 
     public createContainer(ctx: ContainerShardContext): HTMLDivElement {
         const shard = new ContainerShard(ctx);
+        const htmlElement = shard.mount() as HTMLDivElement;
+        return htmlElement;
+    }
+
+    public createExtensionsStorageBarShard(ctx: ExtensionsStorageBarShardContext): HTMLDivElement {
+        const shard = new ExtensionsStorageBarShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
         return htmlElement;
     }

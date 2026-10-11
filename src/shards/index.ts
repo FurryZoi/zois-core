@@ -11,4 +11,5 @@ export * from "./shard";
 export * from "./svgShard";
 export * from "./tabsShard";
 export * from "./textShard";
+export * from "./extensionsStorageBarShard";
 
