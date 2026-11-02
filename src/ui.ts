@@ -296,7 +296,7 @@ export function addDynamicClass(targetElement: HTMLElement | SVGElement, styles:
 export function getDynamicClass(styles: DynamicClassStyles): string {
     const cacheKey = generateDynamicClassCacheKey(styles);
     const _class = createdDynamicClasses.find((g) => g.key === cacheKey);
-    if (_class) _class.className;
+    if (_class) return _class.className;
     let className: string;
     do {
         className = "dynamic-" + Math.random().toString(36).substring(2, 10);
@@ -340,6 +340,66 @@ export function getDynamicClass(styles: DynamicClassStyles): string {
     }
 
     return className;
+}
+
+const injectedKeyframes = new Map<string, string>();
+
+/**
+ * Dynamically injects @keyframes rules, similar to getDynamicClass.
+ * Returns the animation name to use in CSS.
+ * Cached by content hash so identical keyframes are not re-injected.
+ */
+export function getDynamicKeyframes(
+    name: string,
+    frames: Record<string, Partial<CSSStyleDeclaration>>
+): string {
+    const sortedStringify = (obj: Partial<CSSStyleDeclaration>) =>
+        JSON.stringify(
+            Object.keys(obj)
+                .sort()
+                .reduce((acc, key) => {
+                    acc[key] = (obj as Record<string, any>)[key];
+                    return acc;
+                }, {} as Record<string, any>)
+        );
+
+    let cacheKey = `${name}|`;
+    for (const [pct, styles] of Object.entries(frames)) {
+        cacheKey += `${pct}:=${sortedStringify(styles)}|`;
+    }
+
+    const existing = injectedKeyframes.get(cacheKey);
+    if (existing) return existing;
+
+    let animName: string;
+    do {
+        animName = `zc-kf-${name}-${Math.random().toString(36).substring(2, 8)}`;
+    } while ([...injectedKeyframes.values()].includes(animName));
+
+    injectedKeyframes.set(cacheKey, animName);
+
+    const toKebab = (prop: string) =>
+        prop.replace(/([a-z0-9]|(?=[A-Z]))([A-Z])/g, "$1-$2").toLowerCase();
+
+    let css = `@keyframes ${animName} {`;
+    for (const [pct, styles] of Object.entries(frames)) {
+        css += `${pct} {`;
+        for (const [property, value] of Object.entries(styles)) {
+            css += `${toKebab(property)}: ${value};`;
+        }
+        css += "}";
+    }
+    css += "}";
+
+    let styleEl = document.getElementById("zc-dynamic-keyframes");
+    if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = "zc-dynamic-keyframes";
+        document.head.appendChild(styleEl);
+    }
+    styleEl.textContent += css;
+
+    return animName;
 }
 
 export function onClickOutside(element: HTMLElement, callback: (event: MouseEvent) => void) {
@@ -503,7 +563,6 @@ export abstract class BaseSubscreen {
      * You probably want to override {@link onResize}, **do not** override `resize` if you don't understand what you're doing.
      */
     public resize() {
-        setSizeUnitVariable();
         this.onResize?.();
     }
 

@@ -1,10 +1,10 @@
 import { ChangelogEntryTag } from "./changelogs";
-import { registerCore } from "./core";
+import { registerCore } from "./core/index";
 import { dialogsManager } from "./dialogs";
 import { createEventBus, eventBus } from "./events";
 import { loadLocalization } from "./localization";
-import { createModSdk, findModByName, hookFunction, HookPriority } from "./modSdk";
-import { BaseSubscreen, getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
+import { createModSdk, hookFunction, HookPriority } from "./modSdk";
+import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 
 
 export interface ModData {
@@ -88,7 +88,7 @@ export let MOD_DATA: ModData;
 export function bootstrap(modData: ModData): void {
     MOD_DATA = modData;
     createModSdk();
-    if (!window.ZOIS_CORE) registerCore();
+    registerCore();
     createEventBus();
     loadLocalization();
 

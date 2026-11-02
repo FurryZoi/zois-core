@@ -1,21 +1,18 @@
-import { GeneralSubscreen } from "./generalSubscreen";
-import { createButton, createMenu, createTerminal, createText } from "./shards";
-import { saveSettings } from "../core";
-import { ToastsSubscreen } from "./toastsSubscreen";
-import { DevelopmentSubscreen } from "./developmentSubscreen";
-import { StyleModule } from "../shard-modules";
-import { createElement, X } from "lucide";
-import { CoreSubscreen } from "./coreSubscreen";
+import { GeneralSubscreen } from "./general";
+import { createMenu, createTerminal, createText } from "../shards";
+import { ToastsSubscreen } from "./toasts";
+import { DevelopmentSubscreen } from "./development";
+import { CoreSubscreen } from "./core";
+import { saveSettings } from "../settings";
 
 export class MainSubscreen extends CoreSubscreen {
-    private bootTerminalEl: HTMLDivElement | null = null;
-    private contentElements: HTMLElement[] = [];
-
     override get name(): string {
         return "Zoi's Modding Core";
     };
 
     onLoad(): void {
+        super.onLoad();
+
         createText({
             x: 100,
             y: 150,
@@ -130,5 +127,5 @@ export class MainSubscreen extends CoreSubscreen {
         this.setSubscreen(null);
         PreferenceSubscreenExtensionsClear();
         saveSettings();
-    };
+    }
 };

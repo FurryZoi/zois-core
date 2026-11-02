@@ -1,14 +1,14 @@
-import { coreSettings } from "../core";
-import { CoreSubscreen } from "./coreSubscreen";
-import { createCheckbox } from "./shards";
+import { CoreSubscreen } from "./core";
+import { createCheckbox } from "../shards";
+import { coreSettings } from "../settings";
 
 export class GeneralSubscreen extends CoreSubscreen {
     override get name(): string {
         return "General";
     };
 
-    override load(): void {
-        super.load();
+    override onLoad(): void {
+        super.onLoad();
         createCheckbox({
             x: 60,
             y: 200,

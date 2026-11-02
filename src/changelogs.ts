@@ -1,7 +1,6 @@
-import { createElement, Crown, Hand, HandGrab, Heart } from "lucide";
+import { createElement, Crown, Heart } from "lucide";
 import { MOD_DATA, ModData } from ".";
 import { logger } from "./logging";
-import { toastsManager } from "./toasts";
 import { addDynamicClass } from "./ui";
 import handIcon from "./assets/icons/hand.svg";
 

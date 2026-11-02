@@ -1,35 +1,23 @@
-import { CircleAlert, CircleCheck, CircleX, createElement, Info } from "lucide";
-import { ModData } from "./index";
-import { MOD_DATA } from "./index";
 import { setPosition } from "./ui";
 import { logger } from "./logging";
 import { eventBus } from "./events";
+import type { ToastRenderData } from "./core/toast-themes/base";
 
-interface Toast {
-    id: string
-    title?: string
-    message: string
-    type: "info" | "warning" | "error" | "success" | "spinner"
-    duration: number
-    theme?: ModData["singleToastsTheme"]
-}
 
-function createToastsContainer() {
+function createToastsContainer(): HTMLDivElement {
     const container = document.createElement("div");
-    container.classList.add("zcToastsContainer");
-    container.addEventListener("click", () => {
-        const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
-        for (const toast of container.children) {
-            if (toast instanceof HTMLElement) {
-                toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
-            }
-        }
-        setTimeout(() => container.innerHTML = "", 300);
-    });
+    container.className = "zcToastsContainer";
+
     const update = () => {
         container.style.cssText = `font-family: ${CommonGetFontName()};`;
-        setPosition(container, 5, 5, window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left");
+        setPosition(
+            container,
+            5,
+            5,
+            window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left"
+        );
     };
+
     window.addEventListener("resize", update);
     document.body.append(container);
     update();
@@ -37,212 +25,136 @@ function createToastsContainer() {
     return container;
 }
 
-function getToastIcon(type: Toast["type"], theme: Toast["theme"]): SVGElement | HTMLDivElement {
-    let icon: SVGElement | HTMLDivElement;
-    switch (type) {
-        case "info":
-            icon = createElement(Info);
-            icon.style.fill = theme ? theme.iconFillColor : "rgb(68, 70, 202)";
-            icon.style.stroke = theme ? theme.iconStrokeColor : "rgb(148, 178, 217)";
-            break;
-        case "warning":
-            icon = createElement(CircleAlert);
-            icon.style.fill = theme ? theme.iconFillColor : "rgb(198, 146, 25)";
-            icon.style.stroke = theme ? theme.iconStrokeColor : "rgb(244, 220, 147)";
-            break;
-        case "error":
-            icon = createElement(CircleX);
-            icon.style.fill = theme ? theme.iconFillColor : "rgb(174, 1, 1)";
-            icon.style.stroke = theme ? theme.iconStrokeColor : "rgb(255, 163, 163)";
-            break;
-        case "success":
-            icon = createElement(CircleCheck);
-            icon.style.fill = theme ? theme.iconFillColor : "rgb(49, 142, 68)";
-            icon.style.stroke = theme ? theme.iconStrokeColor : "rgb(122, 213, 162)";
-            break;
-        case "spinner":
-            icon = document.createElement("div");
-            icon.style.cssText = `
-                box-sizing: border-box;
-                border: 2px solid;
-                border-radius: 100%;
-                border-color: transparent ${theme ? theme.iconFillColor : "rgb(68, 70, 202)"};
-                animation: zcSpin 0.65s linear infinite;
-            `;
-            break;
-    }
-    icon.style.cssText += `flex-shink: 0; width: 1.65em; height: 1.65em;`;
-    return icon;
-
+export function getOrCreateToastsContainer(): HTMLElement {
+    return (
+        document.querySelector(".zcToastsContainer") ?? createToastsContainer()
+    );
 }
 
-function createToast({ title, message, type, duration, theme, id }: Toast) {
-    const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
-    const backgroundColor = theme ? theme.backgroundColor : type === "success" ? "rgb(122, 213, 162)" : type === "warning" ? "rgb(244, 220, 147)" : type === "error" ? "rgb(255, 163, 163)" : "rgb(148, 178, 217)";
-    const textColor = theme ? theme.titleColor : (type === "info" || type === "spinner") ? "rgb(0, 2, 125)" : type === "success" ? "#244428" : type === "error" ? "rgb(128, 22, 22)" : "rgb(100, 74, 16)";
-    const progressBarColor = theme ? theme.progressBarColor : "#00000014";
-    const toastContainer = document.querySelector(".zcToastsContainer") ?? createToastsContainer();
-    const toast = document.createElement("div");
-    toast.classList.add("zcToast");
-    toast.setAttribute("data-zc-toast-type", type);
-    toast.setAttribute("data-zc-toast-id", id);
+export function dismissToast(toastElement: HTMLDivElement): void {
+    if (!toastElement || toastElement.dataset.dismissed === "true") return;
+    toastElement.dataset.dismissed = "true";
+    clearTimeout((toastElement as any)._dismissTimer);
 
-    const update = () => {
-        const canvasWidth = MainCanvas.canvas.clientWidth;
-        const canvasHeight = MainCanvas.canvas.clientHeight;
-        const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
-        toast.style.cssText = `width: 100%; font-size: ${2.85 * scaleFactor}px; padding: ${1 * scaleFactor}px; background: ${backgroundColor}; border: 1px solid #555;`;
-        toast.style.animation = `${pos.includes("left") ? "zcSlideInFromLeft" : "zcSlideInFromRight"} 0.3s ease-out forwards`;
-    };
-
-    if (type !== "spinner") {
-        const progressBar = document.createElement("div");
-        progressBar.classList.add("zcToast-ProgressBar");
-        progressBar.style.cssText = `animation: zcToast-progress ${duration}ms linear 0s 1 alternate none; position: absolute; top: 0; left: 0; height: 100%; border-radius: 4px; background: ${progressBarColor};`;
-        toast.append(progressBar);
+    if (toastElement.hasAttribute("data-zc-cyber-toast")) {
+        toastElement.classList.remove("visible", "paused");
+        toastElement.classList.add("exiting");
+        setTimeout(() => {
+            if (toastElement.parentElement) toastElement.remove();
+        }, 400);
+        return;
     }
 
-    const textContainer = document.createElement("div");
-
-    if (title) {
-        const _title = document.createElement("p");
-        _title.style.color = textColor;
-        _title.style.fontWeight = "bold";
-        _title.style.fontSize = "0.9em";
-        _title.textContent = title;
-        textContainer.append(_title);
-    }
-
-    const _message = document.createElement("p");
-    _message.style.color = textColor;
-    _message.style.fontSize = !!title ? "0.7em" : "0.9em";
-    _message.style.overflowWrap = "anywhere";
-    if (!title) {
-        _message.style.fontWeight = "bold";
-    } else {
-        _message.style.marginTop = "0.15em";
-    }
-    _message.textContent = message;
-
-    textContainer.append(_message);
-    toast.append(getToastIcon(type, theme), textContainer);
-    window.addEventListener("resize", update);
-    toastContainer.append(toast);
-    update();
-    void toast.offsetHeight;
-    setTimeout(() => {
-        // const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
-        toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
-    }, duration);
-    setTimeout(() => toast.remove(), duration + 300);
+    const pos =
+        window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
+    toastElement.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"
+        } 0.3s ease-out forwards`;
+    setTimeout(() => toastElement.remove(), 300);
 }
 
+function createToast(data: ToastRenderData): void {
+    const theme = window.ZOIS_CORE.resolveActiveToastTheme();
+    const toast = theme.render(data);
+    const container = getOrCreateToastsContainer();
+    container.appendChild(toast);
+}
+
+type ToastProcessData = Omit<ToastRenderData, "size" | "id">;
 
 export class ToastsManager {
     private generateToastId(): string {
         return crypto.randomUUID();
     }
 
-    private process({ title, message, duration, type, id, theme }: Toast): void {
-        const coreSettings = window.ZOIS_CORE.getSettings();
-        if (coreSettings.toasts?.blacklist?.enabled && coreSettings.toasts.blacklist.content?.length !== 0) {
+    private process(toastProperties: ToastProcessData): string | false {
+        const coreSettingsLocal = window.ZOIS_CORE.getSettings();
+        if (
+            coreSettingsLocal.toasts?.blacklist?.enabled &&
+            coreSettingsLocal.toasts.blacklist.content?.length !== 0
+        ) {
             if (
-                coreSettings.toasts.blacklist.content?.some((v) => {
+                coreSettingsLocal.toasts.blacklist.content?.some((v) => {
                     const regexp = new RegExp(v);
-                    return regexp.test(title ?? "") || regexp.test(message);
+                    return regexp.test(toastProperties.title ?? "") || regexp.test(toastProperties.message);
                 })
             ) {
                 logger.log("Toast message blocked due to blacklist settings");
-                return;
+                return false;
             }
         }
-        if (coreSettings.toasts?.preventUsingSingleTheme) {
-            createToast({
-                id,
-                title,
-                message,
-                duration,
-                type
-            });
-        } else {
-            createToast({
-                id,
-                title,
-                message,
-                duration,
-                type,
-                theme
-            });
-        }
-    }
 
-    /**
-    * Displays informational toast.
-    * @param options - Title, message and duration of toast.
-    */
-    public info({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
         const id = this.generateToastId();
-        const theme = MOD_DATA.singleToastsTheme;
-        this.process({ title, message, duration, type: "info", id, theme });
-    }
 
-    /**
-    * Displays success toast.
-    * @param options - Title, message and duration of toast.
-    */
-    public success({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
-        const id = this.generateToastId();
-        const theme = MOD_DATA.singleToastsTheme;
-        this.process({ title, message, duration, type: "success", id, theme });
-    }
+        createToast({
+            ...toastProperties,
+            id,
+            size: {
+                scaleWithCanvas: true,
+                scaleFactor: coreSettingsLocal.toasts?.scaleFactor ?? 1
+            }
+        });
 
-    /**
-    * Displays warning toast.
-    * @param options - Title, message and duration of toast.
-    */
-    public warn({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
-        const id = this.generateToastId();
-        const theme = MOD_DATA.singleToastsTheme;
-        this.process({ title, message, duration, type: "warning", id, theme });
-    }
-
-    /**
-    * Displays error toast.
-    * @param options - Title, message and duration of toast.
-    */
-    public error({ title, message, duration }: Omit<Toast, "type" | "id" | "theme">): void {
-        const id = this.generateToastId();
-        const theme = MOD_DATA.singleToastsTheme;
-        this.process({ title, message, duration, type: "error", id, theme });
-    }
-
-    /**
-    * Displays a long-running spinner toast and returns its ID.
-    * Toast can be deleted manually with `toastsManager.removeSpinner(ID)` or by the user by clicking.
-    * @param options - Title and message of toast.
-    * @returns The unique ID of the created spinner toast.
-    */
-    public spinner({ title, message }: Omit<Toast, "type" | "id" | "duration" | "theme">): string {
-        const id = this.generateToastId();
-        const theme = MOD_DATA.singleToastsTheme;
-        this.process({ title, message, duration: 1000000, type: "spinner", id, theme });
         return id;
     }
 
     /**
-    * Removes a spinner toast by its ID.
-    * @param id - Unique ID of the spinner toast to remove.
-    */
+     * Displays informational toast.
+     * @param options - Title, message and duration of toast.
+     */
+    public info(toastProperties: Omit<ToastProcessData, "type">): void {
+        this.process({ ...toastProperties, type: "info" });
+    }
+
+    /**
+     * Displays success toast.
+     * @param options - Title, message and duration of toast.
+     */
+    public success(toastProperties: Omit<ToastProcessData, "type">): void {
+        this.process({ ...toastProperties, type: "success" });
+    }
+
+    /**
+     * Displays warning toast.
+     * @param options - Title, message and duration of toast.
+     */
+    public warn(toastProperties: Omit<ToastProcessData, "type">): void {
+        this.process({ ...toastProperties, type: "warning" });
+    }
+
+    /**
+     * Displays error toast.
+     * @param options - Title, message and duration of toast.
+     */
+    public error(toastProperties: Omit<ToastProcessData, "type">): void {
+        this.process({ ...toastProperties, type: "error" });
+    }
+
+    /**
+     * Displays a long-running spinner toast and returns its ID.
+     * Toast can be deleted manually with `toastsManager.removeSpinner(ID)` or by the user by clicking.
+     * @param options - Title and message of toast.
+     * @returns The unique ID of the created spinner toast.
+     */
+    public spinner(toastProperties: Omit<ToastProcessData, "type">): string {
+        const result = this.process({ ...toastProperties, type: "spinner" });
+        if (result === false) return "";
+        return result;
+    }
+
+    /**
+     * Removes a spinner toast by its ID.
+     * @param id - Unique ID of the spinner toast to remove.
+     */
     public removeSpinner(id: string): void {
-        const toast = document.querySelector<HTMLDivElement>(`div[data-zc-toast-id="${id}"]`);
+        const toast = document.querySelector<HTMLDivElement>(
+            `div[data-zc-toast-id="${id}"]`
+        );
         if (!toast) return;
-        const pos = window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
-        toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"} 0.3s ease-out forwards`;
-        setTimeout(() => toast.remove(), 300);
+        dismissToast(toast);
     }
 }
 
 /**
-* Toast notifications controller, alternative to BC's native `ToastManager`.
-*/
+ * Toast notifications controller, alternative to BC's native `ToastManager`.
+ */
 export const toastsManager = new ToastsManager();

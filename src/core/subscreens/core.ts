@@ -1,8 +1,8 @@
-import { autosetFontSize, BaseSubscreen, setFontSize } from "../ui";
-import { StyleModule } from "../shard-modules";
-import { Shard, ShardContext } from "../shards";
+import { autosetFontSize, BaseSubscreen, setFontSize } from "../../ui";
+import { StyleModule } from "../../shard-modules";
+import { Shard, ShardContext } from "../../shards";
 import { createElement, X } from "lucide";
-import { createButton, createText } from "./shards";
+import { createButton, createText } from "../shards";
 
 export abstract class CoreSubscreen extends BaseSubscreen {
     private g = 40;
@@ -55,8 +55,7 @@ export abstract class CoreSubscreen extends BaseSubscreen {
         }, 50);
     };
 
-    override unload(): void {
-        super.unload();
+    override onUnload(): void {
         if (this.interval) clearInterval(this.interval);
     };
 };

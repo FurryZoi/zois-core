@@ -1,6 +1,19 @@
-import { logger } from "../logging";
+import { Check, ChevronDown, X, createElement } from "lucide";
 import { ShardContext, Shard } from "../shards";
-import { autosetFontSize, setFontSize } from "../ui";
+import { autosetFontSize, getDynamicClass, setFontSize } from "../ui";
+
+const CORE_BASE = "#20a214";
+const CORE_BORDER = "#33c633";
+const CORE_HOVER = "#39bd2d";
+const CORE_HOVER_TEXT = "#76ff76";
+const CORE_TEXT = "rgb(162, 255, 19)";
+const CORE_TITLE = "rgb(155, 255, 0)";
+const CORE_DARK = "#004800";
+const CORE_ITEM = "rgb(112, 234, 68)";
+const CORE_ITEM_HOVER = "rgb(77, 221, 65)";
+const CORE_INSET = "#136f0b";
+const CORE_INSET_HOVER = "#1a8512";
+const CORE_MUTED = "rgb(120, 214, 80)";
 
 interface TextShardContext extends ShardContext {
     text: string;
@@ -13,7 +26,7 @@ class TextShard extends Shard<TextShardContext> {
             base: (
                 <p
                     style={{
-                        color: "rgb(141, 247, 116)",
+                        color: CORE_TEXT,
                         padding: "0",
                         margin: "0"
                     }}
@@ -61,7 +74,6 @@ class ButtonShard extends Shard<ButtonShardContext> {
                             display: "block",
                             width: "1.25em",
                             height: "1.25em",
-                            filter: "drop-shadow(0 0 6px rgba(141, 247, 116, 0.4))"
                         }}
                     />
                 );
@@ -69,7 +81,6 @@ class ButtonShard extends Shard<ButtonShardContext> {
                 const iconNode = this.context.icon.cloneNode(true) as SVGElement;
                 iconNode.style.width = "1.25em";
                 iconNode.style.height = "1.25em";
-                iconNode.style.filter = "drop-shadow(0 0 6px rgba(141, 247, 116, 0.4))";
                 content.push(iconNode);
             }
         }
@@ -91,15 +102,14 @@ class ButtonShard extends Shard<ButtonShardContext> {
                     justifyContent: "center",
                     gap: "0.5em",
                     margin: "0",
-                    border: "1px solid rgba(141, 247, 116, 0.45)",
-                    borderRadius: "8px",
-                    background: "linear-gradient(180deg, rgba(28, 110, 36, 0.75), rgba(12, 55, 18, 0.9))",
-                    color: "rgb(141, 247, 116)",
+                    border: `2px solid ${CORE_BORDER}`,
+                    borderRadius: "0.1em",
+                    background: CORE_BASE,
+                    color: CORE_DARK,
                     fontWeight: "600",
                     cursor: "pointer",
-                    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(180, 255, 190, 0.15)",
-                    textShadow: "0 0 10px rgba(141, 247, 116, 0.35)",
-                    boxSizing: "border-box"
+                    boxSizing: "border-box",
+                    transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease"
                 }}
                 onClick={() => {
                     if (typeof this.context.isDisabled === "function" && this.context.isDisabled()) {
@@ -112,31 +122,15 @@ class ButtonShard extends Shard<ButtonShardContext> {
                         return;
                     }
                     const el = event.currentTarget as HTMLButtonElement;
-                    el.style.borderColor = "rgba(180, 255, 160, 0.7)";
-                    el.style.color = "#e8ffe8";
-                    el.style.background = "linear-gradient(180deg, rgba(38, 140, 48, 0.85), rgba(18, 75, 25, 0.95))";
-                    el.style.boxShadow = "0 6px 20px rgba(80, 255, 100, 0.22), inset 0 1px 0 rgba(200, 255, 210, 0.25)";
-                    el.style.textShadow = "0 0 14px rgba(180, 255, 160, 0.6)";
-                    el.style.transform = "translateY(-1px)";
+                    el.style.borderColor = CORE_HOVER_TEXT;
+                    el.style.color = CORE_HOVER_TEXT;
+                    el.style.background = CORE_HOVER;
                 }}
                 onMouseLeave={(event) => {
                     const el = event.currentTarget as HTMLButtonElement;
-                    el.style.borderColor = "rgba(141, 247, 116, 0.45)";
-                    el.style.color = "rgb(141, 247, 116)";
-                    el.style.background = "linear-gradient(180deg, rgba(28, 110, 36, 0.75), rgba(12, 55, 18, 0.9))";
-                    el.style.boxShadow = "0 4px 14px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(180, 255, 190, 0.15)";
-                    el.style.textShadow = "0 0 10px rgba(141, 247, 116, 0.35)";
-                    el.style.transform = "translateY(0)";
-                }}
-                onMouseDown={(event) => {
-                    const el = event.currentTarget as HTMLButtonElement;
-                    el.style.transform = "translateY(1px)";
-                    el.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(180, 255, 190, 0.1)";
-                }}
-                onMouseUp={(event) => {
-                    const el = event.currentTarget as HTMLButtonElement;
-                    el.style.transform = "translateY(-1px)";
-                    el.style.boxShadow = "0 6px 20px rgba(80, 255, 100, 0.22), inset 0 1px 0 rgba(200, 255, 210, 0.25)";
+                    el.style.borderColor = CORE_BORDER;
+                    el.style.color = CORE_DARK;
+                    el.style.background = CORE_BASE;
                 }}
             >
                 {content}
@@ -642,27 +636,43 @@ class CheckboxShard extends Shard<CheckboxShardContext> {
     protected render(): Record<"base", HTMLElement | SVGElement> {
         const u = (n: number) => `calc(${n} * var(--size-unit) * 1px)`;
 
-        const checkbox = (
-            <input
-                type="checkbox"
-                checked={this.context.isChecked ?? false}
+        const state = {
+            checked: this.context.isChecked ?? false,
+            hovered: false
+        };
+
+        const checkIcon = createElement(Check);
+        checkIcon.setAttribute("stroke-width", "4");
+        checkIcon.style.width = "60%"
+        checkIcon.style.height = "60%";
+        checkIcon.style.pointerEvents = "none";
+
+        const box = (
+            <span
                 style={{
-                    width: u(3),
-                    height: u(3),
-                    minWidth: u(3),
-                    minHeight: u(3),
-                    accentColor: "rgb(141, 247, 116)",
-                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: u(5),
+                    height: u(5),
+                    minWidth: u(5),
+                    minHeight: u(5),
+                    border: `2px solid ${CORE_BORDER}`,
+                    borderRadius: u(0.5),
+                    background: CORE_BASE,
+                    boxSizing: "border-box",
                     flexShrink: "0",
-                    margin: "0"
+                    transition: "background 0.12s ease, border-color 0.12s ease"
                 }}
             />
-        ) as HTMLInputElement;
+        ) as HTMLSpanElement;
+
+        box.append(checkIcon);
 
         const label = (
             <span
                 style={{
-                    color: "rgb(141, 247, 116)",
+                    color: CORE_TEXT,
                     fontWeight: "500",
                     letterSpacing: "0.03em",
                     whiteSpace: "nowrap",
@@ -675,64 +685,72 @@ class CheckboxShard extends Shard<CheckboxShardContext> {
 
         const container = (
             <div
+                role="checkbox"
+                tabIndex={0}
                 style={{
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
-                    gap: u(2),
+                    gap: u(1.2),
                     width: "fit-content",
                     maxWidth: "100%",
                     margin: "0",
-                    padding: `${u(0.7)} ${u(1.1)}`,
-                    borderRadius: u(1),
-                    border: "1px solid rgba(141, 247, 116, 0.35)",
-                    background: "rgba(16, 70, 22, 0.55)",
-                    boxShadow: "inset 0 1px 0 rgba(180, 255, 190, 0.08)",
                     cursor: "pointer",
-                    boxSizing: "border-box",
-                    transition: "border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease"
+                    userSelect: "none",
+                    outline: "none",
+                    boxSizing: "border-box"
                 }}
             >
-                {checkbox}
+                {box}
                 {label}
             </div>
         ) as HTMLDivElement;
 
-        const applyCheckedStyle = (checked: boolean) => {
-            if (checked) {
-                container.style.borderColor = "rgba(160, 255, 170, 0.55)";
-                container.style.background = "rgba(22, 95, 30, 0.7)";
-                container.style.boxShadow = "0 0 12px rgba(100, 255, 120, 0.12), inset 0 1px 0 rgba(180, 255, 190, 0.12)";
-            } else {
-                container.style.borderColor = "rgba(141, 247, 116, 0.35)";
-                container.style.background = "rgba(16, 70, 22, 0.55)";
-                container.style.boxShadow = "inset 0 1px 0 rgba(180, 255, 190, 0.08)";
-            }
+        const paint = () => {
+            const { checked, hovered } = state;
+            box.style.background = hovered ? CORE_HOVER : checked ? CORE_DARK : CORE_BASE;
+            box.style.borderColor = hovered || checked ? CORE_HOVER_TEXT : CORE_BORDER;
+            checkIcon.style.display = checked ? "block" : "none";
+            checkIcon.style.color = hovered ? CORE_DARK : CORE_TEXT;
+            label.style.color = hovered ? CORE_HOVER_TEXT : CORE_TEXT;
+            container.setAttribute("aria-checked", String(checked));
         };
 
-        applyCheckedStyle(this.context.isChecked ?? false);
+        const toggle = () => {
+            state.checked = !state.checked;
+            paint();
+            this.context.onChange?.(state.checked);
+        };
 
-        checkbox.addEventListener("change", () => {
-            applyCheckedStyle(checkbox.checked);
-            this.context.onChange?.(checkbox.checked);
-        });
+        container.addEventListener("click", toggle);
 
-        container.addEventListener("click", () => {
-            checkbox.click();
+        container.addEventListener("keydown", (event) => {
+            if (event.key === " " || event.key === "Enter") {
+                event.preventDefault();
+                toggle();
+            }
         });
 
         container.addEventListener("mouseenter", () => {
-            if (!checkbox.checked) {
-                container.style.borderColor = "rgba(160, 255, 170, 0.5)";
-                container.style.background = "rgba(20, 85, 28, 0.65)";
-            }
+            state.hovered = true;
+            paint();
         });
 
         container.addEventListener("mouseleave", () => {
-            if (!checkbox.checked) {
-                container.style.borderColor = "rgba(141, 247, 116, 0.35)";
-                container.style.background = "rgba(16, 70, 22, 0.55)";
-            }
+            state.hovered = false;
+            paint();
         });
+
+        container.addEventListener("focus", () => {
+            state.hovered = true;
+            paint();
+        });
+
+        container.addEventListener("blur", () => {
+            state.hovered = false;
+            paint();
+        });
+
+        paint();
 
         return {
             base: container
@@ -777,6 +795,12 @@ class SelectShard extends Shard<SelectShardContext> {
 
         const selected = options.find((option) => option.name === state.current) ?? options[0] ?? { name: "", text: "" };
 
+        const chevron = createElement(ChevronDown) as unknown as SVGElement;
+        chevron.style.width = u(2);
+        chevron.style.height = u(2);
+        chevron.style.flexShrink = "0";
+        chevron.style.transition = "transform 0.15s ease";
+
         const labelSpan = (
             <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {selected.text}
@@ -791,16 +815,21 @@ class SelectShard extends Shard<SelectShardContext> {
                     left: "0",
                     right: "0",
                     top: `calc(100% + ${u(0.4)})`,
-                    background: "rgba(10, 48, 14, 0.97)",
-                    border: "1px solid rgba(141, 247, 116, 0.4)",
+                    background: CORE_BASE,
+                    border: `2px solid ${CORE_BORDER}`,
                     borderRadius: u(1),
                     overflow: "hidden",
                     zIndex: "30",
-                    boxShadow: "0 12px 28px rgba(0, 0, 0, 0.3), 0 0 14px rgba(80, 255, 100, 0.1)",
+                    boxShadow: "0 0 0.1em 0 black",
                     boxSizing: "border-box"
                 }}
             />
         ) as HTMLDivElement;
+
+        const setMenuOpen = (open: boolean) => {
+            menu.style.display = open ? "block" : "none";
+            chevron.style.transform = open ? "rotate(180deg)" : "rotate(0deg)";
+        };
 
         const button = (
             <button
@@ -815,29 +844,28 @@ class SelectShard extends Shard<SelectShardContext> {
                     margin: "0",
                     padding: `${u(0.7)} ${u(1)}`,
                     borderRadius: u(1),
-                    border: "1px solid rgba(141, 247, 116, 0.4)",
-                    background: "linear-gradient(180deg, rgba(24, 95, 28, 0.92), rgba(12, 55, 18, 0.96))",
-                    color: "rgb(200, 255, 190)",
+                    border: `2px solid ${CORE_BORDER}`,
+                    background: CORE_BASE,
+                    color: CORE_TEXT,
                     fontWeight: "600",
                     cursor: "pointer",
-                    boxShadow: "inset 0 1px 0 rgba(180, 255, 190, 0.12)",
                     boxSizing: "border-box",
                     transition: "border-color 0.15s ease, background 0.15s ease"
                 }}
                 onClick={() => {
-                    menu.style.display = menu.style.display === "none" ? "block" : "none";
+                    setMenuOpen(menu.style.display === "none");
                 }}
                 onMouseEnter={() => {
-                    button.style.borderColor = "rgba(170, 255, 180, 0.6)";
-                    button.style.background = "linear-gradient(180deg, rgba(32, 115, 36, 0.95), rgba(16, 65, 22, 0.98))";
+                    button.style.borderColor = CORE_HOVER_TEXT;
+                    button.style.background = CORE_HOVER;
                 }}
                 onMouseLeave={() => {
-                    button.style.borderColor = "rgba(141, 247, 116, 0.4)";
-                    button.style.background = "linear-gradient(180deg, rgba(24, 95, 28, 0.92), rgba(12, 55, 18, 0.96))";
+                    button.style.borderColor = CORE_BORDER;
+                    button.style.background = CORE_BASE;
                 }}
             >
                 {labelSpan}
-                <span style={{ opacity: "0.75", flexShrink: "0" }}>▾</span>
+                {chevron}
             </button>
         ) as HTMLButtonElement;
 
@@ -851,9 +879,9 @@ class SelectShard extends Shard<SelectShardContext> {
                             width: "100%",
                             margin: "0",
                             padding: `${u(0.7)} ${u(1)}`,
-                            background: option.name === state.current ? "rgba(120, 255, 130, 0.18)" : "transparent",
+                            background: option.name === state.current ? CORE_HOVER : CORE_BASE,
                             border: "0",
-                            color: "rgb(200, 255, 190)",
+                            color: CORE_TEXT,
                             fontWeight: "600",
                             textAlign: "left",
                             cursor: "pointer",
@@ -863,18 +891,18 @@ class SelectShard extends Shard<SelectShardContext> {
                         onClick={() => {
                             state.current = option.name;
                             labelSpan.textContent = option.text;
-                            menu.style.display = "none";
+                            setMenuOpen(false);
                             this.context.onChange?.(option.name);
                             rebuildMenu();
                         }}
                         onMouseEnter={() => {
                             if (option.name !== state.current) {
-                                optionButton.style.background = "rgba(100, 220, 120, 0.12)";
+                                optionButton.style.background = CORE_HOVER;
                             }
                         }}
                         onMouseLeave={() => {
                             optionButton.style.background =
-                                option.name === state.current ? "rgba(120, 255, 130, 0.18)" : "transparent";
+                                option.name === state.current ? CORE_HOVER : CORE_BASE;
                         }}
                     >
                         {option.text}
@@ -902,7 +930,7 @@ class SelectShard extends Shard<SelectShardContext> {
 
         const onDocumentClick = (event: MouseEvent) => {
             if (!wrapper.contains(event.target as Node)) {
-                menu.style.display = "none";
+                setMenuOpen(false);
             }
         };
         document.addEventListener("click", onDocumentClick);
@@ -933,6 +961,119 @@ export function createSelect(context: SelectShardContext) {
     return shard.mount();
 }
 
+interface InputElementOptions {
+    value?: string;
+    placeholder?: string;
+    onInput?: (value: string) => void;
+    onEnter?: (value: string) => void;
+}
+
+function createInputElement(options: InputElementOptions): HTMLInputElement {
+    const u = (n: number) => `calc(${n} * var(--size-unit) * 1px)`;
+
+    const placeholderClass = getDynamicClass({
+        base: {},
+        "::placeholder": {
+            color: CORE_MUTED
+        }
+    });
+
+    const input = (
+        <input
+            type="text"
+            class={placeholderClass}
+            placeholder={options.placeholder ?? "Enter value"}
+            style={{
+                flex: "1",
+                width: "100%",
+                minWidth: "0",
+                margin: "0",
+                padding: `${u(0.65)} ${u(1)}`,
+                height: u(6.25),
+                borderRadius: u(0.8),
+                border: `2px solid ${CORE_BORDER}`,
+                background: CORE_INSET,
+                color: CORE_TEXT,
+                caretColor: CORE_TEXT,
+                fontWeight: "500",
+                letterSpacing: "0.02em",
+                outline: "none",
+                boxSizing: "border-box",
+                transition: "border-color 0.15s ease, background 0.15s ease"
+            }}
+            onMouseEnter={() => {
+                if (document.activeElement !== input) {
+                    input.style.borderColor = CORE_HOVER_TEXT;
+                }
+            }}
+            onMouseLeave={() => {
+                if (document.activeElement !== input) {
+                    input.style.borderColor = CORE_BORDER;
+                }
+            }}
+            onFocus={() => {
+                input.style.borderColor = CORE_TEXT;
+                input.style.background = CORE_INSET_HOVER;
+            }}
+            onBlur={() => {
+                input.style.borderColor = CORE_BORDER;
+                input.style.background = CORE_INSET;
+            }}
+            onKeyDown={(event: KeyboardEvent) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    options.onEnter?.(input.value);
+                }
+            }}
+        />
+    ) as HTMLInputElement;
+
+    input.value = options.value ?? "";
+
+    input.addEventListener("input", () => {
+        options.onInput?.(input.value);
+    });
+
+    return input;
+}
+
+interface InputShardContext extends ShardContext {
+    value?: string;
+    placeholder?: string;
+    fontSize?: number | "auto";
+    onChange?: (value: string) => void;
+}
+
+class InputShard extends Shard<InputShardContext> {
+    protected render(): Record<"base", HTMLElement | SVGElement> {
+        const input = createInputElement({
+            value: this.context.value,
+            placeholder: this.context.placeholder,
+            onInput: (value) => {
+                this.context.onChange?.(value);
+            }
+        });
+
+        return {
+            base: input
+        };
+    }
+
+    protected update(): void {
+        super.update();
+        if ((this.context.fontSize ?? "auto") === "auto") {
+            autosetFontSize(this.body!.base as HTMLElement);
+        } else if (typeof this.context.fontSize === "number") {
+            setFontSize(this.body!.base as HTMLElement, this.context.fontSize);
+        }
+    }
+}
+
+export function createInput(context: InputShardContext) {
+    const shard = new InputShard(context);
+    return shard.mount() as HTMLInputElement;
+}
+
 interface InputListShardContext extends ShardContext {
     title?: string;
     value?: string[];
@@ -951,102 +1092,134 @@ class InputListShard extends Shard<InputListShardContext> {
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: u(0.5),
+                    gap: u(0.6),
                     flex: "1",
                     minHeight: "0",
+                    paddingRight: u(0.3),
                     overflowY: "auto",
-                    overflowX: "hidden"
+                    overflowX: "hidden",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: `${CORE_BORDER} ${CORE_BASE}`
                 }}
             />
         ) as HTMLDivElement;
 
-        const input = (
-            <input
-                type="text"
-                placeholder={this.context.placeholder ?? "Enter value"}
-                style={{
-                    flex: "1",
-                    minWidth: "0",
-                    margin: "0",
-                    padding: `${u(0.65)} ${u(0.85)}`,
-                    height: u(6.25),
-                    borderRadius: u(0.8),
-                    border: "1px solid rgba(141, 247, 116, 0.4)",
-                    background: "rgba(8, 40, 14, 0.75)",
-                    color: "rgb(200, 255, 190)",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    transition: "border-color 0.15s ease"
-                }}
-                onFocus={() => {
-                    input.style.borderColor = "rgba(170, 255, 180, 0.65)";
-                }}
-                onBlur={() => {
-                    input.style.borderColor = "rgba(141, 247, 116, 0.4)";
-                }}
-                onKeyDown={(event: KeyboardEvent) => {
-                    if (event.key === "Enter") {
-                        event.preventDefault();
-                        addValue();
-                    }
-                }}
-            />
-        ) as HTMLInputElement;
+        const input = createInputElement({
+            placeholder: this.context.placeholder,
+            onInput: () => {
+                syncAddState();
+            },
+            onEnter: () => {
+                addValue();
+            }
+        });
 
         const addButton = (
             <button
                 type="button"
                 style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: u(0.5),
                     margin: "0",
-                    padding: `${u(0.55)} ${u(1)}`,
+                    padding: `${u(0.55)} ${u(1.4)}`,
                     height: u(6.25),
                     borderRadius: u(0.8),
-                    border: "1px solid rgba(141, 247, 116, 0.45)",
-                    background: "linear-gradient(180deg, rgba(28, 110, 36, 0.85), rgba(14, 60, 20, 0.95))",
-                    color: "rgb(200, 255, 190)",
-                    fontWeight: "600",
-                    cursor: "pointer",
+                    border: `2px solid ${CORE_BORDER}`,
+                    background: CORE_INSET,
+                    color: CORE_MUTED,
+                    fontWeight: "700",
+                    cursor: "default",
                     whiteSpace: "nowrap",
                     boxSizing: "border-box",
-                    transition: "border-color 0.15s ease, background 0.15s ease"
+                    transition: "border-color 0.15s ease, background 0.15s ease, color 0.15s ease"
                 }}
                 onClick={() => {
                     addValue();
                 }}
                 onMouseEnter={() => {
-                    addButton.style.borderColor = "rgba(170, 255, 180, 0.65)";
-                    addButton.style.background = "linear-gradient(180deg, rgba(38, 130, 46, 0.9), rgba(18, 75, 25, 0.98))";
+                    if (!input.value.trim()) {
+                        return;
+                    }
+                    addButton.style.background = CORE_HOVER_TEXT;
+                    addButton.style.borderColor = CORE_HOVER_TEXT;
                 }}
                 onMouseLeave={() => {
-                    addButton.style.borderColor = "rgba(141, 247, 116, 0.45)";
-                    addButton.style.background = "linear-gradient(180deg, rgba(28, 110, 36, 0.85), rgba(14, 60, 20, 0.95))";
+                    syncAddState();
                 }}
             >
-                Add
+                <span>+</span>
+                <span>Add</span>
             </button>
         ) as HTMLButtonElement;
+
+        const emptyState = (
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flex: "1",
+                    minHeight: u(6),
+                    padding: u(1),
+                    borderRadius: u(0.8),
+                    border: `2px dashed ${CORE_BORDER}`,
+                    color: CORE_MUTED,
+                    fontWeight: "500",
+                    letterSpacing: "0.04em",
+                    boxSizing: "border-box"
+                }}
+            >
+                No items yet
+            </div>
+        ) as HTMLDivElement;
 
         const emitChange = () => {
             this.context.onChange?.([...values]);
         };
 
+        const syncAddState = () => {
+            const hasValue = input.value.trim().length > 0;
+            addButton.style.background = hasValue ? CORE_ITEM : CORE_INSET;
+            addButton.style.borderColor = hasValue ? CORE_ITEM : CORE_BORDER;
+            addButton.style.color = hasValue ? CORE_DARK : CORE_MUTED;
+            addButton.style.cursor = hasValue ? "pointer" : "default";
+        };
+
         const renderList = () => {
+            if (values.length === 0) {
+                listContainer.replaceChildren(emptyState);
+                return;
+            }
+
             const rows = values.map((value, index) => {
+                const removeIcon = createElement(X) as unknown as SVGElement;
+                removeIcon.setAttribute("stroke-width", "3");
+                removeIcon.style.width = u(2);
+                removeIcon.style.height = u(2);
+                removeIcon.style.pointerEvents = "none";
+
                 const removeButton = (
                     <button
                         type="button"
+                        title="Remove"
                         style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: u(3.6),
+                            height: u(3.6),
                             margin: "0",
-                            padding: `${u(0.35)} ${u(0.7)}`,
+                            padding: "0",
                             borderRadius: u(0.6),
-                            border: "1px solid rgba(92, 159, 99, 0.68)",
-                            background: "rgba(54, 121, 61, 0.68)",
-                            color: "rgb(255, 210, 205)",
-                            fontWeight: "600",
+                            border: `2px solid ${CORE_BORDER}`,
+                            background: CORE_BASE,
+                            color: CORE_TEXT,
                             cursor: "pointer",
                             flexShrink: "0",
                             boxSizing: "border-box",
-                            transition: "background 0.12s ease"
+                            transition: "background 0.12s ease, border-color 0.12s ease, color 0.12s ease"
                         }}
                         onClick={() => {
                             values.splice(index, 1);
@@ -1054,33 +1227,45 @@ class InputListShard extends Shard<InputListShardContext> {
                             renderList();
                         }}
                         onMouseEnter={() => {
-                            removeButton.style.background = "rgba(62, 128, 69, 0.68)";
+                            removeButton.style.background = CORE_ITEM;
+                            removeButton.style.borderColor = CORE_ITEM;
+                            removeButton.style.color = CORE_DARK;
                         }}
                         onMouseLeave={() => {
-                            removeButton.style.background = "rgba(54, 121, 61, 0.68)";
+                            removeButton.style.background = CORE_BASE;
+                            removeButton.style.borderColor = CORE_BORDER;
+                            removeButton.style.color = CORE_TEXT;
                         }}
                     >
-                        Remove
+                        {removeIcon}
                     </button>
                 ) as HTMLButtonElement;
 
-                return (
+                const row = (
                     <div
                         style={{
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: u(0.75),
-                            padding: `${u(0.55)} ${u(0.8)}`,
+                            gap: u(0.8),
+                            padding: `${u(0.6)} ${u(0.8)} ${u(0.6)} ${u(1.1)}`,
                             borderRadius: u(0.8),
-                            border: "1px solid rgba(141, 247, 116, 0.25)",
-                            background: "rgba(8, 36, 14, 0.8)",
-                            boxSizing: "border-box"
+                            border: `2px solid ${CORE_BORDER}`,
+                            background: CORE_INSET,
+                            boxSizing: "border-box",
+                            transition: "background 0.12s ease"
+                        }}
+                        onMouseEnter={() => {
+                            row.style.background = CORE_INSET_HOVER;
+                        }}
+                        onMouseLeave={() => {
+                            row.style.background = CORE_INSET;
                         }}
                     >
                         <span
                             style={{
-                                color: "rgb(190, 255, 180)",
+                                flex: "1",
+                                color: CORE_TEXT,
+                                fontWeight: "500",
                                 overflowWrap: "anywhere",
                                 minWidth: "0"
                             }}
@@ -1090,6 +1275,8 @@ class InputListShard extends Shard<InputListShardContext> {
                         {removeButton}
                     </div>
                 ) as HTMLDivElement;
+
+                return row;
             });
 
             listContainer.replaceChildren(...rows);
@@ -1102,8 +1289,10 @@ class InputListShard extends Shard<InputListShardContext> {
             }
             values.push(next);
             input.value = "";
+            syncAddState();
             emitChange();
             renderList();
+            listContainer.scrollTop = listContainer.scrollHeight;
         };
 
         const wrapper = (
@@ -1111,16 +1300,15 @@ class InputListShard extends Shard<InputListShardContext> {
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: u(0.8),
+                    gap: u(1),
                     width: "100%",
                     height: "100%",
                     margin: "0",
-                    padding: u(1),
+                    padding: u(1.2),
                     borderRadius: u(1.2),
-                    border: "1px solid rgba(141, 247, 116, 0.4)",
-                    background: "rgba(12, 55, 18, 0.55)",
-                    boxShadow: "inset 0 1px 0 rgba(180, 255, 190, 0.08)",
-                    color: "rgb(200, 255, 190)",
+                    border: `2px solid ${CORE_BORDER}`,
+                    background: CORE_BASE,
+                    color: CORE_TEXT,
                     boxSizing: "border-box",
                     overflow: "hidden"
                 }}
@@ -1129,16 +1317,20 @@ class InputListShard extends Shard<InputListShardContext> {
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
                         gap: u(0.75),
+                        paddingBottom: u(0.8),
+                        borderBottom: `2px solid ${CORE_BORDER}`,
                         flexShrink: "0"
                     }}
                 >
                     <strong
                         style={{
-                            color: "rgb(200, 255, 190)",
+                            color: CORE_TITLE,
                             letterSpacing: "0.04em",
-                            fontWeight: "600"
+                            fontWeight: "700",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap"
                         }}
                     >
                         {this.context.title ?? "List"}
@@ -1148,7 +1340,7 @@ class InputListShard extends Shard<InputListShardContext> {
                     style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: u(0.6),
+                        gap: u(0.7),
                         flexShrink: "0"
                     }}
                 >
@@ -1159,6 +1351,7 @@ class InputListShard extends Shard<InputListShardContext> {
             </div>
         ) as HTMLDivElement;
 
+        syncAddState();
         renderList();
 
         return {
@@ -1178,5 +1371,5 @@ class InputListShard extends Shard<InputListShardContext> {
 
 export function createInputList(context: InputListShardContext) {
     const shard = new InputListShard(context);
-    return shard.mount();
+    return shard.mount() as HTMLDivElement;
 }

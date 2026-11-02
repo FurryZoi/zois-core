@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" style="color:#6dffb0">
+  <path d="M32 14Q26 5 33 3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M10 34C10 12 54 12 54 34L55 56Q50 58 47 52L17 52Q14 58 9 56Z" fill="currentColor" stroke="#15122b" stroke-width="1.5" stroke-linejoin="round"/>
+  <ellipse cx="32" cy="37" rx="16" ry="16.5" fill="#ffe6d5" stroke="#15122b" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M14 36C13 15 51 15 50 36C46 28 41 26 36 23C34 28 28 30 21 29C18 30 16 32 14 36Z" fill="currentColor" stroke="#15122b" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M25 22Q29 25 28 29" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M19.5 38.5Q24 32 28.5 38.5" fill="none" stroke="#15122b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M35.5 38.5Q40 32 44.5 38.5" fill="none" stroke="#15122b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="18.5" cy="43.5" rx="3" ry="1.8" fill="currentColor" opacity=".45"/>
+  <ellipse cx="45.5" cy="43.5" rx="3" ry="1.8" fill="currentColor" opacity=".45"/>
+  <path d="M26.5 44Q32 53 37.5 44Z" fill="#15122b"/>
+  <path d="M29 48.5Q32 46.5 35 48.5Q32 51.5 29 48.5Z" fill="currentColor"/>
+  <path d="M53 5.5Q53 12 59.5 12Q53 12 53 18.5Q53 12 46.5 12Q53 12 53 5.5Z" fill="#fff"/>
+  <path d="M10 12Q10 16 14 16Q10 16 10 20Q10 16 6 16Q10 16 10 12Z" fill="#fff"/>
+  <path d="M56 37Q56 40 59 40Q56 40 56 43Q56 40 53 40Q56 40 56 37Z" fill="currentColor"/>
+</svg>

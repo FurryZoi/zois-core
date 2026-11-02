@@ -5,9 +5,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "scripts/zois-core.mjs",
-    "tests/toastsManager.test.ts",
     "tests/messagesManager.test.ts",
-    "tests/dialogsManager.test.ts",
     "tests/setup.ts"
   ],
   "compilerOptions": {

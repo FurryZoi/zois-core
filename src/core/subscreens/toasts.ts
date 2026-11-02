@@ -1,48 +1,64 @@
-import { Anchor } from "../ui";
-import { coreSettings, saveSettings } from "../core";
-import { CoreSubscreen } from "./coreSubscreen";
-import { toastsManager } from "../toasts";
-import { createButton, createCheckbox, createInputList, createSelect, createText } from "./shards";
+import { Anchor } from "../../ui";
+import { CoreSubscreen } from "./core";
+import { toastsManager } from "../../toasts";
+import { createButton, createCheckbox, createInput, createInputList, createSelect, createText } from "../shards";
+import { resetThemes } from "../toastThemes";
+import { AttributesModule } from "../../shard-modules";
+import { coreSettings, saveSettings } from "../settings";
 
 export class ToastsSubscreen extends CoreSubscreen {
     override get name(): string {
         return "Toasts";
     };
 
-    override load(): void {
-        super.load();
-        createCheckbox({
+    override onLoad(): void {
+        super.onLoad();
+
+        createText({
+            text: "Scale factor (Defaults to 1)",
             x: 60,
             y: 200,
-            text: "Blacklist Enabled",
-            isChecked: !!coreSettings.toasts?.blacklist?.enabled,
-            onChange: () => {
-                coreSettings.toasts ??= {};
-                coreSettings.toasts.blacklist ??= {};
-                coreSettings.toasts.blacklist.enabled = !coreSettings.toasts.blacklist.enabled;
-            }
         });
 
-        createCheckbox({
+        const scaleFactorInput = createInput({
             x: 60,
-            y: 280,
-            text: "Prevent Using Single Theme",
-            isChecked: !!coreSettings.toasts?.preventUsingSingleTheme,
-            onChange: () => {
+            y: 275,
+            width: 400,
+            placeholder: "Scale factor",
+            value: coreSettings.toasts?.scaleFactor?.toString() ?? "1",
+            modules: {
+                base: [
+                    new AttributesModule({
+                        type: "number",
+                        min: "0.25",
+                        max: "4"
+                    })
+                ]
+            },
+            onChange: (value) => {
+                if (scaleFactorInput.value === "") {
+                    return;
+                }
+                const min = parseFloat(scaleFactorInput.min);
+                const max = parseFloat(scaleFactorInput.max);
+                const val = Math.min(max, Math.max(min, parseFloat(value)));
+                if (val.toString() !== value) {
+                    scaleFactorInput.value = val.toString();
+                }
                 coreSettings.toasts ??= {};
-                coreSettings.toasts.preventUsingSingleTheme = !coreSettings.toasts.preventUsingSingleTheme;
+                coreSettings.toasts.scaleFactor = val;
             }
         });
 
         createText({
-            text: "Toasts Position:",
+            text: "Position:",
             x: 60,
-            y: 380
+            y: 400
         });
 
         createSelect({
-            x: 400,
-            y: 374,
+            x: 275,
+            y: 395,
             width: 500,
             options: [
                 {
@@ -69,9 +85,21 @@ export class ToastsSubscreen extends CoreSubscreen {
             }
         });
 
-        createInputList({
+        createCheckbox({
             x: 1100,
             y: 200,
+            text: "Blacklist Enabled",
+            isChecked: !!coreSettings.toasts?.blacklist?.enabled,
+            onChange: () => {
+                coreSettings.toasts ??= {};
+                coreSettings.toasts.blacklist ??= {};
+                coreSettings.toasts.blacklist.enabled = !coreSettings.toasts.blacklist.enabled;
+            }
+        });
+
+        createInputList({
+            x: 1100,
+            y: 300,
             width: 800,
             height: 600,
             title: "Blacklist",
@@ -90,7 +118,7 @@ export class ToastsSubscreen extends CoreSubscreen {
             x: 60,
             y: 850,
             padding: 1,
-            width: 400,
+            width: 300,
             onClick: () => {
                 saveSettings();
                 toastsManager.success({
@@ -113,6 +141,17 @@ export class ToastsSubscreen extends CoreSubscreen {
                     message: "Catch him!",
                     duration: 8000
                 });
+            }
+        });
+
+        createButton({
+            text: "Reset Themes",
+            x: 400,
+            y: 850,
+            padding: 1,
+            width: 300,
+            onClick: () => {
+                resetThemes();
             }
         });
     };
