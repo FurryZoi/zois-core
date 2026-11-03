@@ -22,11 +22,11 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
     }
 
     constructor(protected context: Context) {
+        this.body = this.render();
         this.processModules("overrideContext");
     }
     
     public mount(parentElement: HTMLElement = this.context.parent ?? document.body) {
-        this.body = this.render();
         this.processModules("layoutEffect");
         parentElement.append(this.body!.base);
         this.setContextStyles();
