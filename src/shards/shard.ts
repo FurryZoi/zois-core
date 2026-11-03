@@ -16,7 +16,6 @@ export interface ShardContext<T extends string = never> {
 
 export abstract class Shard<Context extends ShardContext = ShardContext> {
     public body: Record<keyof NonNullable<Context["modules"]>, HTMLElement | SVGElement> | null = null;
-    private updateListener: (() => void) | null = null
 
     protected get mountReturnValue() {
         return this.body?.base ?? null;
@@ -30,10 +29,8 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
         this.body = this.render();
         this.processModules("layoutEffect");
         parentElement.append(this.body!.base);
-        this.update();
+        this.setContextStyles();
         this.processModules("effect");
-        this.updateListener = this.update.bind(this);
-        window.addEventListener("resize", this.updateListener);
         eventBus?.once("subscreenUnloaded", this.unmount.bind(this));
         eventBus?.emit("shardMounted", {
             shard: this
@@ -43,12 +40,6 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
 
     public unmount() {
         this.body!.base.remove();
-        if (this.updateListener !== null) {
-            window.removeEventListener("resize", this.updateListener);
-            this.updateListener = null;
-        } else {
-            logger.warn("Update event listener function is null when unmount shard", this);
-        }
         eventBus?.emit("shardUnmounted", {
             shard: this
         });
@@ -108,11 +99,11 @@ export abstract class Shard<Context extends ShardContext = ShardContext> {
         }
     }
 
-    protected update() {
+    protected setContextStyles() {
         const { x, y, anchor, padding, width, height } = this.context;
         if (typeof x === "number" && typeof y === "number") setPosition(this.body!.base as HTMLElement, x, y, anchor);
         if (padding) setPadding(this.body!.base as HTMLElement, padding);
-        if (width) this.body!.base.style.width = getRelativeWidth(width) + "px";
-        if (height) this.body!.base.style.height = getRelativeHeight(height) + "px";
+        if (width) this.body!.base.style.width = getRelativeWidth(width);
+        if (height) this.body!.base.style.height = getRelativeHeight(height);
     }
 }

@@ -105,84 +105,85 @@ export function cssVar(name: string, fallback: string) {
     return value || fallback;
 }
 
+/**
+ * Returns a CSS height scaled to the main canvas (base space: 2000x1000).
+ * Based on `--height-unit`, so it updates automatically on resize.
+ * @param height - Height in base units.
+ */
 export function getRelativeHeight(height: number) {
-    return height * (MainCanvas.canvas.clientHeight / 1000);
-}
-
-export function getRelativeWidth(width: number) {
-    return width * (MainCanvas.canvas.clientWidth / 2000);
-}
-
-export function getRelativeY(yPos: number, anchorPosition: 'top' | 'bottom' = 'top') {
-    const scaleY = MainCanvas.canvas.clientHeight / 1000;
-    return anchorPosition === 'top'
-        ? MainCanvas.canvas.offsetTop + yPos * scaleY
-        : window.innerHeight - (MainCanvas.canvas.offsetTop + MainCanvas.canvas.clientHeight) + yPos * scaleY;
-}
-
-export function getRelativeX(xPos: number, anchorPosition: 'left' | 'right' = 'left') {
-    const scaleX = MainCanvas.canvas.clientWidth / 2000;
-    return anchorPosition === 'left'
-        ? MainCanvas.canvas.offsetLeft + xPos * scaleX
-        : window.innerWidth - (MainCanvas.canvas.offsetLeft + MainCanvas.canvas.clientWidth) + xPos * scaleX;
+    return `calc(${height} * var(--height-unit) * 1px)`;
 }
 
 /**
-* Sets the position of the given HTML element relative to the specified anchor point.
-* Position scaled relative to the current size of the main canvas.
-* @param element - The HTML element to position.
-* @param xPos - The base horizontal position value.
-* @param yPos - The base vertical position value.
-* @param anchor - The anchor point used for positioning. Defaults to `"top-left"`.
-* @returns void
-*/
+ * Returns a CSS width scaled to the main canvas (base space: 2000x1000).
+ * Based on `--width-unit`, so it updates automatically on resize.
+ * @param width - Width in base units.
+ */
+export function getRelativeWidth(width: number) {
+    return `calc(${width} * var(--width-unit) * 1px)`;
+}
+
+/**
+ * Returns a CSS vertical offset from the top or bottom edge of the main canvas.
+ * Based on `--canvas-*` and `--height-unit`, so it updates automatically on resize.
+ * @param yPos - Offset in base units.
+ * @param anchor - Canvas edge to measure from. Defaults to `"top"`.
+ */
+export function getRelativeY(yPos: number, anchor: "top" | "bottom" = "top") {
+    return `calc(var(--canvas-${anchor}) + ${yPos} * var(--height-unit) * 1px)`;
+}
+
+/**
+ * Returns a CSS horizontal offset from the left or right edge of the main canvas.
+ * Based on `--canvas-*` and `--width-unit`, so it updates automatically on resize.
+ * @param xPos - Offset in base units.
+ * @param anchor - Canvas edge to measure from. Defaults to `"left"`.
+ */
+export function getRelativeX(xPos: number, anchor: "left" | "right" = "left") {
+    return `calc(var(--canvas-${anchor}) + ${xPos} * var(--width-unit) * 1px)`;
+}
+
+/**
+ * Fixes the element to the main canvas at the given position (base space: 2000x1000).
+ * Uses CSS variables, so the position updates automatically on resize.
+ * @param element - The element to position.
+ * @param xPos - Horizontal offset in base units from the left or right canvas edge.
+ * @param yPos - Vertical offset in base units from the top or bottom canvas edge.
+ * @param anchor - Canvas corner the offsets are measured from. Defaults to `"top-left"`.
+ */
 export function setPosition(element: HTMLElement, xPos: number, yPos: number, anchor: Anchor = "top-left") {
     const yAnchor = anchor === 'top-left' || anchor === 'top-right' ? 'top' : 'bottom';
     const xAnchor = anchor === 'top-left' || anchor === 'bottom-left' ? 'left' : 'right';
 
-    const y = getRelativeY(yPos, yAnchor);
-    const x = getRelativeX(xPos, xAnchor);
-
     Object.assign(element.style, {
-        position: 'fixed',
-        [xAnchor]: x + 'px',
-        [yAnchor]: y + 'px',
+        position: "fixed",
+        [xAnchor]: getRelativeX(xPos, xAnchor),
+        [yAnchor]: getRelativeY(yPos, yAnchor),
     });
 }
 
 /**
-* Sets the width and height of the given element,
-* scaled relative to the current size of the main canvas.
-* @param element - The element whose size should be updated.
-* @param width - The base width value.
-* @param height - The base height value.
-* @returns void
-*/
+ * Sets the element's width and height scaled to the main canvas (base space: 2000x1000).
+ * Uses CSS variables, so the size updates automatically on resize.
+ * @param element - The element to resize.
+ * @param width - Width in base units.
+ * @param height - Height in base units.
+ */
 export function setSize(element: HTMLElement | SVGElement, width: number, height: number) {
     Object.assign(element.style, {
-        width: getRelativeWidth(width) + 'px',
-        height: getRelativeHeight(height) + 'px',
+        width: getRelativeWidth(width),
+        height: getRelativeHeight(height),
     });
 }
 
 /**
-* Sets the font size of the given HTML element based on a target font size value,
-* scaled relative to the current size of the main canvas.
-* @param element - The HTML element whose font size should be updated.
-* @param targetFontSize - The base font size value to be scaled.
-* @returns void
-*/
+ * Sets the element's font size scaled to the main canvas.
+ * One unit is 1% of the canvas's smaller side. Uses `--size-unit`, so it updates automatically on resize.
+ * @param element - The element whose font size should be set.
+ * @param targetFontSize - Font size in `--size-unit` units.
+ */
 export function setFontSize(element: HTMLElement, targetFontSize: number) {
-    const canvasWidth = MainCanvas.canvas.clientWidth;
-    const canvasHeight = MainCanvas.canvas.clientHeight;
-
-    const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
-
-    const fontSize = targetFontSize * scaleFactor;
-
-    Object.assign(element.style, {
-        fontSize: fontSize + 'px'
-    });
+    element.style.fontSize = `calc(${targetFontSize} * var(--size-unit) * 1px)`;
 }
 
 /**
@@ -196,43 +197,22 @@ export function setFontFamily(element: HTMLElement, fontFamily?: string) {
 }
 
 /**
-* Sets the padding of the given HTML element based on a target padding value,
-* scaled relative to the current size of the main canvas.
-* @param element - The HTML element whose padding should be updated.
-* @param targetPadding - The base padding value to be scaled.
-* @returns void
-*/
+ * Sets the element's padding on all sides scaled to the main canvas.
+ * One unit is 1% of the canvas's smaller side. Uses `--size-unit`, so it updates automatically on resize.
+ * @param element - The element whose padding should be set.
+ * @param targetPadding - Padding in `--size-unit` units.
+ */
 export function setPadding(element: HTMLElement, targetPadding: number) {
-    const canvasWidth = MainCanvas.canvas.clientWidth;
-    const canvasHeight = MainCanvas.canvas.clientHeight;
-
-    const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
-
-    const paddingValue = targetPadding * scaleFactor;
-
-    Object.assign(element.style, {
-        padding: paddingValue + 'px',
-    });
+    element.style.padding = `calc(${targetPadding} * var(--size-unit) * 1px)`;
 }
 
 /**
-* Automatically sets the font size of the given HTML element based on the current size of the main canvas.
-* @param element - The HTML element whose font size should be updated.
-* @returns void
-*/
+ * Sets the element's font size to the default size for the current main canvas.
+ * Uses `--width-unit` and `--height-unit`, so it updates automatically on resize.
+ * @param element - The element whose font size should be set.
+ */
 export function autosetFontSize(element: HTMLElement) {
-    const Font = MainCanvas.canvas.clientWidth <= MainCanvas.canvas.clientHeight * 2 ? MainCanvas.canvas.clientWidth / 50 : MainCanvas.canvas.clientHeight / 25;
-
-    Object.assign(element.style, {
-        fontSize: Font + 'px'
-    });
-}
-
-export function setSizeUnitVariable() {
-    const canvasWidth = MainCanvas.canvas.clientWidth;
-    const canvasHeight = MainCanvas.canvas.clientHeight;
-    const scaleFactor = Math.min(canvasWidth, canvasHeight) / 100;
-    document.documentElement.style.setProperty('--size-unit', scaleFactor.toString());
+    element.style.fontSize = "calc(min(var(--width-unit), var(--height-unit)) * 40 * 1px)";
 }
 
 const createdDynamicClasses: {
@@ -490,7 +470,6 @@ export abstract class BaseSubscreen {
      * Override {@link onLoad} to define html elements.
      */
     public load() {
-        setSizeUnitVariable();
         this.createExitButton();
         if (this.name) this.createSubscreenTitle();
         this.onLoad?.();

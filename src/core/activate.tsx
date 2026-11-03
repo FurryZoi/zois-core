@@ -3,7 +3,7 @@ import { dialogsManager } from "../dialogs";
 import { getEventBus } from "../events";
 import { formatString, version, waitFor } from "../index";
 import { hookFunction, HookPriority } from "../modSdk";
-import { addDynamicClass, getCurrentSubscreen, setPosition, setSize, setSizeUnitVariable, setSubscreen } from "../ui";
+import { addDynamicClass, getCurrentSubscreen, setPosition, setSize, setSubscreen } from "../ui";
 import { createConfirmDialog, createPickDialog, createPickPlayerDialog, createPromptDialog } from "./dialogs";
 import {
     coreEventBus,
@@ -18,6 +18,7 @@ import {
     registerToastThemes,
     resolveActiveToastTheme
 } from "./toastThemes";
+import { initCssVars } from "./cssVars";
 
 export function registerSubscreen(): void {
     PreferenceRegisterExtensionSetting({
@@ -244,8 +245,7 @@ export function activateCore(): void {
     }, true);
 
     waitFor(() => MainCanvas !== undefined).then(() => {
-        setSizeUnitVariable();
-        window.addEventListener("resize", setSizeUnitVariable);
+        initCssVars();
     });
 
     if (coreSettings.devMode) {

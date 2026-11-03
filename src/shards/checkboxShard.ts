@@ -194,8 +194,8 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
         };
     }
 
-    protected update(): void {
-        super.update();
+    protected setContextStyles(): void {
+        super.setContextStyles();
         if (this.body?.base) {
             autosetFontSize(this.body.base as HTMLElement);
         }

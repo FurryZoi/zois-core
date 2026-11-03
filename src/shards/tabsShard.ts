@@ -88,8 +88,8 @@ export class TabsShard extends Shard<TabsShardContext> {
         };
     }
 
-    protected update() {
-        super.update();
+    protected setContextStyles() {
+        super.setContextStyles();
         autosetFontSize(this.body!.base as HTMLElement);
     }
 }

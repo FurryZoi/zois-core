@@ -198,8 +198,8 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         };
     }
 
-    protected update(): void {
-        super.update();
+    protected setContextStyles(): void {
+        super.setContextStyles();
         autosetFontSize(this.body!.base as HTMLElement);
     }
 }

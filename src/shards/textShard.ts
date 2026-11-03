@@ -30,8 +30,8 @@ export class TextShard extends Shard<TextShardContext> {
         }
     }
 
-    protected update(): void {
-        super.update();
+    protected setContextStyles(): void {
+        super.setContextStyles();
         if ((this.context.fontSize ?? "auto") === "auto") autosetFontSize(this.body!.base as HTMLElement);
         else if (typeof this.context.fontSize === "number") setFontSize(this.body!.base as HTMLElement, this.context.fontSize);
     }

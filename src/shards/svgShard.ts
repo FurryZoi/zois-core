@@ -33,8 +33,8 @@ export class SvgShard extends Shard<SvgShardContext> {
         };
     }
 
-    protected update(): void {
-        super.update();
+    protected setContextStyles(): void {
+        super.setContextStyles();
         setSize(this.body!.base, this.context.size, this.context.size);
     }
 }

@@ -154,8 +154,8 @@ export class SelectShard extends Shard<SelectShardContext> {
         }
     }
 
-    protected update(): void {
-        super.update();
+    protected setContextStyles(): void {
+        super.setContextStyles();
         autosetFontSize(this.body!.base as HTMLElement);
     }
 }
