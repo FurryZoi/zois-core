@@ -215,6 +215,16 @@ export function autosetFontSize(element: HTMLElement) {
     element.style.fontSize = "calc(min(var(--width-unit), var(--height-unit)) * 40 * 1px)";
 }
 
+/**
+ * Returns a CSS length scaled to the main canvas.
+ * One unit is 1% of the canvas's smaller side. Based on `--size-unit`, so it updates automatically on resize.
+ * @param value - Value in `--size-unit` units.
+ * @returns A CSS length string, e.g. `calc(3 * var(--size-unit) * 1px)`.
+ */
+export function u(value: number) {
+    return `calc(${value} * var(--size-unit) * 1px)`;
+}
+
 const createdDynamicClasses: {
     key: string
     className: string
