@@ -1,10 +1,10 @@
 import { ChangelogEntryTag } from "./changelogs";
-import { registerCore } from "./core/index";
 import { dialogsManager } from "./dialogs";
 import { createEventBus, eventBus } from "./events";
 import { loadLocalization } from "./localization";
 import { createModSdk, hookFunction, HookPriority } from "./modSdk";
 import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
+import { initShared } from "./shared";
 
 
 export interface ModData {
@@ -16,14 +16,6 @@ export interface ModData {
     chatMessageBackground?: string
     chatMessageColor?: string
     fontFamily?: string
-    singleToastsTheme?: {
-        backgroundColor: string
-        progressBarColor: string
-        titleColor: string
-        messageColor: string
-        iconFillColor: string
-        iconStrokeColor: string
-    }
     subscreens?: Record<string, SubscreenConstructor>
     localization?: {
         locales: {
@@ -54,30 +46,6 @@ export interface ModData {
     onReady?: () => void
 }
 
-interface ThemedColorsModule {
-    base: {
-        accent: string
-        accentDisabled: string
-        accentHover: string
-        element: string
-        elementDisabled: string
-        elementHint: string
-        elementHover: string
-        main: string
-        text: string
-    }
-    special: {
-        allowed: string
-        blocked: string
-        crafted: string
-        equipped: string
-        limited: string
-        roomBlocked: string
-        roomFriend: string
-        roomGame: string
-    }
-}
-
 export { version } from "../package.json";
 export let MOD_DATA: ModData;
 
@@ -88,9 +56,16 @@ export let MOD_DATA: ModData;
 export function bootstrap(modData: ModData): void {
     MOD_DATA = modData;
     createModSdk();
-    registerCore();
     createEventBus();
     loadLocalization();
+    if (!window.ZOIS_CORE) initShared();
+    
+    window.ZOIS_CORE.addDependent({
+        name: modData.name,
+        fullName: modData.fullName,
+        version: modData.version,
+        repository: modData.repository,
+    });
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
         const currentSubscreen = getCurrentSubscreen();
@@ -128,48 +103,6 @@ export function bootstrap(modData: ModData): void {
     ServerIsLoggedInAsync().then(() => {
         if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
     });
-}
-
-export function formatString(text: string): (
-    { html: string, isBeatifulString: true } |
-    { isBeatifulString: false }
-) {
-    if (!text || typeof text !== 'string') {
-        return { isBeatifulString: false };
-    }
-
-    let result = text;
-    let hasChanges = false;
-
-    const markdownRegex = /\[([^\]]+?)\]\(([^)]+?)\)/g;
-    const newResult = result.replace(markdownRegex, (match, linkText, url) => {
-        hasChanges = true;
-        const escapedText = linkText
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${escapedText}</a>`;
-    });
-
-    if (newResult !== result) {
-        result = newResult;
-    }
-
-    const zcRegex = /(?<!\S)zc:\/\/open[^\s<>"']*(?!\S)/gi;
-    result = result.replace(zcRegex, (match) => {
-        hasChanges = true;
-        return `<a href="${match}" target="_blank" rel="noopener noreferrer">${match}</a>`;
-    });
-
-    if (hasChanges) {
-        return {
-            html: result,
-            isBeatifulString: true
-        };
-    }
-
-    return { isBeatifulString: false };
 }
 
 export function sleep(ms: number): Promise<() => {}> {

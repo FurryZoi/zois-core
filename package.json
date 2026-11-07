@@ -20,10 +20,6 @@
       "import": "./dist/index.js",
       "types": "./dist/types/index.d.ts"
     },
-    "./core": {
-      "import": "./dist/core.js",
-      "types": "./dist/types/core.d.ts"
-    },
     "./messaging": {
       "import": "./dist/messaging.js",
       "types": "./dist/types/messaging.d.ts"
@@ -75,6 +71,10 @@
     "./events": {
       "import": "./dist/events.js",
       "types": "./dist/types/events.d.ts"
+    },
+    "./settings": {
+      "import": "./dist/settings.js",
+      "types": "./dist/types/settings.d.ts"
     }
   },
   "pnpm": {
@@ -95,7 +95,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.3",
-    "bc-stubs": "130.0.0-Beta.1",
+    "bc-stubs": "133.0.0",
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "^2.1.1",
     "glob": "^13.0.6",

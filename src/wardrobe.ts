@@ -166,7 +166,7 @@ export function importAppearance(
         }
         const _item = CharacterAppearanceSetItem(C, item.Asset.Group.Name, item.Asset, item.Color);
         if (!_item) continue;
-        if (item.Craft && CraftingValidate(item.Craft, item.Asset) !== CraftingStatusType.CRITICAL_ERROR) _item.Craft = item.Craft;
+        if (item.Craft && CraftingValidate(item.Craft, item.Asset, true, true, true) !== CraftingStatusType.CRITICAL_ERROR) _item.Craft = item.Craft;
         if (item.Property) {
             ValidationSanitizeProperties(C, item);
             _item.Property = item.Property;
@@ -195,6 +195,6 @@ export function addRequiredAppearanceItems(appearanceBundle: Item[]): void {
         if (appearanceBundle.find((i) => i.Asset.Group.Name === group.Name)) return;
         const asset = AssetGet("Female3DCG", group.Name, group.Asset[0]?.Name);
         if (!asset) return;
-        appearanceBundle.push({ Asset: asset, Color: group.DefaultColor });
+        appearanceBundle.push({ Asset: asset, Color: [group.DefaultColor], Difficulty: asset.Difficulty, Property: {} });
     });
 }

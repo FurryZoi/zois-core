@@ -1,5 +1,5 @@
 import { MOD_DATA } from ".";
-import type { CoreSettings } from "./core/settings";
+import type { CoreSettings } from "./settings";
 import { logger } from "./logging";
 import { Shard } from "./shards";
 import { BaseSubscreen } from "./ui";
@@ -195,10 +195,6 @@ export let eventBus: EventBus | null = null;
 
 export function createEventBus() {
     try {
-        if (createdBuses.has(MOD_DATA.name)) {
-            eventBus = createdBuses.get(MOD_DATA.name)!;
-            return;
-        }
         eventBus = getEventBus(MOD_DATA.name);
     } catch (e) {
         logger.error("Failed to create EventBus:", e);

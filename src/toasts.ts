@@ -1,34 +1,118 @@
-import { setPosition } from "./ui";
+import { animeToastTheme } from "./toast-themes/anime";
+import { cyberToastTheme } from "./toast-themes/cyber";
+import { defaultToastTheme } from "./toast-themes/default";
+import { ToastRenderData, ToastTheme } from "./toast-themes/base";
 import { logger } from "./logging";
 import { eventBus } from "./events";
-import type { ToastRenderData } from "./core/toast-themes/base";
+import { setPosition } from "./ui";
+import { getSettings } from "./settings";
 
+export const EXTENSIONS_CURRENT_TOAST_THEME_KEY = "ZC_TOAST_THEME";
+export const EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY = "ZC_TOAST_THEMES";
 
-function createToastsContainer(): HTMLDivElement {
-    const container = document.createElement("div");
-    container.className = "zcToastsContainer";
+export const themes: { id: number; theme: ToastTheme }[] = [
+    { id: 1000, theme: defaultToastTheme },
+    { id: 1001, theme: cyberToastTheme },
+    { id: 1002, theme: animeToastTheme },
+];
 
-    const update = () => {
-        container.style.cssText = `font-family: ${CommonGetFontName()};`;
-        setPosition(
-            container,
-            5,
-            5,
-            window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left"
-        );
-    };
-
-    window.addEventListener("resize", update);
-    document.body.append(container);
-    update();
-    eventBus?.on("zois-core:coreSettingsChanged", update);
-    return container;
+export function initToastThemes(): void {
+    try {
+        for (const entry of themes) {
+            entry.theme.init();
+        }
+        logger.log("Initialized toast themes of zois-core shared environment");
+    } catch (e) {
+        logger.error("Failed to initialize toast themes of zois-core shared environment", e);
+    }
 }
 
-export function getOrCreateToastsContainer(): HTMLElement {
-    return (
-        document.querySelector(".zcToastsContainer") ?? createToastsContainer()
-    );
+export function getToastThemeById(id: number): ToastTheme | undefined {
+    return themes.find((e) => e.id === id)?.theme;
+}
+
+export function getToastThemeId(theme: ToastTheme): number | undefined {
+    return themes.find((e) => e.theme instanceof theme.constructor)?.id;
+}
+
+export function getUnlockedToastThemeIds(): number[] {
+    if (typeof Player === "undefined" || !Player?.ExtensionSettings) return [];
+    const stored = Player.ExtensionSettings[EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY];
+    if (typeof stored !== "string" || stored.length === 0) return [];
+    const ids = new Set<number>();
+    for (const c of stored) {
+        ids.add(c.charCodeAt(0));
+    }
+    return [...ids];
+}
+
+export function isToastThemeUnlocked(theme: ToastTheme): boolean {
+    const id = getToastThemeId(theme);
+    if (id === 1000) return true;
+    if (id === undefined) return false;
+    return getUnlockedToastThemeIds().includes(id);
+}
+
+export function unlockToastTheme(theme: ToastTheme): void {
+    if (typeof Player === "undefined" || !Player) return;
+    if (!Player.ExtensionSettings) {
+        (Player as any).ExtensionSettings = {};
+    }
+    const current = typeof Player.ExtensionSettings[EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY] === "string"
+        ? Player.ExtensionSettings[EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY]
+        : "";
+    const id = getToastThemeId(theme);
+    if (id === undefined) return;
+    const ids = new Set<number>();
+    for (const c of current) {
+        ids.add(c.charCodeAt(0));
+    }
+    ids.add(id);
+    Player.ExtensionSettings[EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY] = [...ids].sort((a, b) => a - b).map((n) => String.fromCharCode(n)).join("");
+    ServerPlayerExtensionSettingsSync(EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY);
+}
+
+export function resetToastThemes() {
+    Player.ExtensionSettings[EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY] = "";
+    Player.ExtensionSettings[EXTENSIONS_CURRENT_TOAST_THEME_KEY] = "";
+    ServerPlayerExtensionSettingsSync(EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY);
+    ServerPlayerExtensionSettingsSync(EXTENSIONS_CURRENT_TOAST_THEME_KEY);
+}
+
+export function getActiveToastThemeId(): number {
+    const defaultTheme = themes[0];
+    const stored =
+        typeof Player !== "undefined" &&
+        Player?.ExtensionSettings?.[EXTENSIONS_CURRENT_TOAST_THEME_KEY];
+
+    if (typeof stored !== "string" || stored.length === 0) {
+        return defaultTheme.id;
+    }
+
+    const id = stored.charCodeAt(0);
+    const found = getToastThemeById(id);
+    if (found === undefined) return defaultTheme.id;
+    if (!isToastThemeUnlocked(found)) return defaultTheme.id;
+    return id;
+}
+
+export function setActiveToastTheme(theme: ToastTheme): void {
+    if (typeof Player === "undefined" || !Player) return;
+    if (!isToastThemeUnlocked(theme)) return;
+    const id = getToastThemeId(theme);
+    if (id === undefined) return;
+    if (!Player.ExtensionSettings) {
+        (Player as any).ExtensionSettings = {};
+    }
+    Player.ExtensionSettings[EXTENSIONS_CURRENT_TOAST_THEME_KEY] = String.fromCharCode(id);
+    if (typeof ServerPlayerExtensionSettingsSync === "function") {
+        ServerPlayerExtensionSettingsSync(EXTENSIONS_CURRENT_TOAST_THEME_KEY);
+    }
+}
+
+export function resolveActiveToastTheme(): ToastTheme {
+    const id = getActiveToastThemeId();
+    return getToastThemeById(id) ?? themes[0].theme;
 }
 
 export function dismissToast(toastElement: HTMLDivElement): void {
@@ -46,14 +130,40 @@ export function dismissToast(toastElement: HTMLDivElement): void {
     }
 
     const pos =
-        window.ZOIS_CORE.getSettings().toasts?.position ?? "bottom-left";
+        getSettings().toasts?.position ?? "bottom-left";
     toastElement.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"
         } 0.3s ease-out forwards`;
     setTimeout(() => toastElement.remove(), 300);
 }
 
+function createToastsContainer(): HTMLDivElement {
+    const container = document.createElement("div");
+    container.className = "zcToastsContainer";
+
+    const update = () => {
+        container.style.cssText = `font-family: ${CommonGetFontName()};`;
+        setPosition(
+            container,
+            5,
+            5,
+            getSettings().toasts?.position ?? "bottom-left"
+        );
+    };
+
+    document.body.append(container);
+    update();
+    eventBus?.on("coreSettingsChanged", update);
+    return container;
+}
+
+export function getOrCreateToastsContainer(): HTMLElement {
+    return (
+        document.querySelector(".zcToastsContainer") ?? createToastsContainer()
+    );
+}
+
 function createToast(data: ToastRenderData): void {
-    const theme = window.ZOIS_CORE.resolveActiveToastTheme();
+    const theme = resolveActiveToastTheme();
     const toast = theme.render(data);
     const container = getOrCreateToastsContainer();
     container.appendChild(toast);
@@ -67,7 +177,7 @@ export class ToastsManager {
     }
 
     private process(toastProperties: ToastProcessData): string | false {
-        const coreSettingsLocal = window.ZOIS_CORE.getSettings();
+        const coreSettingsLocal = getSettings();
         if (
             coreSettingsLocal.toasts?.blacklist?.enabled &&
             coreSettingsLocal.toasts.blacklist.content?.length !== 0
