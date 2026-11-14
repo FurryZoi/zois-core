@@ -3,6 +3,7 @@ import type { CoreSettings } from "./settings";
 import { logger } from "./logging";
 import { Shard } from "./shards";
 import { BaseSubscreen } from "./ui";
+import { Locale } from "./localization";
 
 export type EventCallback<T = any> = (data: T) => void;
 
@@ -30,6 +31,14 @@ export type KnownEventMap = {
     }
     shardUnmounted: {
         shard: Shard
+        sender: string
+    }
+    localeChanged: {
+        locale: Locale
+        sender: string
+    }
+    customTranslationChanged: {
+        targetMod: string
         sender: string
     }
 };
@@ -83,7 +92,7 @@ export class EventBus {
 
         const commonEventListeners = listeners.get(event);
         if (commonEventListeners) {
-            for (const listener of commonEventListeners) {
+            for (const listener of [...commonEventListeners]) {
                 try {
                     if (listener.senderFilter) {
                         if (listener.senderFilter === this.id) listener.callback(fullData);
@@ -96,7 +105,7 @@ export class EventBus {
 
         const onceEventListeners = onceListeners.get(event);
         if (onceEventListeners) {
-            for (const listener of onceEventListeners) {
+            for (const listener of [...onceEventListeners]) {
                 try {
                     if (listener.senderFilter) {
                         if (listener.senderFilter === this.id) {

@@ -5,7 +5,9 @@ import {
     InputShard, CheckboxShardContext, CheckboxShard, InputListShardContext, InputListShard, ImageShardContext,
     ImageShard, SvgShardContext, SvgShard, BackNextButtonShardContext, BackNextButtonShard, TabsShard, CardShardContext,
     CardShard, SelectShardContext, SelectShard, ContainerShardContext, ContainerShard, Shard,
-    ExtensionsStorageBarShardContext, ExtensionsStorageBarShard
+    ExtensionsStorageBarShardContext, ExtensionsStorageBarShard,
+    FileInputShard,
+    FileInputShardContext
 } from "./shards";
 import { logger } from "./logging";
 import exitIcon from "./assets/icons/exit.svg";
@@ -92,6 +94,16 @@ export function dataUrlSvgReplaceVars(dataUrl: string, vars: Record<string, stri
         dataUrl = dataUrl.replaceAll(`$${name}`, value);
     }
     return dataUrl;
+}
+
+export function svgFromString(svg: string): SVGElement {
+    const template = document.createElement("template");
+    template.innerHTML = svg.trim();
+    const el = template.content.firstElementChild as SVGElement | null;
+    if (!el || el.tagName.toLowerCase() !== "svg") {
+        throw new Error("Invalid SVG flag");
+    }
+    return el;
 }
 
 /**
@@ -700,9 +712,15 @@ export abstract class BaseSubscreen {
         return htmlElement;
     }
 
-    public createExtensionsStorageBarShard(ctx: ExtensionsStorageBarShardContext): HTMLDivElement {
+    public createExtensionsStorageBar(ctx: ExtensionsStorageBarShardContext): HTMLDivElement {
         const shard = new ExtensionsStorageBarShard(ctx);
         const htmlElement = shard.mount() as HTMLDivElement;
+        return htmlElement;
+    }
+
+    public createFileInput(ctx: FileInputShardContext): HTMLLabelElement {
+        const shard = new FileInputShard(ctx);
+        const htmlElement = shard.mount() as HTMLLabelElement;
         return htmlElement;
     }
 }

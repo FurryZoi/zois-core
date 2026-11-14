@@ -183,27 +183,44 @@ function formatString(text: string): (
 }
 
 export interface DependentInfo {
-    name: string
-    fullName: string
-    version: string
-    repository?: string
+    coreVersion: string
+    modData: import("./index").ModData
 }
 
 const dependents: DependentInfo[] = [];
+const customTranslations = new Map<string, Record<string, any>>();
 
-function getDependents(): DependentInfo[] {
-    return dependents.map((dependent) => ({ ...dependent }));
+export function getDependents(): DependentInfo[] {
+    return dependents.map((dependent) => ({
+        coreVersion: dependent.coreVersion,
+        modData: { ...dependent.modData }
+    }));
 }
 
 export function addDependent(dependent: DependentInfo): void {
-    const existingIndex = dependents.findIndex((item) => item.name === dependent.name);
-    const entry = { ...dependent };
+    const existingIndex = dependents.findIndex((item) => item.modData.key === dependent.modData.key);
+    const entry = {
+        coreVersion: dependent.coreVersion,
+        modData: { ...dependent.modData }
+    };
 
     if (existingIndex === -1) {
         dependents.push(entry);
     } else {
         dependents[existingIndex] = entry;
     }
+}
+
+export function setDependentCustomTranslations(modKey: string, data: Record<string, any>): void {
+    customTranslations.set(modKey, data);
+}
+
+export function getDependentCustomTranslations(modKey: string): Record<string, any> | null {
+    return customTranslations.get(modKey) ?? null;
+}
+
+export function clearDependentCustomTranslations(modKey: string): void {
+    customTranslations.delete(modKey);
 }
 
 export function initShared(): void {
@@ -229,6 +246,9 @@ export function initShared(): void {
         getEventBus,
         getDependents,
         addDependent,
+        setDependentCustomTranslations,
+        getDependentCustomTranslations,
+        clearDependentCustomTranslations,
     });
 
     const coreSettings = getSettings();

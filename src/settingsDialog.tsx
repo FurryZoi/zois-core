@@ -111,19 +111,6 @@ function important(value: string): string {
     return `${value} !important`;
 }
 
-
-
-function createTextElement<K extends keyof HTMLElementTagNameMap>(
-    tag: K,
-    className: string,
-    text: string,
-): HTMLElementTagNameMap[K] {
-    const element = document.createElement(tag);
-    element.className = className;
-    element.textContent = text;
-    return element;
-}
-
 function buildClasses() {
     const blinkName = getDynamicKeyframes("zc-terminal-cursor-blink", {
         "0%": { opacity: "1" },
@@ -1281,11 +1268,11 @@ function renderDependentsSection(): HTMLDivElement {
                     <div class={c.modRow}>
                         <div class={c.modInfo}>
                             <div class={c.modTitleLine}>
-                                <span class={c.modName}>{dependent.fullName || dependent.name}</span>
+                                <span class={c.modName}>{dependent.modData.fullName || dependent.modData.name}</span>
                             </div>
-                            <span class={c.dependentSummaryText}>{dependent.name} · v{dependent.version}</span>
-                            {dependent.repository
-                                ? <a class={c.dependentSummaryText} href={dependent.repository} target="_blank" rel="noopener noreferrer">{dependent.repository}</a>
+                            <span class={c.dependentSummaryText}>{dependent.modData.name} · v{dependent.modData.version} · core {dependent.coreVersion}</span>
+                            {dependent.modData.repository
+                                ? <a class={c.dependentSummaryText} href={dependent.modData.repository} target="_blank" rel="noopener noreferrer">{dependent.modData.repository}</a>
                                 : null}
                         </div>
                     </div>

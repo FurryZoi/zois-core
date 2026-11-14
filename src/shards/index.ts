@@ -12,4 +12,4 @@ export * from "./svg";
 export * from "./tabs";
 export * from "./text";
 export * from "./extensionsStorageBar";
-
+export * from "./fileInput";

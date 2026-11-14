@@ -2,16 +2,16 @@ import { recolorSVG, setSize } from "../ui";
 import { Shard, ShardContext } from "./base";
 
 export interface SvgShardContext extends ShardContext {
-    dataurl: string
-    size: number
+    svg: string | SVGElement
     fill?: string
     stroke?: string
     strokeWidth?: string
+    recolor?: boolean
 }
 
 export class SvgShard extends Shard<SvgShardContext> {
     protected render(): Record<keyof NonNullable<SvgShardContext["modules"]>, SVGElement> {
-        const { dataurl, size, fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px" } = this.context;
+        const { svg, fill = "var(--tmd-accent, black)", stroke = "var(--tmd-accent-hover, black)", strokeWidth = "2px", recolor = true } = this.context;
         // dataurl = dataurl.replaceAll("&quot;", `"`);
         function dataURLToSVGElement(dataURL: string) {
             const svgEncoded = dataURL.replace('data:image/svg+xml,', '');
@@ -22,19 +22,19 @@ export class SvgShard extends Shard<SvgShardContext> {
             return div.firstElementChild as SVGElement;
         }
 
-        const svg = dataURLToSVGElement(dataurl);
-        if (svg) {
-            recolorSVG(svg, { fill, stroke });
-            svg.setAttribute("stroke-width", strokeWidth);
+        let svgElement: SVGElement;
+
+        if (typeof svg === "string") {
+            svgElement = dataURLToSVGElement(svg);
+        } else {
+            svgElement = svg;
         }
 
-        return {
-            base: svg
-        };
-    }
+        if (recolor) recolorSVG(svgElement, { fill, stroke });
+        svgElement.setAttribute("stroke-width", strokeWidth);
 
-    protected setContextStyles(): void {
-        super.setContextStyles();
-        setSize(this.body!.base, this.context.size, this.context.size);
+        return {
+            base: svgElement
+        };
     }
 }

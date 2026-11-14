@@ -1,10 +1,11 @@
 import { ChangelogEntryTag } from "./changelogs";
 import { dialogsManager } from "./dialogs";
 import { createEventBus, eventBus } from "./events";
-import { loadLocalization } from "./localization";
+import { loadLocalization, type Locale } from "./localization";
 import { createModSdk, hookFunction, HookPriority } from "./modSdk";
 import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 import { initShared } from "./shared";
+import { version } from "../package.json";
 
 
 export interface ModData {
@@ -19,8 +20,8 @@ export interface ModData {
     subscreens?: Record<string, SubscreenConstructor>
     localization?: {
         locales: {
-            default: string
-            supported: string[]
+            default: Locale
+            supported: Locale[]
         }
         translationsFolderPath: string
     }
@@ -46,7 +47,7 @@ export interface ModData {
     onReady?: () => void
 }
 
-export { version } from "../package.json";
+export { version };
 export let MOD_DATA: ModData;
 
 /**
@@ -57,14 +58,12 @@ export function bootstrap(modData: ModData): void {
     MOD_DATA = modData;
     createModSdk();
     createEventBus();
-    loadLocalization();
+
     if (!window.ZOIS_CORE) initShared();
-    
+
     window.ZOIS_CORE.addDependent({
-        name: modData.name,
-        fullName: modData.fullName,
-        version: modData.version,
-        repository: modData.repository,
+        coreVersion: version,
+        modData
     });
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
@@ -101,6 +100,7 @@ export function bootstrap(modData: ModData): void {
     });
 
     ServerIsLoggedInAsync().then(() => {
+        loadLocalization();
         if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
     });
 }
@@ -219,3 +219,4 @@ export function normalizeObject(obj: unknown) {
             return acc;
         }, {} as { [key: string]: any });
 }
+export { LocalizationSubscreen as LanguageSubscreen } from "./subscreens/localization";

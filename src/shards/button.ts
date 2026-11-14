@@ -104,6 +104,7 @@ export class ButtonShard extends Shard<ButtonShardContext> {
             if (text && iconAbsolutePosition) {
                 iconElement.style.position = "absolute";
                 iconElement.style.left = "1vw";
+                if (btn.style.position === "static" || btn.style.position === "") btn.style.position = "relative";
             }
             if (text && !iconAbsolutePosition) btn.style.justifyContent = "";
             btn.append(iconElement);
