@@ -22,7 +22,7 @@ export function Dialog(props: DialogProps) {
             right: "0",
             padding: "0",
             minWidth: "200px",
-            maxWidth: props.wide ? "clamp(360px, 42vw, 1200px)" : "clamp(320px, 32vw, 900px)",
+            maxWidth: props.wide ? "1200px" : "clamp(320px, 32vw, 900px)",
             width: "90%",
             height: props.wide ? "90%" : "fit-content",
             maxHeight: props.wide ? "85vh" : "none",
