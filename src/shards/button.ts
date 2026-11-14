@@ -25,8 +25,8 @@ export class ButtonShard extends Shard<ButtonShardContext> {
                 cursor: "pointer",
                 background: "var(--tmd-element, white)",
                 color: "var(--tmd-text, black)",
-                border: "2px solid var(--tmd-accent, rgb(34, 34, 34))",
-                borderRadius: "6px",
+                border: "min(0.3dvh, 0.15dvw) solid var(--tmd-accent, rgb(34, 34, 34))",
+                borderRadius: "min(1dvh, 0.5dvw)",
             },
             hover: {
                 background: "var(--tmd-element-hover, #ebf7fe)",
