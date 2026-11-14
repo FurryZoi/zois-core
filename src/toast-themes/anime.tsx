@@ -4,7 +4,7 @@ import {
     createElement,
 } from "lucide";
 import { getDynamicClass, getDynamicKeyframes } from "../ui";
-import { ToastRenderData, ToastTheme, ToastTier, ToastType } from "./base";
+import { ToastRenderData, ToastTheme, ToastThemeTier, ToastType } from "./base";
 import { dismissToast } from "../toasts";
 import infoSvg from "../assets/icons/anime-toast-theme/info.svg";
 import warningSvg from "../assets/icons/anime-toast-theme/warning.svg";
@@ -204,7 +204,7 @@ function getSpinnerIcon(accent: string, kf: AnimeKeyframes): HTMLDivElement {
 export class AnimeToastTheme extends ToastTheme {
     public name = "Anime"
     public details = "Very first SSR theme with amazing style.\nUnlocks when you put on a full Cosplay Girl suit."
-    public tier = ToastTier.SSR;
+    public tier = ToastThemeTier.SSR;
 
     public init(): void {
         hookFunction("CharacterRefresh", HookPriority.OBSERVE, (args, next) => {
@@ -218,12 +218,13 @@ export class AnimeToastTheme extends ToastTheme {
         });
     }
 
-    public render({ title, message, type, duration, id, buttons, size, isInteractable = true }: ToastRenderData): HTMLDivElement {
+    public render(renderData: ToastRenderData): HTMLDivElement {
+        renderData.isInteractable ??= true;
         const kf = ensureStyles();
 
         const pos = getSettings().toasts?.position ?? "bottom-left";
 
-        const accent = ACCENT_COLOR[type];
+        const accent = ACCENT_COLOR[renderData.type];
 
         const textColor = "#d9d4f2";
         const titleColor = "#ffffff";
@@ -376,21 +377,21 @@ export class AnimeToastTheme extends ToastTheme {
         const paletteIcon = createElement(Palette);
 
         const icon =
-            type === "spinner"
+            renderData.type === "spinner"
                 ? getSpinnerIcon(accent, kf)
-                : getCharacterIcon(type, accent);
+                : getCharacterIcon(renderData.type, accent);
 
         const toast = (
             <div
                 class={toastClassName}
-                data-zc-toast-type={type}
-                data-zc-toast-id={id}
+                data-zc-toast-type={renderData.type}
+                data-zc-toast-id={renderData.id}
             >
-                {type !== "spinner" && typeof duration === "number" && (
+                {renderData.type !== "spinner" && renderData.duration !== 0 && (
                     <div
                         class="zcToast-ProgressBar"
                         style={{
-                            animation: `zcToast-progress ${duration}ms linear 0s 1 alternate none`,
+                            animation: `zcToast-progress ${renderData.duration}ms linear 0s 1 alternate none`,
                             position: "absolute",
                             top: "0",
                             left: "0",
@@ -415,7 +416,7 @@ export class AnimeToastTheme extends ToastTheme {
                         title="Theme menu"
                         onClick={(e: MouseEvent) => {
                             e.stopPropagation();
-                            if (!isInteractable) return;
+                            if (!renderData.isInteractable) return;
                             createThemesDialog();
                         }}
                     >
@@ -426,7 +427,7 @@ export class AnimeToastTheme extends ToastTheme {
                         title="Close"
                         onClick={(e: MouseEvent) => {
                             e.stopPropagation();
-                            if (!isInteractable) return;
+                            if (!renderData.isInteractable) return;
                             dismissToast(toast);
                         }}
                     >
@@ -445,8 +446,8 @@ export class AnimeToastTheme extends ToastTheme {
                         zIndex: "1",
                     }}
                 >
-                    <span class={tagClassName}>{LABEL[type]}</span>
-                    {!!title && (
+                    <span class={tagClassName}>{LABEL[renderData.type]}</span>
+                    {!!renderData.title && (
                         <p
                             style={{
                                 color: titleColor,
@@ -461,29 +462,29 @@ export class AnimeToastTheme extends ToastTheme {
                                 textShadow: `0.06em 0.06em 0 ${accent}88`,
                             }}
                         >
-                            {title}
+                            {renderData.title}
                         </p>
                     )}
                     <p
                         style={{
                             color: textColor,
-                            fontSize: !!title ? "0.72em" : "0.85em",
+                            fontSize: !!renderData.title ? "0.72em" : "0.85em",
                             overflowWrap: "anywhere",
-                            fontWeight: !!title ? "400" : "700",
+                            fontWeight: !!renderData.title ? "400" : "700",
                             margin: "0",
-                            marginTop: !!title ? "0.15em" : undefined,
+                            marginTop: !!renderData.title ? "0.15em" : undefined,
                             lineHeight: "1.3",
                         }}
                     >
-                        {message}
+                        {renderData.message}
                     </p>
-                    {buttons !== undefined && (
+                    {renderData.buttons !== undefined && (
                         <div class={buttonsContainerClassName}>
-                            {buttons.map((b) => (
+                            {renderData.buttons.map((b) => (
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        if (!isInteractable) return;
+                                        if (!renderData.isInteractable) return;
                                         b.action();
                                     }}
                                 >
@@ -497,9 +498,9 @@ export class AnimeToastTheme extends ToastTheme {
         ) as HTMLDivElement;
 
         const sz = (value: number): string =>
-            size.scaleWithCanvas
-                ? `calc(var(--size-unit) * ${value * size.scaleFactor}px)`
-                : `${value * size.scaleFactor * FIXED_UNIT}px`;
+            renderData.size.scaleWithCanvas
+                ? `calc(var(--size-unit) * ${value * renderData.size.scaleFactor}px)`
+                : `${value * renderData.size.scaleFactor * FIXED_UNIT}px`;
 
         toast.style.fontSize = sz(2.15);
         toast.style.padding = `${sz(0.85)} ${sz(0.95)}`;
@@ -507,12 +508,12 @@ export class AnimeToastTheme extends ToastTheme {
             } 0.3s ease-out forwards`;
         void toast.offsetHeight;
 
-        if (type !== "spinner") {
+        if (renderData.type !== "spinner" && renderData.duration !== 0) {
             setTimeout(() => {
                 toast.style.animation = `${pos.includes("left") ? "zcSlideOutToLeft" : "zcSlideOutToRight"
                     } 0.3s ease-out forwards`;
-            }, duration);
-            setTimeout(() => toast.remove(), duration + 300);
+            }, renderData.duration);
+            setTimeout(() => toast.remove(), renderData.duration + 300);
         }
 
         return toast;

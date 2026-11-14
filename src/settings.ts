@@ -93,8 +93,8 @@ export function setSettings(
         settings: structuredClone(newSettings)
     });
 
-    if (newSettings.devMode) registerSettingsSubscreen();
-    else unloadSettingsSubscreen();
+    if (newSettings.devMode && !PreferenceExtensionsSettings.ZOIS_CORE) registerSettingsSubscreen();
+    if (!newSettings.devMode && PreferenceExtensionsSettings.ZOIS_CORE) unloadSettingsSubscreen();
 }
 
 export function resetSettings(): void {

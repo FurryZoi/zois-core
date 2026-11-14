@@ -4,18 +4,17 @@ import { isToastThemeUnlocked, setActiveToastTheme, unlockToastTheme } from "../
 
 export type ToastType = "info" | "warning" | "error" | "success" | "spinner";
 
-export enum ToastTier {
+export enum ToastThemeTier {
     R = "R",
     SR = "SR",
     SSR = "SSR"
 }
 
-export interface ToastRenderData {
+interface BaseToastRenderData {
+    type: ToastType
     id: string
     title?: string
     message: string
-    type: ToastType
-    duration: number
     isInteractable?: boolean
     size: {
         scaleWithCanvas: boolean
@@ -24,13 +23,24 @@ export interface ToastRenderData {
     buttons?: {
         name: string
         action: () => void
-    }[];
+    }[]
 }
+
+export interface PermanentToastRenderData extends BaseToastRenderData {
+    type: "spinner"
+}
+
+export interface TimedToastRenderData extends BaseToastRenderData {
+    type: "info" | "warning" | "error" | "success"
+    duration: number
+}
+
+export type ToastRenderData = PermanentToastRenderData | TimedToastRenderData;
 
 export abstract class ToastTheme {
     public abstract name: string;
     public abstract details: string;
-    public abstract tier: ToastTier;
+    public abstract tier: ToastThemeTier;
 
     protected get isUnlocked(): boolean {
         return isToastThemeUnlocked(this);

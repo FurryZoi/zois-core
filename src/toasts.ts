@@ -1,7 +1,7 @@
 import { animeToastTheme } from "./toast-themes/anime";
 import { cyberToastTheme } from "./toast-themes/cyber";
 import { defaultToastTheme } from "./toast-themes/default";
-import { ToastRenderData, ToastTheme } from "./toast-themes/base";
+import { PermanentToastRenderData, TimedToastRenderData, ToastRenderData, ToastTheme } from "./toast-themes/base";
 import { logger } from "./logging";
 import { eventBus } from "./events";
 import { setPosition } from "./ui";
@@ -118,7 +118,6 @@ export function resolveActiveToastTheme(): ToastTheme {
 export function dismissToast(toastElement: HTMLDivElement): void {
     if (!toastElement || toastElement.dataset.dismissed === "true") return;
     toastElement.dataset.dismissed = "true";
-    clearTimeout((toastElement as any)._dismissTimer);
 
     if (toastElement.hasAttribute("data-zc-cyber-toast")) {
         toastElement.classList.remove("visible", "paused");
@@ -169,7 +168,9 @@ function createToast(data: ToastRenderData): void {
     container.appendChild(toast);
 }
 
-type ToastProcessData = Omit<ToastRenderData, "size" | "id">;
+type PermanentToastProcessData = Omit<PermanentToastRenderData, "size" | "id">;
+type TimedToastProcessData = Omit<TimedToastRenderData, "size" | "id">;
+type ToastProcessData = PermanentToastProcessData | TimedToastProcessData;
 
 export class ToastsManager {
     private generateToastId(): string {
@@ -211,7 +212,7 @@ export class ToastsManager {
      * Displays informational toast.
      * @param options - Title, message and duration of toast.
      */
-    public info(toastProperties: Omit<ToastProcessData, "type">): void {
+    public info(toastProperties: Omit<TimedToastProcessData, "type">): void {
         this.process({ ...toastProperties, type: "info" });
     }
 
@@ -219,7 +220,7 @@ export class ToastsManager {
      * Displays success toast.
      * @param options - Title, message and duration of toast.
      */
-    public success(toastProperties: Omit<ToastProcessData, "type">): void {
+    public success(toastProperties: Omit<TimedToastProcessData, "type">): void {
         this.process({ ...toastProperties, type: "success" });
     }
 
@@ -227,7 +228,7 @@ export class ToastsManager {
      * Displays warning toast.
      * @param options - Title, message and duration of toast.
      */
-    public warn(toastProperties: Omit<ToastProcessData, "type">): void {
+    public warn(toastProperties: Omit<TimedToastProcessData, "type">): void {
         this.process({ ...toastProperties, type: "warning" });
     }
 
@@ -235,7 +236,7 @@ export class ToastsManager {
      * Displays error toast.
      * @param options - Title, message and duration of toast.
      */
-    public error(toastProperties: Omit<ToastProcessData, "type">): void {
+    public error(toastProperties: Omit<TimedToastProcessData, "type">): void {
         this.process({ ...toastProperties, type: "error" });
     }
 
@@ -245,7 +246,7 @@ export class ToastsManager {
      * @param options - Title and message of toast.
      * @returns The unique ID of the created spinner toast.
      */
-    public spinner(toastProperties: Omit<ToastProcessData, "type">): string {
+    public spinner(toastProperties: Omit<PermanentToastProcessData, "type">): string {
         const result = this.process({ ...toastProperties, type: "spinner" });
         if (result === false) return "";
         return result;

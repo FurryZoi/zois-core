@@ -1,8 +1,7 @@
-import { X, Palette } from "lucide";
-import { createElement } from "lucide";
+import { X, Palette, createElement } from "lucide";
 import { getDynamicClass, getDynamicKeyframes } from "../ui";
 import type { ToastRenderData } from "./base";
-import { ToastTheme, ToastTier } from "./base";
+import { ToastTheme, ToastThemeTier } from "./base";
 import { dismissToast } from "../toasts";
 import { getSettings } from "../settings";
 import { createThemesDialog } from "../toastThemesDialog";
@@ -114,7 +113,9 @@ function typewriterEffect(
             glitchLayer.setAttribute("data-text", element.textContent ?? "");
         }
         if (Math.random() < 0.08) {
-            const toastEl = element.closest("[data-zc-cyber-toast]") as HTMLElement | null;
+            const toastEl = element.closest(
+                "[data-zc-cyber-toast]"
+            ) as HTMLElement | null;
             if (toastEl) {
                 toastEl.classList.add("micro-glitch");
                 setTimeout(() => toastEl.classList.remove("micro-glitch"), 80);
@@ -273,9 +274,10 @@ function getCyberToastClass(): string {
 }
 
 export class CyberToastTheme extends ToastTheme {
-    public name = "Cyber"
-    public details = "Modified https://github.com/hsr88/cyber-toast-js adapted for BC. Unlocks after enabling dev mode."
-    public tier = ToastTier.SR;
+    public name = "Cyber";
+    public details =
+        "Modified https://github.com/hsr88/cyber-toast-js adapted for BC. Unlocks after enabling dev mode.";
+    public tier = ToastThemeTier.SR;
 
     public init(): void {
         if (!this.isUnlocked && getSettings().devMode) this.unlock();
@@ -285,8 +287,19 @@ export class CyberToastTheme extends ToastTheme {
         });
     }
 
-    public render({ title, message, type, duration, id, buttons, size, isInteractable = true }: ToastRenderData): HTMLDivElement {
+    public render(renderData: ToastRenderData): HTMLDivElement {
         ensureCyberKeyframes();
+
+        const {
+            title,
+            message,
+            type,
+            id,
+            buttons,
+            size,
+            isInteractable = true,
+        } = renderData;
+        const duration = type === "spinner" ? 0 : renderData.duration;
 
         const header = TYPE_LABELS[type] ?? "[SYSTEM MESSAGE]";
         const displayText = title ? `${title}: ${message}` : message;
@@ -374,10 +387,13 @@ export class CyberToastTheme extends ToastTheme {
                 boxShadow: "0 0 0.43em currentColor",
             },
         });
-        const progressShrinkName = getDynamicKeyframes("cyber-progress-shrink", {
-            from: { transform: "scaleX(1)" },
-            to: { transform: "scaleX(0)" },
-        });
+        const progressShrinkName = getDynamicKeyframes(
+            "cyber-progress-shrink",
+            {
+                from: { transform: "scaleX(1)" },
+                to: { transform: "scaleX(0)" },
+            }
+        );
         const progressClass = getDynamicClass({
             base: {
                 position: "absolute",
@@ -441,7 +457,8 @@ export class CyberToastTheme extends ToastTheme {
                 textTransform: "uppercase",
                 letterSpacing: "0.07em",
                 cursor: "pointer",
-                transition: "opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
+                transition:
+                    "opacity 0.15s ease, box-shadow 0.15s ease, background 0.15s ease",
                 opacity: "0.85",
             },
             ">button:hover": {
@@ -466,7 +483,9 @@ export class CyberToastTheme extends ToastTheme {
         const cursor = (<span />) as HTMLSpanElement;
         cursor.className = cursorClass;
 
-        const progressBar = (<div class="cyber-progress" />) as HTMLDivElement;
+        const progressBar = (
+            <div class="cyber-progress" />
+        ) as HTMLDivElement;
         progressBar.className = `${progressClass} cyber-progress`;
 
         const headerEl = (<div>{header}</div>) as HTMLDivElement;
@@ -501,22 +520,6 @@ export class CyberToastTheme extends ToastTheme {
                 data-zc-toast-type={type}
                 data-zc-toast-id={id}
                 data-zc-cyber-toast="true"
-                onMouseEnter={() => {
-                    if (toast.dataset.dismissed === "true") return;
-                    clearTimeout((toast as any)._dismissTimer);
-                    (toast as any)._remainingTime -=
-                        performance.now() - (toast as any)._activeStart;
-                    toast.classList.add("paused");
-                }}
-                onMouseLeave={() => {
-                    if (toast.dataset.dismissed === "true") return;
-                    toast.classList.remove("paused");
-                    (toast as any)._activeStart = performance.now();
-                    (toast as any)._dismissTimer = setTimeout(
-                        () => dismissToast(toast),
-                        (toast as any)._remainingTime
-                    );
-                }}
             >
                 {glitchLayer}
                 <div class={actionsClass}>
@@ -545,7 +548,7 @@ export class CyberToastTheme extends ToastTheme {
                 </div>
                 {headerEl}
                 {bodyEl}
-                {progressBar}
+                {type !== "spinner" && duration !== 0 && progressBar}
             </div>
         ) as HTMLDivElement;
 
@@ -564,16 +567,12 @@ export class CyberToastTheme extends ToastTheme {
         toast.classList.add("visible");
 
         const typingDuration = displayText.length * CYBER_TYPING_SPEED;
-        const totalDuration = duration + typingDuration;
 
-        progressBar.style.animation = `${progressShrinkName} ${totalDuration}ms linear forwards`;
-
-        (toast as any)._dismissTimer = setTimeout(
-            () => dismissToast(toast),
-            totalDuration
-        );
-        (toast as any)._remainingTime = totalDuration;
-        (toast as any)._activeStart = performance.now();
+        if (type !== "spinner" && duration !== 0) {
+            const totalDuration = duration + typingDuration;
+            progressBar.style.animation = `${progressShrinkName} ${totalDuration}ms linear forwards`;
+            setTimeout(() => dismissToast(toast), totalDuration);
+        }
 
         typewriterEffect(textContent, displayText, glitchLayer);
 

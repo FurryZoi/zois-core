@@ -1,6 +1,6 @@
 import { createElement, X } from "lucide";
 import { getDynamicClass } from "./ui";
-import { ToastType } from "./toast-themes/base";
+import { ToastRenderData, ToastType } from "./toast-themes/base";
 import { getActiveToastThemeId, isToastThemeUnlocked, setActiveToastTheme, themes } from "./toasts";
 import { Dialog, DialogButton, DialogText } from "./dialogs";
 
@@ -145,9 +145,8 @@ export function createThemesDialog(): void {
                             <DialogButton
                                 class={typeButtonClassName}
                                 onClick={() => {
-                                    const nextPreview = t.theme.render({
+                                    const renderData: ToastRenderData = type === "spinner" ? {
                                         message: "Awesome theme!",
-                                        duration: 9999999999999,
                                         isInteractable: false,
                                         id: i.toString(),
                                         type,
@@ -155,7 +154,18 @@ export function createThemesDialog(): void {
                                             scaleWithCanvas: false,
                                             scaleFactor: 1
                                         }
-                                    });
+                                    } : {
+                                        message: "Awesome theme!",
+                                        duration: 0,
+                                        isInteractable: false,
+                                        id: i.toString(),
+                                        type,
+                                        size: {
+                                            scaleWithCanvas: false,
+                                            scaleFactor: 1
+                                        }
+                                    };
+                                    const nextPreview = t.theme.render(renderData);
                                     nextPreview.style.width = "fit-content";
                                     nextPreview.style.maxWidth = "100%";
                                     toastPreviewContainer.replaceChildren(nextPreview);
