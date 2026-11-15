@@ -12,6 +12,7 @@ import {
 import { logger } from "./logging";
 import exitIcon from "./assets/icons/exit.svg";
 import { eventBus } from "./events";
+import { Anchor } from "lucide";
 
 export type Anchor = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
@@ -163,7 +164,7 @@ export function getRelativeX(xPos: number, anchor: "left" | "right" = "left") {
  * @param yPos - Vertical offset in base units from the top or bottom canvas edge.
  * @param anchor - Canvas corner the offsets are measured from. Defaults to `"top-left"`.
  */
-export function setPosition(element: HTMLElement, xPos: number, yPos: number, anchor: Anchor = "top-left") {
+export function setPosition(element: HTMLElement | SVGElement, xPos: number, yPos: number, anchor: Anchor = "top-left") {
     const yAnchor = anchor === 'top-left' || anchor === 'top-right' ? 'top' : 'bottom';
     const xAnchor = anchor === 'top-left' || anchor === 'bottom-left' ? 'left' : 'right';
 
@@ -194,7 +195,7 @@ export function setSize(element: HTMLElement | SVGElement, width: number, height
  * @param element - The element whose font size should be set.
  * @param targetFontSize - Font size in `--size-unit` units.
  */
-export function setFontSize(element: HTMLElement, targetFontSize: number) {
+export function setFontSize(element: HTMLElement | SVGElement, targetFontSize: number) {
     element.style.fontSize = `calc(${targetFontSize} * var(--size-unit) * 1px)`;
 }
 
@@ -204,7 +205,7 @@ export function setFontSize(element: HTMLElement, targetFontSize: number) {
 * @param fontFamily - Optional font family name. Defaults to `"sans-serif"`.
 * @returns void
 */
-export function setFontFamily(element: HTMLElement, fontFamily?: string) {
+export function setFontFamily(element: HTMLElement | SVGElement, fontFamily?: string) {
     element.style.fontFamily = fontFamily ?? "sans-serif";
 }
 
@@ -214,7 +215,7 @@ export function setFontFamily(element: HTMLElement, fontFamily?: string) {
  * @param element - The element whose padding should be set.
  * @param targetPadding - Padding in `--size-unit` units.
  */
-export function setPadding(element: HTMLElement, targetPadding: number) {
+export function setPadding(element: HTMLElement | SVGElement, targetPadding: number) {
     element.style.padding = `calc(${targetPadding} * var(--size-unit) * 1px)`;
 }
 
@@ -223,7 +224,7 @@ export function setPadding(element: HTMLElement, targetPadding: number) {
  * Uses `--width-unit` and `--height-unit`, so it updates automatically on resize.
  * @param element - The element whose font size should be set.
  */
-export function autosetFontSize(element: HTMLElement) {
+export function autosetFontSize(element: HTMLElement | SVGElement) {
     element.style.fontSize = "calc(min(var(--width-unit), var(--height-unit)) * 40 * 1px)";
 }
 
@@ -419,38 +420,80 @@ export function onClickOutside(element: HTMLElement, callback: (event: MouseEven
     };
 }
 
-export function setPreviousSubscreen(): void {
-    setSubscreen(previousSubscreen);
-}
-
-let previousSubscreen: BaseSubscreen | null = null;
-let currentSubscreen: BaseSubscreen | null = null;
-
-export function setSubscreen(subscreen: BaseSubscreen | null): void {
-    previousSubscreen = currentSubscreen;
-    currentSubscreen = subscreen;
-    if (previousSubscreen) {
-        try {
-            previousSubscreen.unload();
-        } catch (e) {
-            logger.error("Failed to unload subscreen", previousSubscreen, e);
-        }
-    }
-    if (subscreen) {
-        try {
-            subscreen.load();
-        } catch (e) {
-            logger.error("Failed to load subscreen", subscreen, e);
-        }
-    }
-}
+const subscreenStack: BaseSubscreen[] = [];
 
 export function getCurrentSubscreen(): BaseSubscreen | null {
-    return currentSubscreen;
+    return subscreenStack[subscreenStack.length - 1] ?? null;
 }
 
 export function getPreviousSubscreen(): BaseSubscreen | null {
-    return previousSubscreen;
+    return subscreenStack.length >= 2
+        ? subscreenStack[subscreenStack.length - 2]
+        : null;
+}
+
+export function getSubscreenStack(): readonly BaseSubscreen[] {
+    return subscreenStack;
+}
+
+export function setSubscreen(nextSubscreen: BaseSubscreen | null): void {
+    const currentSubscreen = getCurrentSubscreen();
+
+    if (currentSubscreen) {
+        try {
+            currentSubscreen.unload();
+        } catch (e) {
+            logger.error("Failed to unload subscreen", currentSubscreen, e);
+        }
+    }
+
+    if (nextSubscreen === null) {
+        while (subscreenStack.length > 0) {
+            const screen = subscreenStack.pop()!;
+            if (screen === currentSubscreen) continue;
+            try {
+                screen.unload();
+            } catch (e) {
+                logger.error("Failed to unload subscreen", screen, e);
+            }
+        }
+        return;
+    }
+
+    const existingIndex = subscreenStack.indexOf(nextSubscreen);
+    if (existingIndex !== -1) {
+        subscreenStack.length = existingIndex + 1;
+    } else {
+        subscreenStack.push(nextSubscreen);
+    }
+
+    try {
+        nextSubscreen.load();
+    } catch (e) {
+        logger.error("Failed to load subscreen", nextSubscreen, e);
+    }
+}
+
+export function setPreviousSubscreen(): void {
+    const currentSubscreen = getCurrentSubscreen();
+    if (!currentSubscreen) return;
+
+    try {
+        currentSubscreen.unload();
+    } catch (e) {
+        logger.error("Failed to unload subscreen", currentSubscreen, e);
+    }
+
+    subscreenStack.pop();
+
+    const previousSubscreen = getCurrentSubscreen();
+    if (previousSubscreen) {
+        try {
+            previousSubscreen.load();
+        } catch (e) {
+            logger.error("Failed to load subscreen", previousSubscreen, e);
+        }
+    }
 }
 
 /**
@@ -492,8 +535,8 @@ export abstract class BaseSubscreen {
      * Override {@link onLoad} to define html elements.
      */
     public load() {
+        this.createSubscreenStackBar();
         this.createExitButton();
-        if (this.name) this.createSubscreenTitle();
         this.onLoad?.();
         eventBus?.emit("subscreenLoaded", {
             subscreen: this
@@ -594,18 +637,99 @@ export abstract class BaseSubscreen {
         });
     }
 
-    public createSubscreenTitle() {
-        this.createText({
-            text: this.name,
+    public createSubscreenStackBar() {
+        const stack = [...subscreenStack];
+        if (stack.length === 0) return;
+
+        const barClassName = getDynamicClass({
+            base: {
+                display: "flex",
+                alignItems: "center",
+                gap: "0.45em",
+                background: "var(--tmd-element, rgb(227, 227, 227))",
+                color: "var(--tmd-text, black)",
+                fontSize: u(4),
+                borderRadius: "0.25em",
+                boxSizing: "border-box"
+            }
+        });
+
+        const bar = (<div class={barClassName}></div>) as HTMLDivElement;
+
+        stack.forEach((s, i) => {
+            if (i !== 0) {
+                const separator = (<span style={{opacity: "0.5"}}>/</span>) as HTMLSpanElement;
+                bar.append(separator);
+            }
+            const isCurrent = i === (stack.length - 1);
+            const itemClassName = getDynamicClass({
+                base: {
+                    cursor: isCurrent ? "default" : "pointer",
+                    border: "none",
+                    background: "none",
+                    color: "inherit",
+                    borderRadius: "0.25em",
+                    paddingInline: "0.25em",
+                    height: "100%",
+                    whiteSpace: "nowrap",
+                    overflow: isCurrent ? "unset" : "hidden",
+                    textOverflow: isCurrent ? "unset" : "ellipsis",
+                    fontWeight: isCurrent ? "bold" : "unset"
+                },
+                hover: {
+                    background: isCurrent ? "none" : "var(--tmd-element-hover, rgb(209, 209, 209))"
+                }
+            })
+            const item = (
+                <button
+                    class={itemClassName}
+                    onClick={() => {
+                        if (isCurrent) return;
+                        const targetIndex = subscreenStack.indexOf(s);
+                        if (targetIndex === -1) return;
+                        while (subscreenStack.length - 1 > targetIndex) {
+                            setPreviousSubscreen();
+                        }
+                    }}
+                >
+                    {s.name}
+                </button>
+            ) as HTMLButtonElement;
+            bar.append(item);
+        });
+
+        return this.create(bar, {
             x: 100,
-            y: 60,
-            fontSize: 8
-        }).style.cssText += "max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.1em;";
+            y: 70,
+            width: 1700,
+            height: 65,
+        });
     }
 
-    public create(shard: Shard) {
+    public createFromShard(shard: Shard) {
         const htmlElement = shard.mount() as HTMLElement;
         return htmlElement;
+    }
+
+    public create(
+        element: HTMLElement,
+        properties: {
+            width?: number
+            height?: number
+            x?: number
+            y?: number
+            anchor?: Anchor
+            parent?: HTMLElement
+        }
+    ) {
+        setFontFamily(element, MOD_DATA.fontFamily);
+        if (properties.width !== undefined) element.style.width = getRelativeWidth(properties.width);
+        if (properties.height !== undefined) element.style.height = getRelativeHeight(properties.height);
+        if (properties.x !== undefined && properties.y !== undefined) setPosition(element, properties.x, properties.y, properties.anchor);
+        properties.parent ??= document.body;
+        properties.parent.append(element);
+        eventBus?.on("subscreenUnloaded", () => element.remove());
+        return element;
     }
 
     public createButton(ctx: ButtonShardContext): HTMLButtonElement {

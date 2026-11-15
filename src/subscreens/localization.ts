@@ -13,10 +13,6 @@ export class LocalizationSubscreen extends BaseSubscreen {
         return "Localization";
     }
 
-    constructor(private prevSubscreen: BaseSubscreen) {
-        super();
-    }
-
     protected onLoad(): void {
         const languagesContainer = this.createContainer({
             x: 200,
@@ -124,10 +120,5 @@ export class LocalizationSubscreen extends BaseSubscreen {
             text: "Here the list of languages supported by the Zoi's mods ecosystem. Translations are expanded and updated over time. Select a language — if translation file is missing or a string is not found, the mod falls back to its default language. But once a translation into the target language becomes available, the text of the mods will be translated.",
             withBackground: true
         });
-    }
-
-    public exit(): void {
-        super.exit();
-        this.setSubscreen(this.prevSubscreen);
     }
 }
