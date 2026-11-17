@@ -6,10 +6,10 @@ import {
 import { getDynamicClass, getDynamicKeyframes } from "../ui";
 import { ToastRenderData, ToastTheme, ToastThemeTier, ToastType } from "./base";
 import { dismissToast } from "../toasts";
-import infoSvg from "../assets/icons/anime-toast-theme/info.svg";
-import warningSvg from "../assets/icons/anime-toast-theme/warning.svg";
-import errorSvg from "../assets/icons/anime-toast-theme/error.svg";
-import successSvg from "../assets/icons/anime-toast-theme/success.svg";
+import infoSvg from "../assets/icons/toast-themes/anime/info.svg";
+import warningSvg from "../assets/icons/toast-themes/anime/warning.svg";
+import errorSvg from "../assets/icons/toast-themes/anime/error.svg";
+import successSvg from "../assets/icons/toast-themes/anime/success.svg";
 import { hookFunction, HookPriority } from "../modSdk";
 import { createThemesDialog } from "../toastThemesDialog";
 import { getSettings } from "../settings";

@@ -6,6 +6,7 @@ import { logger } from "./logging";
 import { eventBus } from "./events";
 import { setPosition } from "./ui";
 import { getSettings } from "./settings";
+import { abdlToastTheme } from "./toast-themes/abdl";
 
 export const EXTENSIONS_CURRENT_TOAST_THEME_KEY = "ZC_TOAST_THEME";
 export const EXTENSIONS_UNLOCKED_TOAST_THEMES_KEY = "ZC_TOAST_THEMES";
@@ -14,6 +15,7 @@ export const themes: { id: number; theme: ToastTheme }[] = [
     { id: 1000, theme: defaultToastTheme },
     { id: 1001, theme: cyberToastTheme },
     { id: 1002, theme: animeToastTheme },
+    { id: 1003, theme: abdlToastTheme }
 ];
 
 export function initToastThemes(): void {

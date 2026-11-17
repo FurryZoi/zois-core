@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-24 -24 48 52" width="48" height="52">
+  <g stroke-linejoin="round" stroke-linecap="round">
+    <circle cx="-14" cy="-14" r="8" fill="#e8bf93" stroke="#6b4f7a" stroke-width="1.8"/>
+    <circle cx="14" cy="-14" r="8" fill="#e8bf93" stroke="#6b4f7a" stroke-width="1.8"/>
+    <circle cx="-14" cy="-14" r="4" fill="#ffd9e6"/>
+    <circle cx="14" cy="-14" r="4" fill="#ffd9e6"/>
+    <circle cx="0" cy="0" r="18" fill="#f0c9a0" stroke="#6b4f7a" stroke-width="1.8"/>
+    <ellipse cx="0" cy="6" rx="8" ry="6" fill="#fff1e0" stroke="#6b4f7a" stroke-width="1.8"/>
+    <ellipse cx="0" cy="3" rx="2.8" ry="2" fill="#6b4f7a"/>
+    <path d="M0 5V7.5M0 7.5Q-2.5 10 -4.5 8M0 7.5Q2.5 10 4.5 8" fill="none" stroke="#6b4f7a" stroke-width="1.8"/>
+    <circle cx="-7" cy="-3" r="1.9" fill="#6b4f7a"/>
+    <circle cx="7" cy="-3" r="1.9" fill="#6b4f7a"/>
+    <ellipse cx="-12" cy="4" rx="3" ry="2" fill="#ffb3cf" opacity=".7"/>
+    <ellipse cx="12" cy="4" rx="3" ry="2" fill="#ffb3cf" opacity=".7"/>
+    <path d="M0 20L-9 14V26ZM0 20L9 14V26Z" fill="#ffb3cf" stroke="#6b4f7a" stroke-width="1.8"/>
+    <circle cx="0" cy="20" r="3.2" fill="#ff9ec4" stroke="#6b4f7a" stroke-width="1.8"/>
+  </g>
+</svg>
