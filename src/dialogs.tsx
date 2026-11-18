@@ -13,7 +13,7 @@ export function Dialog(props: DialogProps) {
             borderRadius: "4px",
             background: "var(--tmd-main, white)",
             fontFamily: CommonGetFontName(),
-            fontSize: "clamp(14px, min(1vw, 1.8vh), 30px)",
+            fontSize: "16px",
             margin: "auto",
             position: "absolute",
             top: "0",

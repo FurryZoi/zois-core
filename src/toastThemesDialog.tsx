@@ -30,9 +30,6 @@ export function createThemesDialog(): void {
     });
     const exitButtonClassName = getDynamicClass({
         base: {
-            position: "absolute",
-            top: "6px",
-            right: "6px",
             display: "grid",
             placeItems: "center",
             aspectRatio: "1/1"
@@ -65,144 +62,160 @@ export function createThemesDialog(): void {
     };
     const dialog = (
         <Dialog wide>
-            <DialogButton
-                class={exitButtonClassName}
-                onClick={() => {
-                    dialog.remove();
-                }}
-            >
-                {createElement(X)}
-            </DialogButton>
-            <DialogText style={{ fontSize: "2em", fontWeight: "bold" }}>
-                Toast themes
-            </DialogText>
+            <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                <DialogText style={{ fontSize: "2em", fontWeight: "bold" }}>
+                    Toast themes
+                </DialogText>
+                <DialogButton
+                    class={exitButtonClassName}
+                    onClick={() => {
+                        dialog.remove();
+                    }}
+                >
+                    {createElement(X, { width: "1.25em", height: "1.25em" })}
+                </DialogButton>
+            </div>
             <div style={{ overflowY: "scroll", display: "flex", flexDirection: "column", gap: "12px" }}>
-                {themes.map((t, i) => {
-                    const tierClassName = getDynamicClass({
-                        base: {
-                            position: "absolute",
-                            top: "10px",
-                            right: "10px",
-                            fontSize: "28px",
-                            ...tierStyles[t.theme.tier]
-                        }
-                    });
-                    const applyButtonClassName = getDynamicClass({
-                        base: {
-                            color: "var(--tmd-text, white) !important",
-                            background: "var(--tmd-accent, black) !important",
-                        },
-                        hover: {
-                            color: "var(--tmd-text, black) !important",
-                            background: "var(--tmd-accent-hover, white) !important"
-                        },
-                        disabled: {
-                            background: "var(--tmd-accent-disabled, #959595) !important",
-                            pointerEvents: "none"
-                        }
-                    });
-                    const typesContainerClassName = getDynamicClass({
-                        base: {
-                            display: "flex",
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            gap: "6px"
-                        }
-                    });
+                {themes
+                    .sort((a, b) => {
+                        const tierOrder = { R: 0, SR: 1, SSR: 2 };
+                        return tierOrder[a.theme.tier] - tierOrder[b.theme.tier];
+                    })
+                    .map((t, i) => {
+                        const tierClassName = getDynamicClass({
+                            base: {
+                                position: "absolute",
+                                top: "10px",
+                                right: "10px",
+                                fontSize: "28px",
+                                ...tierStyles[t.theme.tier]
+                            }
+                        });
+                        const setAsDefaultButtonClassName = getDynamicClass({
+                            base: {
+                                cursor: "pointer",
+                                color: "var(--tmd-text, white) !important",
+                                background: "var(--tmd-accent, black) !important",
+                                padding: "0.25em 0.75em",
+                                fontSize: "26px",
+                                border: "none",
+                                borderRadius: "4px"
+                            },
+                            hover: {
+                                color: "var(--tmd-text, black) !important",
+                                background: "var(--tmd-accent-hover, white) !important"
+                            },
+                            disabled: {
+                                background: "var(--tmd-accent-disabled, #959595) !important",
+                                pointerEvents: "none"
+                            }
+                        });
+                        const typesContainerClassName = getDynamicClass({
+                            base: {
+                                display: "flex",
+                                flexDirection: "row",
+                                flexWrap: "wrap",
+                                gap: "6px"
+                            }
+                        });
 
-                    const typeButtonClassName = getDynamicClass({
-                        base: {
-                            fontSize: "16px !important",
-                            padding: "2px 8px !important"
-                        }
-                    });
+                        const typeButtonClassName = getDynamicClass({
+                            base: {
+                                fontSize: "16px !important",
+                                padding: "2px 8px !important"
+                            }
+                        });
 
-                    if (!isToastThemeUnlocked(t.theme)) {
+                        if (!isToastThemeUnlocked(t.theme)) {
+                            return (
+                                <div class={themeCardClassName} style={{ paddingBottom: "25px" }}>
+                                    <span style={{ fontWeight: "bold", fontSize: "22px" }}>????</span>
+                                    <span class={tierClassName}>{t.theme.tier}</span>
+                                    <span style={{ fontSize: "16px" }}>You should unlock this theme first.</span>
+                                </div>
+                            );
+                        }
+
+                        const toastPreview = t.theme.render({
+                            message: "Awesome theme!",
+                            duration: 9999999999999,
+                            isInteractable: false,
+                            id: i.toString(),
+                            type: "info",
+                            size: {
+                                scaleWithCanvas: false,
+                                scaleFactor: 1
+                            }
+                        });
+                        toastPreview.style.width = "fit-content";
+                        toastPreview.style.maxWidth = "100%";
+
+                        const toastPreviewContainer = (<div style={{ width: "fit-content" }}>{toastPreview}</div>) as HTMLDivElement;
+                        const typeButtons = toastTypes.map(({ type, name }) => {
+                            const button = (
+                                <DialogButton
+                                    class={typeButtonClassName}
+                                    onClick={() => {
+                                        const renderData: ToastRenderData = type === "spinner" ? {
+                                            message: "Awesome theme!",
+                                            isInteractable: false,
+                                            id: i.toString(),
+                                            type,
+                                            size: {
+                                                scaleWithCanvas: false,
+                                                scaleFactor: 1
+                                            }
+                                        } : {
+                                            message: "Awesome theme!",
+                                            duration: 0,
+                                            isInteractable: false,
+                                            id: i.toString(),
+                                            type,
+                                            size: {
+                                                scaleWithCanvas: false,
+                                                scaleFactor: 1
+                                            }
+                                        };
+                                        const nextPreview = t.theme.render(renderData);
+                                        nextPreview.style.width = "fit-content";
+                                        nextPreview.style.maxWidth = "100%";
+                                        toastPreviewContainer.replaceChildren(nextPreview);
+                                    }}
+                                >
+                                    {name}
+                                </DialogButton>
+                            ) as HTMLButtonElement;
+                            return { type, button };
+                        });
+
                         return (
-                            <div class={themeCardClassName} style={{ paddingBottom: "25px" }}>
-                                <span style={{ fontWeight: "bold", fontSize: "22px" }}>????</span>
+                            <div class={themeCardClassName}>
+                                <span style={{ fontWeight: "bold", fontSize: "22px" }}>{t.theme.name}</span>
+                                <span style={{ fontSize: "18px", padding: "6px", borderRadius: "4px", background: "var(--tmd-element-hover, #ececec)" }}>
+                                    {t.theme.details}
+                                </span>
                                 <span class={tierClassName}>{t.theme.tier}</span>
+                                <div class={typesContainerClassName}>
+                                    {typeButtons.map((b) => b.button)}
+                                </div>
+                                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "end", gap: "14px" }}>
+                                    {toastPreviewContainer}
+                                    <button
+                                        class={setAsDefaultButtonClassName}
+                                        disabled={activeThemeId === t.id}
+                                        onClick={(e) => {
+                                            const btns = document.getElementsByClassName(setAsDefaultButtonClassName);
+                                            for (const b of btns) (b as HTMLButtonElement).disabled = false;
+                                            e.currentTarget.disabled = true;
+                                            setActiveToastTheme(t.theme);
+                                        }}
+                                    >
+                                        Set as default
+                                    </button>
+                                </div>
                             </div>
                         );
-                    }
-
-                    const toastPreview = t.theme.render({
-                        message: "Awesome theme!",
-                        duration: 9999999999999,
-                        isInteractable: false,
-                        id: i.toString(),
-                        type: "info",
-                        size: {
-                            scaleWithCanvas: false,
-                            scaleFactor: 1
-                        }
-                    });
-                    toastPreview.style.width = "fit-content";
-                    toastPreview.style.maxWidth = "100%";
-                    const toastPreviewContainer = (<div>{toastPreview}</div>) as HTMLDivElement;
-                    const typeButtons = toastTypes.map(({ type, name }) => {
-                        const button = (
-                            <DialogButton
-                                class={typeButtonClassName}
-                                onClick={() => {
-                                    const renderData: ToastRenderData = type === "spinner" ? {
-                                        message: "Awesome theme!",
-                                        isInteractable: false,
-                                        id: i.toString(),
-                                        type,
-                                        size: {
-                                            scaleWithCanvas: false,
-                                            scaleFactor: 1
-                                        }
-                                    } : {
-                                        message: "Awesome theme!",
-                                        duration: 0,
-                                        isInteractable: false,
-                                        id: i.toString(),
-                                        type,
-                                        size: {
-                                            scaleWithCanvas: false,
-                                            scaleFactor: 1
-                                        }
-                                    };
-                                    const nextPreview = t.theme.render(renderData);
-                                    nextPreview.style.width = "fit-content";
-                                    nextPreview.style.maxWidth = "100%";
-                                    toastPreviewContainer.replaceChildren(nextPreview);
-                                }}
-                            >
-                                {name}
-                            </DialogButton>
-                        ) as HTMLButtonElement;
-                        return { type, button };
-                    });
-
-                    return (
-                        <div class={themeCardClassName}>
-                            <span style={{ fontWeight: "bold", fontSize: "22px" }}>{t.theme.name}</span>
-                            <span style={{ fontSize: "18px", padding: "6px", borderRadius: "4px", background: "var(--tmd-element-hover, #ececec)" }}>
-                                {t.theme.details}
-                            </span>
-                            <span class={tierClassName}>{t.theme.tier}</span>
-                            <div class={typesContainerClassName}>
-                                {typeButtons.map((b) => b.button)}
-                            </div>
-                            {toastPreviewContainer}
-                            <DialogButton
-                                class={applyButtonClassName}
-                                disabled={activeThemeId === t.id}
-                                onClick={(e) => {
-                                    const btns = document.getElementsByClassName(applyButtonClassName);
-                                    for (const b of btns) (b as HTMLButtonElement).disabled = false;
-                                    e.currentTarget.disabled = true;
-                                    setActiveToastTheme(t.theme);
-                                }}
-                            >
-                                Apply
-                            </DialogButton>
-                        </div>
-                    );
-                })}
+                    })}
             </div>
         </Dialog>
     ) as HTMLDialogElement;
