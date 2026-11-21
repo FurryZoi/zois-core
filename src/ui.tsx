@@ -646,7 +646,8 @@ export abstract class BaseSubscreen {
                 display: "flex",
                 alignItems: "center",
                 gap: "0.45em",
-                background: "var(--tmd-element, rgb(227, 227, 227))",
+                background: "var(--tmd-element, rgb(244, 244, 244))",
+                border: "1px solid var(--tmd-element-hover, rgb(194, 194, 194))",
                 color: "var(--tmd-text, black)",
                 fontSize: u(4),
                 borderRadius: "0.25em",
@@ -677,7 +678,7 @@ export abstract class BaseSubscreen {
                     fontWeight: isCurrent ? "bold" : "unset"
                 },
                 hover: {
-                    background: isCurrent ? "none" : "var(--tmd-element-hover, rgb(209, 209, 209))"
+                    background: isCurrent ? "none" : "var(--tmd-element-hover, rgb(223, 223, 223))"
                 }
             })
             const item = (
