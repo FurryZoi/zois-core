@@ -6,7 +6,8 @@ import { getDynamicClass, getDynamicKeyframes } from "./ui";
 import {
     Dialog,
     DialogButton,
-    DialogButtons
+    DialogButtons,
+    DialogCloseButton
 } from "./dialogs";
 import handIcon from "./assets/icons/hand.svg";
 
@@ -276,21 +277,8 @@ export function showChangelogModal(): void {
                         {MOD_DATA.name} · {versions.length} releases
                     </span>
                 </div>
-                <DialogButtons>
-                    <DialogButton
-                        onClick={close}
-                        title="Close changelog"
-                        style={{
-                            fontSize: "1.2em",
-                            minWidth: "2em",
-                            padding: "0.2em 0.5em"
-                        }}
-                    >
-                        ✕
-                    </DialogButton>
-                </DialogButtons>
+                <DialogCloseButton onClick={close} />
             </div>
-
             <div class={scrollClassName}>
                 {versions.length === 0 && (
                     <div class={emptyClassName}>
@@ -299,7 +287,6 @@ export function showChangelogModal(): void {
                         <span>There are no published changes for this mod.</span>
                     </div>
                 )}
-
                 {versions.map((versionData, versionIndex) => (
                     <VersionSection
                         versionData={versionData}

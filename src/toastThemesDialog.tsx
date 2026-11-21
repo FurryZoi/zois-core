@@ -2,7 +2,7 @@ import { createElement, X } from "lucide";
 import { getDynamicClass } from "./ui";
 import { ToastRenderData, ToastType } from "./toast-themes/base";
 import { getActiveToastThemeId, isToastThemeUnlocked, setActiveToastTheme, themes } from "./toasts";
-import { Dialog, DialogButton, DialogText } from "./dialogs";
+import { Dialog, DialogButton, DialogCloseButton, DialogText } from "./dialogs";
 
 export function createThemesDialog(): void {
     const toastTypes: { type: ToastType; name: string }[] = [
@@ -26,13 +26,6 @@ export function createThemesDialog(): void {
             padding: "8px",
             color: "var(--tmd-text, black)",
             position: "relative"
-        }
-    });
-    const exitButtonClassName = getDynamicClass({
-        base: {
-            display: "grid",
-            placeItems: "center",
-            aspectRatio: "1/1"
         }
     });
     const tierStyles = {
@@ -66,14 +59,7 @@ export function createThemesDialog(): void {
                 <DialogText style={{ fontSize: "2em", fontWeight: "bold" }}>
                     Toast themes
                 </DialogText>
-                <DialogButton
-                    class={exitButtonClassName}
-                    onClick={() => {
-                        dialog.remove();
-                    }}
-                >
-                    {createElement(X, { width: "1.25em", height: "1.25em" })}
-                </DialogButton>
+                <DialogCloseButton onClick={() => dialog.close()}/>
             </div>
             <div style={{ overflowY: "scroll", display: "flex", flexDirection: "column", gap: "12px" }}>
                 {themes

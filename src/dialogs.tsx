@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { BaseProps } from "tsx-dom";
 import { getDynamicClass } from "./ui";
+import { createElement, X } from "lucide";
 
 interface DialogProps extends BaseProps {
     wide?: boolean
@@ -9,7 +10,7 @@ interface DialogProps extends BaseProps {
 export function Dialog(props: DialogProps) {
     const dialogClassName = getDynamicClass({
         base: {
-            border: "1px solid var(--tmd-accent, black)",
+            border: "none",
             borderRadius: "4px",
             background: "var(--tmd-main, white)",
             fontFamily: CommonGetFontName(),
@@ -182,6 +183,35 @@ export function DialogSelect(props: BaseProps) {
     );
 }
 
+interface DialogCloseButtonProps extends BaseProps {
+    onClick: () => void
+}
+
+export function DialogCloseButton(props: DialogCloseButtonProps) {
+    const btnClassName = getDynamicClass({
+        base: {
+            cursor: "pointer",
+            background: "var(--tmd-accent, #ff009b47)",
+            color: "var(--tmd-text, #a20063)",
+            border: "none",
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            aspectRatio: "1/1",
+            fontSize: "14px",
+            padding: "0.4em"
+        },
+        hover: {
+            background: "var(--tmd-accent-hover, #ff009b66)"
+        }
+    });
+    return (
+        <button class={btnClassName} onClick={props.onClick}>
+            {createElement(X)}
+        </button>
+    );
+}
+
 export function createConfirmDialog({ message }: { message: string }): Promise<boolean> {
     return new Promise((resolve) => {
         const clear = () => {
@@ -212,7 +242,7 @@ export function createConfirmDialog({ message }: { message: string }): Promise<b
 
         const _dialog = (
             <Dialog>
-                <DialogText style={{ fontSize: "1.75em" }}>{message}</DialogText>
+                <DialogText style={{ fontSize: "1.75em", marginBottom: "0.5em" }}>{message}</DialogText>
                 <DialogButtons>
                     <DialogButton onClick={cancel}>Cancel</DialogButton>
                     <DialogButton onClick={submit}>Ok</DialogButton>
