@@ -332,12 +332,12 @@ export function getDynamicClass(styles: DynamicClassStyles): string {
         }
     }
 
-    let styleElement = document.getElementById(`${MOD_DATA.key ?? ""}-dynamic-classes`);
+    let styleElement = document.getElementById(`${MOD_DATA?.key ?? ""}-dynamic-classes`);
     if (styleElement) {
         styleElement.textContent += cssRules;
     } else {
         styleElement = document.createElement('style');
-        styleElement.id = `${MOD_DATA.key ?? ""}-dynamic-classes`;
+        styleElement.id = `${MOD_DATA?.key ?? ""}-dynamic-classes`;
         styleElement.textContent = cssRules;
         document.head.appendChild(styleElement);
     }

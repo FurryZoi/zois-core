@@ -27,7 +27,8 @@ export interface ModData {
     }
     changelog?: {
         data: {
-            generated_at: string
+            date: string
+            version: string
             contributors: {
                 name: string
                 avatar_url: string
@@ -42,7 +43,7 @@ export interface ModData {
                 tags: ChangelogEntryTag[]
                 commit_url: string,
             }[]
-        }
+        }[]
     }
     onReady?: () => void
 }
