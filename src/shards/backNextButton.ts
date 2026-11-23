@@ -1,5 +1,5 @@
 import { MOD_DATA } from "..";
-import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily } from "../ui";
+import { addDynamicClass, autosetFontSize, createTooltip, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./base";
 
 export interface BackNextButtonShardContext extends ShardContext<"backButton" | "nextButton" | "text"> {
@@ -93,6 +93,10 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
         const slideText = (direction: "next" | "back", newIndex: number) => {
             if (isAnimating) return;
             isAnimating = true;
+            currentIndex = newIndex;
+
+            if (typeof onChange === "function") onChange(items[currentIndex][1]);
+            updateClasses();
 
             const outgoing = text;
             const incoming = document.createElement("b");
@@ -107,7 +111,7 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
                 margin: 0;
                 user-select: none;
             `;
-            incoming.textContent = items[newIndex][0];
+            incoming.textContent = items[currentIndex][0];
 
             const fromX = direction === "next" ? "100%" : "-100%";
             const toX = direction === "next" ? "-100%" : "100%";
@@ -125,19 +129,12 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
 
             const onEnd = () => {
                 incoming.removeEventListener("transitionend", onEnd);
-
                 outgoing.remove();
-
                 text = incoming;
                 text.style.position = "relative";
                 text.style.inset = "auto";
                 text.style.transform = "";
                 text.style.transition = "";
-
-                currentIndex = newIndex;
-                if (typeof onChange === "function") onChange(items[currentIndex][1]);
-                updateClasses();
-
                 isAnimating = false;
             };
 
@@ -150,6 +147,13 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
             height: 100%; background-image: url("Icons/Prev.png"); background-size: 100%;
         `;
         addDynamicClass(backBtn, this.dynamicClassButton);
+        createTooltip(backBtn, () => {
+            return [
+                {
+                    text: this.context.items[currentIndex - 1]?.[0] ?? "-"
+                }
+            ];
+        });
         backBtn.addEventListener("click", () => {
             if (isAnimating) return;
             if (currentIndex === 0) return;
@@ -163,6 +167,13 @@ export class BackNextButtonShard extends Shard<BackNextButtonShardContext> {
             height: 100%; background-image: url("Icons/Next.png"); background-size: 100%;
         `;
         addDynamicClass(nextBtn, this.dynamicClassButton);
+        createTooltip(nextBtn, () => {
+            return [
+                {
+                    text: this.context.items[currentIndex + 1]?.[0] ?? "-"
+                }
+            ];
+        });
         nextBtn.addEventListener("click", () => {
             if (isAnimating) return;
             if (currentIndex === items.length - 1) return;

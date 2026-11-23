@@ -420,6 +420,152 @@ export function onClickOutside(element: HTMLElement, callback: (event: MouseEven
     };
 }
 
+export function createTooltip(
+    element: HTMLElement,
+    items: { text: string; icon?: SVGElement | HTMLImageElement }[] | (() => ({ text: string; icon?: SVGElement | HTMLImageElement })[])
+): void {
+    let tooltip: HTMLDivElement | null = null;
+    let observer: MutationObserver | null = null;
+
+    const updatePosition = () => {
+        if (!tooltip || !element.isConnected) return;
+
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const gap = 8;
+
+        const rightSpace = window.innerWidth - rect.right;
+        const leftSpace = rect.left;
+
+        const showRight = rightSpace >= tooltipRect.width + gap ||
+            rightSpace >= leftSpace;
+
+        const left = showRight
+            ? rect.right + gap
+            : rect.left - tooltipRect.width - gap;
+
+        const top = Math.max(
+            4,
+            Math.min(
+                rect.top + rect.height / 2 - tooltipRect.height / 2,
+                window.innerHeight - tooltipRect.height - 4
+            )
+        );
+
+        tooltip.style.left = `${Math.max(
+            4,
+            Math.min(left, window.innerWidth - tooltipRect.width - 4)
+        )}px`;
+
+        tooltip.style.top = `${top}px`;
+    };
+
+    const hide = () => {
+        if (tooltip) {
+            tooltip.remove();
+            tooltip = null;
+        }
+
+        observer?.disconnect();
+        observer = null;
+
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition, true);
+    };
+
+    const show = () => {
+        if (tooltip || !element.isConnected) return;
+
+        tooltip = document.createElement("div");
+
+        tooltip.style.cssText = `
+            position: fixed;
+            z-index: 100;
+            width: max-content;
+            max-width: ${u(450)};
+            height: fit-content;
+            font-size: ${u(3.5)};
+            color: var(--tmd-text, black);
+            background: var(--tmd-element-hint, #f8f8f8);
+            border-radius: 4px;
+            border: 1px solid var(--tmd-accent, #9f9f9f);
+            pointer-events: none;
+            overflow-wrap: anywhere;
+        `;
+
+        const _items = typeof items === "function" ? items() : items;
+
+        _items.forEach((item, index) => {
+            const row = document.createElement("div");
+
+            row.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: ${u(1)};
+                padding: ${u(1)};
+                ${index < items.length - 1 ? `
+                    border-bottom: 1px solid var(--tmd-accent, #9f9f9f);
+                ` : ""}
+            `;
+
+            if (item.icon) {
+                const icon = item.icon;
+
+                icon.style.cssText += `
+                    flex-shrink: 0;
+                    width: ${u(4)};
+                    height: ${u(4)};
+                    object-fit: contain;
+                `;
+
+                row.append(icon);
+            }
+
+            const text = document.createElement("span");
+            text.textContent = item.text;
+            text.style.cssText = `
+                min-width: 0;
+                flex: 1;
+            `;
+
+            row.append(text);
+            tooltip!.append(row);
+        });
+
+        setFontFamily(tooltip, CommonGetFontName());
+        document.body.append(tooltip);
+
+        updatePosition();
+
+        window.addEventListener("resize", updatePosition);
+        window.addEventListener("scroll", updatePosition, true);
+
+        observer = new MutationObserver(() => {
+            if (!element.isConnected) {
+                hide();
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    };
+
+    element.addEventListener("mouseenter", show);
+    element.addEventListener("mouseleave", hide);
+
+    if (typeof items === "function") {
+        element.addEventListener("click", () => {
+            setTimeout(() => {
+                if (!element.matches(":hover") || element.matches(":disabled")) return;
+                hide();
+                show();
+            }, 0);
+        });
+    }
+}
+
 const subscreenStack: BaseSubscreen[] = [];
 
 export function getCurrentSubscreen(): BaseSubscreen | null {
@@ -622,10 +768,9 @@ export abstract class BaseSubscreen {
             width: 90,
             height: 90,
             icon: dataUrlSvgWithColor(exitIcon, { fill: cssVar("--tmd-text", "black") }),
-            tooltip: {
-                position: "left",
+            tooltip: [{
                 text: "Back"
-            },
+            }],
             modules: {
                 base: [
                     new StyleModule({
@@ -659,7 +804,7 @@ export abstract class BaseSubscreen {
 
         stack.forEach((s, i) => {
             if (i !== 0) {
-                const separator = (<span style={{opacity: "0.5"}}>/</span>) as HTMLSpanElement;
+                const separator = (<span style={{ opacity: "0.5" }}>/</span>) as HTMLSpanElement;
                 bar.append(separator);
             }
             const isCurrent = i === (stack.length - 1);

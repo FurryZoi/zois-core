@@ -1,6 +1,6 @@
 import { createElement, ExternalLink } from "lucide";
 import { MOD_DATA } from "../index";
-import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
+import { addDynamicClass, autosetFontSize, createTooltip, DynamicClassStyles, setFontFamily, setFontSize } from "../ui";
 import { Shard, ShardContext } from "./base";
 
 export interface ButtonShardContext extends ShardContext<"icon" | "text"> {
@@ -11,8 +11,8 @@ export interface ButtonShardContext extends ShardContext<"icon" | "text"> {
     iconAbsolutePosition?: boolean
     tooltip?: {
         text: string
-        position: "left" | "right"
-    }
+        icon?: SVGElement | HTMLImageElement
+    }[]
     href?: string
     onClick?: () => void
     isDisabled?: () => boolean
@@ -122,12 +122,10 @@ export class ButtonShard extends Shard<ButtonShardContext> {
             btn.append(textElement);
         }
 
+        const tooltipsRows: { text: string, icon?: SVGElement | HTMLImageElement }[] = [];
+
         if (tooltip) {
-            const tooltipEl = document.createElement("span");
-            tooltipEl.classList.add("tooltip");
-            tooltipEl.setAttribute("position", tooltip.position);
-            tooltipEl.textContent = tooltip.text;
-            btn.append(tooltipEl);
+            tooltipsRows.push(...tooltip);
         }
 
         if (href) {
@@ -141,24 +139,10 @@ export class ButtonShard extends Shard<ButtonShardContext> {
             externalLinkContainer.append(externalLinkIcon);
             btn.append(externalLinkContainer);
 
-            let hrefTooltip: HTMLDivElement | null = null;
-            btn.addEventListener("mouseenter", () => {
-                if (hrefTooltip) return;
-                hrefTooltip = document.createElement("div");
-                hrefTooltip.style.cssText = `position: fixed; top: 0; left: 0; right: 0; bottom: 0; margin: auto;
-                width: fit-content; height: fit-content; font-size: calc(3.5px * var(--size-unit));
-                z-index: 100; color: var(--tmd-text, black); background: var(--tmd-element, #f8f8f8); padding: 0.2em;
-                border-radius: 4px; border: 1px solid var(--tmd-element-hover, #9f9f9f);`;
-                setFontFamily(hrefTooltip, CommonGetFontName());
-                hrefTooltip.textContent = href;
-                document.body.append(hrefTooltip);
-            });
-            btn.addEventListener("mouseleave", () => {
-                if (!hrefTooltip) return;
-                hrefTooltip.remove();
-                hrefTooltip = null;
-            });
+            tooltipsRows.push({ icon: createElement(ExternalLink), text: href })
         }
+
+        if (tooltipsRows.length !== 0) createTooltip(btn, tooltipsRows);
 
         if (typeof isDisabled === "function" && isDisabled()) btn.classList.add("zcDisabled");
         btn.addEventListener("click", () => {
