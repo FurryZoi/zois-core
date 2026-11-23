@@ -1,4 +1,3 @@
-import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
 import { MOD_DATA } from "./index";
 import { logger } from "./logging";
 import { getSettings } from "./settings";
@@ -16,17 +15,22 @@ export let modSdk: ModSDKModAPI;
 
 export function createModSdk(): void {
     const coreSettings = getSettings();
-    modSdk = bcModSdk.registerMod(
-        {
-            name: MOD_DATA.name,
-            fullName: MOD_DATA.fullName,
-            version: MOD_DATA.version,
-            repository: MOD_DATA.repository,
-        },
-        {
-            allowReplace: coreSettings.allowReplaceModSdk ?? false
-        }
-    );
+    try {
+        modSdk = bcModSdk.registerMod(
+            {
+                name: MOD_DATA.name,
+                fullName: MOD_DATA.fullName,
+                version: MOD_DATA.version,
+                repository: MOD_DATA.repository,
+            },
+            {
+                allowReplace: coreSettings.allowReplaceModSdk ?? false
+            }
+        );
+        logger.log(`Created mod sdk. allowReplace: ${coreSettings.allowReplaceModSdk ?? false}`);
+    } catch (e) {
+        logger.error("Failed to create mod sdk:", e)
+    }
 }
 
 /**
