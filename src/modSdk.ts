@@ -1,6 +1,7 @@
 import bcModSdk, { PatchHook, ModSDKModInfo, GetDotedPathType, ModSDKModAPI } from "bondage-club-mod-sdk";
 import { MOD_DATA } from "./index";
 import { logger } from "./logging";
+import { getSettings } from "./settings";
 
 
 export enum HookPriority {
@@ -14,12 +15,18 @@ export enum HookPriority {
 export let modSdk: ModSDKModAPI;
 
 export function createModSdk(): void {
-    modSdk = bcModSdk.registerMod({
-        name: MOD_DATA.name,
-        fullName: MOD_DATA.fullName,
-        version: MOD_DATA.version,
-        repository: MOD_DATA.repository
-    });
+    const coreSettings = getSettings();
+    modSdk = bcModSdk.registerMod(
+        {
+            name: MOD_DATA.name,
+            fullName: MOD_DATA.fullName,
+            version: MOD_DATA.version,
+            repository: MOD_DATA.repository,
+        },
+        {
+            allowReplace: coreSettings.allowReplaceModSdk ?? false
+        }
+    );
 }
 
 /**

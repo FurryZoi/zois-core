@@ -1247,6 +1247,10 @@ function renderDevelopmentSection(): HTMLDivElement {
                 setSettings(settings);
                 window.location.replace(window.location.href);
             })}
+            {createCheckboxRow("Allow Replace Mod SDK", !!settings.allowReplaceModSdk, (next) => {
+                settings.allowReplaceModSdk = next;
+                setSettings(settings);
+            })}
         </div>
     ) as HTMLDivElement;
 }

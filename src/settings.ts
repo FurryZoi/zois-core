@@ -17,6 +17,7 @@ export interface CoreSettings {
         }
     }
     autoConnectToDevBackendServer?: boolean
+    allowReplaceModSdk?: boolean
 }
 
 function normalizeSettings(raw: unknown): CoreSettings {
