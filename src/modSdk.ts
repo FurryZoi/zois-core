@@ -71,12 +71,14 @@ export function hookFunction<TFunctionName extends string>(
 * Patches from multiple calls are merged; where key matches the older one is replaced.
 * Specifying value of `null` removes patch with this key.
 */
-export function patchFunction(functionName: string, patches: Record<string, string | null>): void {
+export function patchFunction(functionName: string, patches: Record<string, string | null>): () => void {
     if (!modSdk) throw new Error("zois-core is not registered");
     try {
         modSdk.patchFunction(functionName, patches);
+        return () => removePatches(functionName);
     } catch (e) {
         logger.error(e);
+        return () => { };
     }
 }
 

@@ -75,6 +75,14 @@
     "./settings": {
       "import": "./dist/settings.js",
       "types": "./dist/types/settings.d.ts"
+    },
+    "./modules": {
+      "import": "./dist/modules/index.js",
+      "types": "./dist/types/modules/index.d.ts"
+    },
+    "./subscreens/localization": {
+      "import": "./dist/subscreens/localization.js",
+      "types": "./dist/types/subscreens/localization.d.ts"
     }
   },
   "pnpm": {

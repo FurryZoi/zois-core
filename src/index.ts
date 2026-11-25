@@ -6,6 +6,7 @@ import { createModSdk, hookFunction, HookPriority } from "./modSdk";
 import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 import { initShared } from "./shared";
 import { version } from "../package.json";
+import { ModuleConstructor, ModuleLoadingStrategy, modulesManager } from "./modules";
 
 
 export interface ModData {
@@ -17,6 +18,7 @@ export interface ModData {
     chatMessageBackground?: string
     chatMessageColor?: string
     fontFamily?: string
+    modules?: Record<string, ModuleConstructor>
     subscreens?: Record<string, SubscreenConstructor>
     localization?: {
         locales: {
@@ -81,6 +83,11 @@ export function bootstrap(modData: ModData): void {
         return next(args);
     });
 
+    hookFunction("ChatRoomSafewordRevert", HookPriority.OBSERVE, (args, next) => {
+        modulesManager.safeword();
+        return next(args);
+    })
+
     eventBus?.on("setSubscreen", async (data) => {
         const target = data.target;
         const isTrusted = data.isTrusted;
@@ -100,8 +107,16 @@ export function bootstrap(modData: ModData): void {
         }
     });
 
+    modulesManager.registerModules(
+        ...Object.values(MOD_DATA.modules ?? {}).map((Module) => {
+            return new Module();
+        })
+    );
+    modulesManager.loadByStrategy(ModuleLoadingStrategy.BeforeLogin);
+
     ServerIsLoggedInAsync().then(() => {
         loadLocalization();
+        modulesManager.loadByStrategy(ModuleLoadingStrategy.AfterLogin);
         if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
     });
 }
@@ -220,4 +235,3 @@ export function normalizeObject(obj: unknown) {
             return acc;
         }, {} as { [key: string]: any });
 }
-export { LocalizationSubscreen as LanguageSubscreen } from "./subscreens/localization";
