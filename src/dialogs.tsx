@@ -61,24 +61,25 @@ export function Dialog(props: DialogProps) {
     );
 }
 
-type DialogButtonProps = BaseProps & JSX.IntrinsicElements["button"];
+type DialogButtonProps = BaseProps & JSX.IntrinsicElements["button"] & {
+    variant?: "primary" | "outline" | "danger"
+};
 
 export function DialogButton(props: DialogButtonProps) {
-    const { children, class: _class, ...attrs } = props;
+    const { children, class: _class, variant = "primary", ...attrs } = props;
     const buttonClassName = getDynamicClass({
         base: {
             cursor: "pointer",
-            border: "1px solid var(--tmd-accent, black)",
+            border: variant === "outline" ? "1px solid var(--tmd-accent, black)" : "none",
             borderRadius: "4px",
-            background: "var(--tmd-element, white)",
-            color: "var(--tmd-text, black)",
+            background: variant === "primary" ? "var(--tmd-accent, #5151ff)" : variant === "outline" ? "var(--tmd-element, white)" : "rgba(255, 5, 10, 0.11)",
+            color: variant === "primary" ? "var(--tmd-text, white)" : variant === "outline" ? "var(--tmd-text, black)" : "rgb(194, 82, 77)",
             fontFamily: "inherit",
             fontSize: "1.45em",
             padding: "0.25em 0.4em"
         },
         hover: {
-            borderColor: "var(--tmd-accent, black)",
-            background: "var(--tmd-element-hover, #eee)",
+            background: variant === "primary" ? "var(--tmd-accent-hover, #4242da)" : variant === "outline" ? "var(--tmd-element-hover, #eee)" : "rgba(255, 5, 10, 0.17)",
         }
     });
 
@@ -190,25 +191,18 @@ interface DialogCloseButtonProps extends BaseProps {
 export function DialogCloseButton(props: DialogCloseButtonProps) {
     const btnClassName = getDynamicClass({
         base: {
-            cursor: "pointer",
-            background: "var(--tmd-accent, #ff009b47)",
-            color: "var(--tmd-text, #a20063)",
-            border: "none",
             borderRadius: "50%",
             display: "grid",
             placeItems: "center",
             aspectRatio: "1/1",
             fontSize: "14px",
             padding: "0.4em"
-        },
-        hover: {
-            background: "var(--tmd-accent-hover, #ff009b66)"
         }
     });
     return (
-        <button class={btnClassName} onClick={props.onClick}>
+        <DialogButton variant="danger" class={btnClassName} onClick={props.onClick}>
             {createElement(X)}
-        </button>
+        </DialogButton>
     );
 }
 
@@ -244,8 +238,8 @@ export function createConfirmDialog({ message }: { message: string }): Promise<b
             <Dialog>
                 <DialogText style={{ fontSize: "1.75em", marginBottom: "0.5em" }}>{message}</DialogText>
                 <DialogButtons>
-                    <DialogButton onClick={cancel}>Cancel</DialogButton>
-                    <DialogButton onClick={submit}>Ok</DialogButton>
+                    <DialogButton variant="danger" onClick={cancel}>Cancel</DialogButton>
+                    <DialogButton variant="primary" onClick={submit}>Ok</DialogButton>
                 </DialogButtons>
             </Dialog>
         ) as HTMLDialogElement;
@@ -291,8 +285,8 @@ export function createPromptDialog({ message }: { message: string }): Promise<st
                 <DialogText style={{ fontSize: "1.75em" }}>{message}</DialogText>
                 {input}
                 <DialogButtons>
-                    <DialogButton onClick={cancel}>Cancel</DialogButton>
-                    <DialogButton onClick={submit}>Ok</DialogButton>
+                    <DialogButton variant="danger" onClick={cancel}>Cancel</DialogButton>
+                    <DialogButton variant="primary" onClick={submit}>Ok</DialogButton>
                 </DialogButtons>
             </Dialog>
         ) as HTMLDialogElement;
@@ -352,8 +346,8 @@ export function createPickDialog<T>({
                 <DialogText style={{ fontSize: "1.75em" }}>{message}</DialogText>
                 {select}
                 <DialogButtons>
-                    <DialogButton onClick={cancel}>Cancel</DialogButton>
-                    <DialogButton onClick={submit}>Ok</DialogButton>
+                    <DialogButton variant="danger" onClick={cancel}>Cancel</DialogButton>
+                    <DialogButton variant="primary" onClick={submit}>Ok</DialogButton>
                 </DialogButtons>
             </Dialog>
         ) as HTMLDialogElement;
@@ -669,8 +663,8 @@ export function createPickPlayerDialog({ message = "Select players" }: { message
                 <div class={footerClass}>
                     {selectedInfo}
                     <DialogButtons>
-                        <DialogButton onClick={cancel}>Cancel</DialogButton>
-                        <DialogButton onClick={submit}>Ok</DialogButton>
+                        <DialogButton variant="danger" onClick={cancel}>Cancel</DialogButton>
+                        <DialogButton variant="primary" onClick={submit}>Ok</DialogButton>
                     </DialogButtons>
                 </div>
             </Dialog>
