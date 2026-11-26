@@ -1,7 +1,7 @@
 import { dialogsManager } from "./dialogs";
 import { eventBus, getEventBus } from "./events";
 import { version, waitFor } from "./index";
-import { hookFunction, HookPriority } from "./modSdk";
+import { hookFunction, HookPriority } from "./patching";
 import { openCoreSettingsDialog } from "./settingsDialog";
 import styles from "./styles.css";
 import { initToastThemes } from "./toasts";

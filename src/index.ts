@@ -2,7 +2,7 @@ import { ChangelogEntryTag } from "./changelogs";
 import { dialogsManager } from "./dialogs";
 import { createEventBus, eventBus } from "./events";
 import { loadLocalization, type Locale } from "./localization";
-import { createModSdk, hookFunction, HookPriority } from "./modSdk";
+import { createModSdk, hookFunction, HookPriority } from "./patching";
 import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 import { initShared } from "./shared";
 import { version } from "../package.json";

@@ -2,7 +2,7 @@ import {
     hookFunction as registerHookFunction,
     patchFunction as registerPatchFunction,
     HookPriority
-} from "../modSdk";
+} from "../patching";
 import { logger } from "../logging";
 
 export class ModuleContext {

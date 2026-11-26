@@ -24,9 +24,9 @@
       "import": "./dist/messaging.js",
       "types": "./dist/types/messaging.d.ts"
     },
-    "./mod-sdk": {
-      "import": "./dist/modSdk.js",
-      "types": "./dist/types/modSdk.d.ts"
+    "./patching": {
+      "import": "./dist/patching.js",
+      "types": "./dist/types/patching.d.ts"
     },
     "./ui": {
       "import": "./dist/ui.js",

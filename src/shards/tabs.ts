@@ -1,6 +1,6 @@
 import { eventBus } from "../events";
 import { MOD_DATA } from "../index";
-import { hookFunction, HookPriority } from "../modSdk";
+import { hookFunction, HookPriority } from "../patching";
 import { autosetFontSize, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./base";
 

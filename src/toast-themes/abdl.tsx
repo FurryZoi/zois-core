@@ -14,7 +14,7 @@ import sparkleSvg from "../assets/icons/toast-themes/abdl/sparkle.svg";
 import bottleSvg from "../assets/icons/toast-themes/abdl/bottle.svg";
 import diaperSvg from "../assets/icons/toast-themes/abdl/diaper.svg";
 import teddySvg from "../assets/icons/toast-themes/abdl/teddy.svg";
-import { hookFunction, HookPriority } from "../modSdk";
+import { hookFunction, HookPriority } from "../patching";
 import { logger } from "../logging";
 
 const FIXED_UNIT = 10;

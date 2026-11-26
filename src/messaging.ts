@@ -1,6 +1,6 @@
 import { ClassConstructor } from "class-transformer";
 import { getPlayer, MOD_DATA } from "./index";
-import { hookFunction, HookPriority } from "./modSdk";
+import { hookFunction, HookPriority } from "./patching";
 import { setFontFamily } from "./ui";
 import { validateData } from "./validation";
 import { logger } from "./logging";

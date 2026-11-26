@@ -10,7 +10,7 @@ import infoSvg from "../assets/icons/toast-themes/anime/info.svg";
 import warningSvg from "../assets/icons/toast-themes/anime/warning.svg";
 import errorSvg from "../assets/icons/toast-themes/anime/error.svg";
 import successSvg from "../assets/icons/toast-themes/anime/success.svg";
-import { hookFunction, HookPriority } from "../modSdk";
+import { hookFunction, HookPriority } from "../patching";
 import { createThemesDialog } from "../toastThemesDialog";
 import { getSettings } from "../settings";
 
