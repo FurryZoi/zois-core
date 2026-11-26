@@ -1,15 +1,15 @@
 import { MOD_DATA } from "../index";
 import { logger } from "../logging";
-import { addDynamicClass, autosetFontSize, DynamicClassStyles, setFontFamily } from "../ui";
+import { addDynamicClass, autosetFontSize, createTooltip, DynamicClassStyles, setFontFamily } from "../ui";
 import { Shard, ShardContext } from "./base";
 
 export interface CheckboxShardContext extends ShardContext<"checkbox" | "label"> {
     isChecked: boolean;
     text: string;
     tooltip?: {
-        position: "left" | "right";
-        text: string;
-    };
+        text: string
+        icon?: SVGElement | HTMLImageElement
+    }[]
     onChange?: () => void;
     isDisabled?: () => boolean;
 }
@@ -176,16 +176,7 @@ export class CheckboxShard extends Shard<CheckboxShardContext> {
 
         wrapper.append(box, label);
 
-        if (tooltip) {
-            const tooltipEl = document.createElement("span");
-            tooltipEl.classList.add("tooltip");
-            tooltipEl.setAttribute("position", tooltip.position);
-            tooltipEl.textContent = tooltip.text;
-
-            addDynamicClass(tooltipEl, this.dynamicClassTooltip);
-
-            box.appendChild(tooltipEl);
-        }
+        if (tooltip) createTooltip(box, tooltip);
 
         return {
             base: wrapper,
