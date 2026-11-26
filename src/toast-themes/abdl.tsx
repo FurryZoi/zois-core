@@ -49,11 +49,11 @@ const FLOATERS: {
     duration: string;
     delay: string;
 }[] = [
-    { left: "30%", size: "0.6em", source: heartSvg, color: "#ffb3cf", duration: "5.2s", delay: "0s" },
-    { left: "55%", size: "0.5em", source: starSvg, color: "#ffe08a", duration: "6s", delay: "1.6s" },
-    { left: "76%", size: "0.6em", source: heartSvg, color: "#cdb8f5", duration: "5.6s", delay: "2.8s" },
-    { left: "91%", size: "0.45em", source: starSvg, color: "#a8dcfa", duration: "6.4s", delay: "0.9s" },
-];
+        { left: "30%", size: "0.9em", source: heartSvg, color: "#ffb3cf", duration: "5.2s", delay: "0s" },
+        { left: "55%", size: "0.75em", source: starSvg, color: "#ffe08a", duration: "6s", delay: "1.6s" },
+        { left: "76%", size: "0.9em", source: heartSvg, color: "#cdb8f5", duration: "5.6s", delay: "2.8s" },
+        { left: "91%", size: "0.675em", source: starSvg, color: "#a8dcfa", duration: "6.4s", delay: "0.9s" }
+    ];
 
 type AbdlKeyframes = {
     float: string;
@@ -126,16 +126,16 @@ type ArtPlacement = {
 
 const ART: ArtPlacement[] = [
     { source: bottleSvg, x: 32, y: 46, rot: -14, scale: 0.72 },
-    { source: starSvg, x: 68, y: 18, scale: 0.8, color: "#ffe08a" },
-    { source: heartSvg, x: 76, y: 72, rot: -10, scale: 0.55, color: "#cdb8f5" },
+    { source: starSvg, x: 68, y: 18, scale: 1.2, color: "#ffe08a" },
+    { source: heartSvg, x: 76, y: 72, rot: -10, scale: 0.825, color: "#cdb8f5" },
     { source: sparkleSvg, x: 132, y: 16, scale: 0.9, color: "#ffffff" },
-    { source: heartSvg, x: 134, y: 74, rot: 12, scale: 0.5, color: "#ffb3cf" },
+    { source: heartSvg, x: 134, y: 74, rot: 12, scale: 0.75, color: "#ffb3cf" },
     { source: diaperSvg, x: 164, y: 46, rot: -8, scale: 0.7 },
-    { source: starSvg, x: 198, y: 16, scale: 0.7, color: "#a8dcfa" },
-    { source: heartSvg, x: 198, y: 74, rot: -12, scale: 0.55, color: "#9fe3c8" },
+    { source: starSvg, x: 198, y: 16, scale: 1.05, color: "#a8dcfa" },
+    { source: heartSvg, x: 198, y: 74, rot: -12, scale: 0.825, color: "#9fe3c8" },
     { source: teddySvg, x: 228, y: 46, rot: 6, scale: 0.62 },
     { source: sparkleSvg, x: 250, y: 76, scale: 0.8, color: "#ffffff" },
-    { source: heartSvg, x: 248, y: 14, rot: 14, scale: 0.45, color: "#ffcfae" },
+    { source: heartSvg, x: 248, y: 14, rot: 14, scale: 0.675, color: "#ffcfae" }
 ];
 
 let backgroundArt: string | undefined;
@@ -226,10 +226,11 @@ export class AbdlToastTheme extends ToastTheme {
                 backgroundImage: `${getBackgroundArt()}, linear-gradient(135deg, #fffafc 0%, ${tint} 100%)`,
                 backgroundRepeat: "repeat-x, no-repeat",
                 backgroundPosition: "right center, center",
-                backgroundSize: "auto 100%, 100% 100%",
+                backgroundSize: "auto 4.2em, 100% 100%",
                 border: `1.5px solid ${accent}`,
                 borderRadius: "0.35em",
                 boxShadow: `0 6px 18px ${accent}40, 0 0 0 1px rgba(0,0,0,0.04)`,
+                boxSizing: "border-box"
             },
             "::before": {
                 content: "\"\"",
