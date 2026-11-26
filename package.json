@@ -80,6 +80,10 @@
       "import": "./dist/modules/index.js",
       "types": "./dist/types/modules/index.d.ts"
     },
+    "./migration": {
+      "import": "./dist/migration.js",
+      "types": "./dist/types/migration.d.ts"
+    },
     "./subscreens/localization": {
       "import": "./dist/subscreens/localization.js",
       "types": "./dist/types/subscreens/localization.d.ts"

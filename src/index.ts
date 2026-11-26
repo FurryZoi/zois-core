@@ -7,6 +7,7 @@ import { getCurrentSubscreen, setSubscreen, SubscreenConstructor } from "./ui";
 import { initShared } from "./shared";
 import { version } from "../package.json";
 import { ModuleConstructor, ModuleLoadingStrategy, modulesManager } from "./modules";
+import { MigratorConstructor } from "./migration";
 
 
 export interface ModData {
@@ -19,6 +20,7 @@ export interface ModData {
     chatMessageColor?: string
     fontFamily?: string
     modules?: Record<string, ModuleConstructor>
+    migrators?: Record<string, MigratorConstructor>
     subscreens?: Record<string, SubscreenConstructor>
     localization?: {
         locales: {
