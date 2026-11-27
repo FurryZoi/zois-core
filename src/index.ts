@@ -68,7 +68,13 @@ export function bootstrap(modData: ModData): void {
 
     window.ZOIS_CORE.addDependent({
         coreVersion: version,
-        modData
+        modData: {
+            ...modData,
+            modules: undefined,
+            subscreens: undefined,
+            migrators: undefined,
+            onReady: undefined
+        }
     });
 
     hookFunction("GameKeyDown", HookPriority.ADD_BEHAVIOR, (args, next) => {
