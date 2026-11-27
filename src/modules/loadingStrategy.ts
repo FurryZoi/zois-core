@@ -1,7 +1,7 @@
 export enum ModuleLoadingStrategy {
-    BeforeLogin = "beforeLogin",
-    AfterLogin = "afterLogin",
-    Manual = "manual"
+    BEFORE_LOGIN = "beforeLogin",
+    AFTER_LOGIN = "afterLogin",
+    MANUAL = "manual"
 }
 
 const MODULE_LOADING_STRATEGIES: WeakMap<Function, ModuleLoadingStrategy> = new WeakMap();

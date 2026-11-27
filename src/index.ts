@@ -120,11 +120,11 @@ export function bootstrap(modData: ModData): void {
             return new Module();
         })
     );
-    modulesManager.loadByStrategy(ModuleLoadingStrategy.BeforeLogin);
+    modulesManager.loadByStrategy(ModuleLoadingStrategy.BEFORE_LOGIN);
 
     ServerIsLoggedInAsync().then(() => {
         loadLocalization();
-        modulesManager.loadByStrategy(ModuleLoadingStrategy.AfterLogin);
+        modulesManager.loadByStrategy(ModuleLoadingStrategy.AFTER_LOGIN);
         if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
     });
 }
