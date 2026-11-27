@@ -59,12 +59,12 @@ export let MOD_DATA: ModData;
  * Bootstraps the mod by initializing core systems and setting up essential hooks and event listeners.
  * @param modData - The mod configuration.
  */
-export function bootstrap(modData: ModData): void {
+export async function bootstrap(modData: ModData): Promise<void> {
     MOD_DATA = modData;
     createModSdk();
     createEventBus();
 
-    if (!window.ZOIS_CORE) initShared();
+    if (!window.ZOIS_CORE) await initShared();
 
     window.ZOIS_CORE.addDependent({
         coreVersion: version,
@@ -115,18 +115,12 @@ export function bootstrap(modData: ModData): void {
         }
     });
 
-    modulesManager.registerModules(
-        ...Object.values(MOD_DATA.modules ?? {}).map((Module) => {
-            return new Module();
-        })
-    );
+    modulesManager.registerModules();
     modulesManager.loadByStrategy(ModuleLoadingStrategy.BEFORE_LOGIN);
-
-    ServerIsLoggedInAsync().then(() => {
-        loadLocalization();
-        modulesManager.loadByStrategy(ModuleLoadingStrategy.AFTER_LOGIN);
-        if (modData.onReady) setTimeout(modData.onReady, getRandomNumber(3000, 6000));
-    });
+    await ServerIsLoggedInAsync();
+    await loadLocalization();
+    modulesManager.loadByStrategy(ModuleLoadingStrategy.AFTER_LOGIN);
+    if (modData.onReady) modData.onReady();
 }
 
 export function sleep(ms: number): Promise<() => {}> {

@@ -1,4 +1,3 @@
-
 import { logger } from "../logging";
 import { BaseModule } from "./baseModule";
 import { ModuleContext } from "./moduleContext";
@@ -6,6 +5,7 @@ import {
     getLoadingStrategy,
     ModuleLoadingStrategy
 } from "./loadingStrategy";
+import { MOD_DATA } from "../index";
 
 export class ModulesManager {
     private readonly modules: Map<string, BaseModule> = new Map();
@@ -13,14 +13,17 @@ export class ModulesManager {
     private readonly loaded: Set<string> = new Set();
     private readonly contexts: Map<string, ModuleContext> = new Map();
 
-    public constructor() { }
+    public registerModules(): void {
+        const modules = Object.values(MOD_DATA.modules ?? {}).map((Module) => {
+            return new Module();
+        });
 
-    public registerModules(...modules: BaseModule[]): void {
         for (const module of modules) {
-            const name: string = module.constructor.name;
+            const name = module.constructor.name;
 
             if (this.modules.has(name)) {
-                throw new Error(`Module "${name}" is already registered`);
+                logger.error(`Module "${name}" is already registered`);
+                continue;
             }
 
             this.modules.set(name, module);
@@ -99,12 +102,15 @@ export class ModulesManager {
         } catch (error: unknown) {
             logger.error(`Module "${name}" failed during "load":`, error);
             context.dispose();
+            logger.log(`Disposed ${name}'s context`);
 
             return false;
         }
     }
 
     public loadByStrategy(strategy: ModuleLoadingStrategy): void {
+        const loaded: string[] = [];
+        const failed: string[] = [];
         for (const [name, module] of this.modules) {
             const moduleStrategy = getLoadingStrategy(module.constructor);
 
@@ -117,8 +123,11 @@ export class ModulesManager {
                 continue;
             }
 
-            this.load(name);
+            if (this.load(name)) loaded.push(name);
+            else failed.push(name);
         }
+        logger.log(`Loaded modules during ${strategy} phase (${loaded.length}):`, loaded);
+        logger.log(`Failed modules during ${strategy} phase (${failed.length}):`, failed);
     }
 
     public unload(name: string): boolean {

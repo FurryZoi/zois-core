@@ -211,19 +211,7 @@ export function addDependent(dependent: DependentInfo): void {
     }
 }
 
-export function setDependentCustomTranslations(modKey: string, data: Record<string, any>): void {
-    customTranslations.set(modKey, data);
-}
-
-export function getDependentCustomTranslations(modKey: string): Record<string, any> | null {
-    return customTranslations.get(modKey) ?? null;
-}
-
-export function clearDependentCustomTranslations(modKey: string): void {
-    customTranslations.delete(modKey);
-}
-
-export function initShared(): void {
+export async function initShared(): Promise<void> {
     if (window.ZOIS_CORE) return;
 
     logger.log("Initializing zois-core shared environment");
@@ -235,20 +223,17 @@ export function initShared(): void {
         document.head.append(style);
     }
 
-    waitFor(() => MainCanvas !== undefined).then(initCssVars);
+    await waitFor(() => MainCanvas !== undefined);
+    initCssVars();
 
     ServerIsLoggedInAsync().then(initToastThemes);
-
     initMagicLinks();
 
     window.ZOIS_CORE = Object.freeze({
         version,
         getEventBus,
         getDependents,
-        addDependent,
-        setDependentCustomTranslations,
-        getDependentCustomTranslations,
-        clearDependentCustomTranslations,
+        addDependent
     });
 
     const coreSettings = getSettings();

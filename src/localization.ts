@@ -302,8 +302,8 @@ export async function loadLocalization(): Promise<void> {
         loadCustomTranslation();
     });
 
-    loadOfficialTranslation();
-    loadCustomTranslation();
+    await loadOfficialTranslation();
+    await loadCustomTranslation();
 }
 
 function getNestedValue(obj: unknown, path: string): string | undefined {

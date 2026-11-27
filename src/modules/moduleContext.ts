@@ -9,8 +9,6 @@ export class ModuleContext {
     private readonly cleanups: Set<() => void> = new Set();
     private disposed: boolean = false;
 
-    public constructor() { }
-
     private registerCleanup(cleanup: () => void): () => void {
         let active: boolean = true;
 
