@@ -191,12 +191,12 @@ interface DialogCloseButtonProps extends BaseProps {
 export function DialogCloseButton(props: DialogCloseButtonProps) {
     const btnClassName = getDynamicClass({
         base: {
-            borderRadius: "50%",
+            borderRadius: "50% !important",
             display: "grid",
             placeItems: "center",
-            aspectRatio: "1/1",
-            fontSize: "14px",
-            padding: "0.4em"
+            aspectRatio: "1/1 !important",
+            fontSize: "14px !important",
+            padding: "0.4em !important"
         }
     });
     return (
